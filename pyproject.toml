@@ -25,7 +25,7 @@ dev = ["pytest", "black", "isort", "flake8", "flake8-bugbear", "Flake8-pyproject
 zip-safe = false
 
 [tool.setuptools.packages.find]
-where = ["CryptoGuesser"]
+where = ["project"]
 
 [tool.isort]
 profile = "black"
