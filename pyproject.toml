@@ -12,7 +12,7 @@ requires-python = ">=3.9"
 dependencies = [
     "base58",
     "django",
-    "django-rest-framework",
+    "djangorestframework",
     "drf-nested-routers",
     "pycryptodome",
     "sympy",
