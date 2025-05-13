@@ -26,12 +26,11 @@ class Target(models.Model):
     """
     A target for any given day
     """
-
-    public_key = models.ForeignKey(PublicKey, on_delete=models.CASCADE)
+    public_key = models.ForeignKey(PublicKey, on_delete=models.CASCADE, related_name='public_key')
     metadata = models.ManyToManyField(Metadata, related_name='metadata')
     explorer_link = models.URLField()
-    half = models.ForeignKey(PublicKey, on_delete=models.SET_NULL)
-    double = models.ForeignKey(PublicKey, on_delete=models.SET_NULL)
+    half = models.ForeignKey(PublicKey, on_delete=models.SET_NULL, null=True, blank=True, related_name='half')
+    double = models.ForeignKey(PublicKey, on_delete=models.SET_NULL, null=True, blank=True, related_name='double')
     used_on = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -43,8 +42,8 @@ class Guess(models.Model):
     """
     # TODO Always check if a public key is in the target table during a guess
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True, unique=True)
-    submitted_key = models.ForeignKey(PublicKey, on_delete=models.CASCADE)
-    target = models.ForeignKey(Target, on_delete=models.SET_NULL)
-    distance = models.ForeignKey(PublicKey, on_delete=models.SET_NULL, null=True, blank=True)
+    submitted_key = models.ForeignKey(PublicKey, on_delete=models.CASCADE, related_name='submitted_key')
+    target = models.ForeignKey(Target, on_delete=models.CASCADE, related_name='target')
+    distance = models.ForeignKey(PublicKey, on_delete=models.SET_NULL, null=True, blank=True, related_name='distance')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
