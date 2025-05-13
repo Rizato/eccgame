@@ -40,6 +40,7 @@ class Guess(models.Model):
     Represents a guess for a particular target
     """
     # TODO Always check if a public key is in the target table during a guess
+    # TODO Guesses must be SIGNED! That is how they prove they got the key correct
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, blank=True, unique=True)
     submitted_key = models.ForeignKey(PublicKey, on_delete=models.CASCADE, related_name='submitted_key')
     target = models.ForeignKey(Target, on_delete=models.CASCADE, related_name='target')
