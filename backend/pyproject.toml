@@ -14,7 +14,7 @@ dependencies = [
     "django",
     "djangorestframework",
     "drf-nested-routers",
-    "pycryptodome",
+    "ecdsa",
     "sympy",
 ]
 
