@@ -13,6 +13,7 @@ class GuessView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
     queryset = Guess.objects.all()
     serializer_class = GuessSerializer
     throttle_classes = [AnonRateThrottle]
+    lookup_field = "uuid"
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
