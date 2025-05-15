@@ -18,8 +18,12 @@ class GuessView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Enforce guess limits per user per challenge
+        # Ensure challenge is active
         challenge = serializer.validated_data["challenge"]
+        if not challenge.active:
+            raise PermissionDenied(f"Challenge {challenge.uuid} is not active")
+
+        # Enforce guess limits per user per challenge
         self.enforce_guess_limit(request, challenge.uuid)
 
         # Calls perform_create, and update

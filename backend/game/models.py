@@ -32,7 +32,6 @@ class Challenge(models.Model):
     public_key = models.CharField(max_length=66)
     metadata = models.ManyToManyField(Metadata, related_name="metadata")
     explorer_link = models.URLField()
-    # TODO Validate that this target is active when guessing
     active = models.BooleanField(default=False)
     active_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
