@@ -52,6 +52,3 @@ class GuessView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
         guess.evaluate_key()
         # TODO Defer verification until later
         guess.verify()
-
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
