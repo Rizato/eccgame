@@ -1,18 +1,12 @@
-from django.urls import path
-from rest_framework.urlpatterns import format_suffix_patterns
+from django.urls import include, path
+from rest_framework import routers
 
-from backend.game import views
+from backend.game.views import DailyChallengeView, GuessViewSet
+
+router = routers.SimpleRouter()
+router.register(r"guesses", GuessViewSet)
 
 urlpatterns = [
-    path("challenges/", views.ChallengeList.as_view()),
-    # TODO route by uuid
-    path("challenges/<int:pk>/", views.ChallengeDetail.as_view()),
-    # TODO Add daily challenge path
-    path("metadata/", views.MetadataList.as_view()),
-    path("metadata/<int:pk>", views.MetadataDetail.as_view()),
-    path("guess/", views.GuessList.as_view()),
-    # TODO route by uuid
-    path("guess/<int:pk>", views.GuessDetail.as_view()),
+    path("daily/", DailyChallengeView.as_view()),
+    path("", include(router.urls)),
 ]
-
-urlpatterns = format_suffix_patterns(urlpatterns)

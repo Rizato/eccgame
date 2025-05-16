@@ -12,7 +12,7 @@ from backend.game.models import Challenge, ChallengeSentinel, Guess
 from backend.game.serializers import ChallengeSerializer, GuessSerializer
 
 
-class ChallengeView(views.APIView):
+class DailyChallengeView(views.APIView):
     """
     Class-based view to get the current daily challenge.
     This updates the challenge lazily upon first request of the day
@@ -64,7 +64,7 @@ class ChallengeView(views.APIView):
         return challenge
 
 
-class GuessView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
+class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
     queryset = Guess.objects.all()
     serializer_class = GuessSerializer
     throttle_classes = [AnonRateThrottle]
