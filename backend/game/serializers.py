@@ -1,7 +1,7 @@
 from ecdsa import MalformedPointError, SECP256k1, VerifyingKey
 from rest_framework import serializers
 
-from backend.game.models import Challenge, Guess, Metadata
+from game.models import Challenge, Guess, Metadata
 
 
 class MetaDataSerializer(serializers.ModelSerializer):

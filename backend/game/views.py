@@ -8,8 +8,8 @@ from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from backend.game.models import Challenge, ChallengeSentinel, Guess
-from backend.game.serializers import ChallengeSerializer, GuessSerializer
+from game.models import Challenge, ChallengeSentinel, Guess
+from game.serializers import ChallengeSerializer, GuessSerializer
 
 
 class DailyChallengeView(views.APIView):

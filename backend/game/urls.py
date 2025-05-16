@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from backend.game.views import DailyChallengeView, GuessViewSet
+from game.views import DailyChallengeView, GuessViewSet
 
 router = routers.SimpleRouter()
 router.register(r"guesses", GuessViewSet)
