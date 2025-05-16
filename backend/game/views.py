@@ -1,12 +1,67 @@
+import datetime
+
 import settings
-from rest_framework import status, viewsets
+from django.db import transaction
+from rest_framework import status, views, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from backend.game.models import Guess
-from backend.game.serializers import GuessSerializer
+from backend.game.models import Challenge, ChallengeSentinel, Guess
+from backend.game.serializers import ChallengeSerializer, GuessSerializer
+
+
+class ChallengeView(views.APIView):
+    """
+    Class-based view to get the current daily challenge.
+    This updates the challenge lazily upon first request of the day
+    """
+
+    throttle_classes = [AnonRateThrottle]
+
+    def get(self, request, *args, **kwargs) -> Response:
+        challenge = self.get_or_create_daily_challenge()
+        return Response(ChallengeSerializer(challenge).data, status=status.HTTP_200_OK)
+
+    @transaction.atomic()
+    def get_or_create_daily_challenge(self) -> Challenge:
+        # TODO Check Cache
+        sentinel = ChallengeSentinel.objects.select_for_update().first()
+        today = datetime.date.today()
+        # Return active challenge if found, and still valid
+        active = Challenge.objects.select_for_update().filter(active=True).first()
+        if active and active.active_date == today:
+            # TODO Ensure only one active at a time at the DB level
+            return active
+
+        # deactivate if passed expiration
+        if active:
+            active.active = False
+            active.save(update_fields=("active",))
+
+        # Get a new active challenge (randomly selected)
+        challenge = (
+            Challenge.objects.filter(active=False, active_date=None)
+            .order_by("?")
+            .first()
+        )
+        if not challenge:
+            raise RuntimeError("No challenges available")
+
+        challenge.active_date = today
+        challenge.active = True
+        challenge.save(
+            update_fields=(
+                "active_date",
+                "active",
+            )
+        )
+
+        # Save sentinel and release lock
+        sentinel.save(update_fields=("updated_at",))
+
+        return challenge
 
 
 class GuessView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
@@ -29,6 +84,7 @@ class GuessView(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
 
         # Calls perform_create, and update
         self.perform_create(serializer)
+        # Serializer instance is set by serializer.save(), which is before we update fields
         serializer.instance.refresh_from_db()
 
         # From CreateModelMixin

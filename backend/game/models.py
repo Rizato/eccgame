@@ -22,6 +22,15 @@ class Metadata(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class ChallengeSentinel(models.Model):
+    """
+    A sential object that we lock when selecting a new challenge.
+    Ensures that we can safely select a new challenge even if none is set
+    """
+
+    updated_at = models.DateField(auto_now=True)
+
+
 # Create your models here
 class Challenge(models.Model):
     """
@@ -33,7 +42,7 @@ class Challenge(models.Model):
     metadata = models.ManyToManyField(Metadata, related_name="metadata")
     explorer_link = models.URLField()
     active = models.BooleanField(default=False)
-    active_date = models.DateTimeField(null=True, blank=True)
+    active_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -48,8 +57,7 @@ class Guess(models.Model):
         INCORRECT = "incorrect", translate_lazy("Incorrect")
         NEGATED = "negated", translate_lazy("Negated")
 
-    # TODO Always check if a public key is in the challenge table during a guess
-    # TODO Guesses must be SIGNED! That is how they prove they got the key correct
+    # TODO Generate stats in a daily analysis
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     public_key = models.CharField(max_length=66)
     # Checks if the key is even a point on the ecc curve
