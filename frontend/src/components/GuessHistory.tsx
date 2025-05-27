@@ -1,5 +1,5 @@
 import React from 'react';
-import { GuessResponse } from '../types/api';
+import type { GuessResponse } from '../types/api';
 import './GuessHistory.css';
 
 interface GuessHistoryProps {

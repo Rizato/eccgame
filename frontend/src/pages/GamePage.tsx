@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Challenge, GuessRequest, GuessResponse } from '../types/api';
+import type { Challenge, GuessRequest, GuessResponse } from '../types/api';
 import { challengeApi } from '../services/api';
 import ChallengeCard from '../components/ChallengeCard';
 import GuessForm from '../components/GuessForm';

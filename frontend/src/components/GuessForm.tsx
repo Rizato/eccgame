@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GuessRequest } from '../types/api';
+import type { GuessRequest } from '../types/api';
 import { isValidPublicKey, isValidSignature } from '../utils/crypto';
 import './GuessForm.css';
 

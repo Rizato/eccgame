@@ -1,5 +1,5 @@
 import React from 'react';
-import { Challenge } from '../types/api';
+import type { Challenge } from '../types/api';
 import './ChallengeCard.css';
 
 interface ChallengeCardProps {
