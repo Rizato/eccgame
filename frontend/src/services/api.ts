@@ -12,7 +12,7 @@ const api = axios.create({
 });
 
 // Add CSRF token handling for Django
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(config => {
   const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') as HTMLInputElement;
   if (csrfToken) {
     config.headers['X-CSRFToken'] = csrfToken.value;

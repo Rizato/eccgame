@@ -9,11 +9,7 @@ interface GuessFormProps {
   remainingGuesses?: number;
 }
 
-const GuessForm: React.FC<GuessFormProps> = ({
-  onSubmit,
-  isLoading,
-  remainingGuesses
-}) => {
+const GuessForm: React.FC<GuessFormProps> = ({ onSubmit, isLoading, remainingGuesses }) => {
   const [publicKey, setPublicKey] = useState('');
   const [signature, setSignature] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -83,16 +79,15 @@ const GuessForm: React.FC<GuessFormProps> = ({
             type="text"
             id="publicKey"
             value={publicKey}
-            onChange={(e) => setPublicKey(e.target.value)}
+            onChange={e => setPublicKey(e.target.value)}
             placeholder="Enter the public key (hex format)"
             className={errors.publicKey ? 'error' : ''}
             disabled={isDisabled}
           />
-          {errors.publicKey && (
-            <span className="error-message">{errors.publicKey}</span>
-          )}
+          {errors.publicKey && <span className="error-message">{errors.publicKey}</span>}
           <small className="help-text">
-            Enter the public key in hexadecimal format (66 characters for compressed, 130 for uncompressed)
+            Enter the public key in hexadecimal format (66 characters for compressed, 130 for
+            uncompressed)
           </small>
         </div>
 
@@ -104,25 +99,19 @@ const GuessForm: React.FC<GuessFormProps> = ({
           <textarea
             id="signature"
             value={signature}
-            onChange={(e) => setSignature(e.target.value)}
+            onChange={e => setSignature(e.target.value)}
             placeholder="Enter the cryptographic signature"
             rows={3}
             className={errors.signature ? 'error' : ''}
             disabled={isDisabled}
           />
-          {errors.signature && (
-            <span className="error-message">{errors.signature}</span>
-          )}
+          {errors.signature && <span className="error-message">{errors.signature}</span>}
           <small className="help-text">
             Enter the signature proving you control the private key
           </small>
         </div>
 
-        <button
-          type="submit"
-          className="submit-button"
-          disabled={isDisabled}
-        >
+        <button type="submit" className="submit-button" disabled={isDisabled}>
           {isLoading ? 'Submitting...' : 'Submit Guess'}
         </button>
 

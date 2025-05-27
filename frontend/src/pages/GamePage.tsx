@@ -27,7 +27,7 @@ const GamePage: React.FC = () => {
       setChallenge(dailyChallenge);
     } catch (err) {
       console.error('Failed to load daily challenge:', err);
-      setError('Failed to load today\'s challenge. Please try again.');
+      setError("Failed to load today's challenge. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,6 @@ const GamePage: React.FC = () => {
       if (result.result === 'correct') {
         alert('🎉 Congratulations! You found the correct private key!');
       }
-
     } catch (err: any) {
       console.error('Failed to submit guess:', err);
 

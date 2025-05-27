@@ -16,9 +16,7 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge }) => {
       <div className="challenge-header">
         <h2>Daily Challenge</h2>
         {challenge.active_date && (
-          <span className="challenge-date">
-            {formatDate(challenge.active_date)}
-          </span>
+          <span className="challenge-date">{formatDate(challenge.active_date)}</span>
         )}
       </div>
 
@@ -42,7 +40,7 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge }) => {
           <div className="metadata-section">
             <label>Tags:</label>
             <div className="metadata-tags">
-              {challenge.metadata.map((meta) => (
+              {challenge.metadata.map(meta => (
                 <span key={meta.id} className="tag">
                   {meta.name}
                 </span>
