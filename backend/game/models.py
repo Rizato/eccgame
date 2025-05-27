@@ -12,16 +12,6 @@ from ecdsa import (
 )
 
 
-class Metadata(models.Model):
-    """
-    Individual tags that can be applied to a challenge
-    """
-
-    name = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
 class ChallengeSentinel(models.Model):
     """
     A sential object that we lock when selecting a new challenge.
@@ -41,10 +31,22 @@ class Challenge(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
     p2pkh_address = models.CharField(max_length=34)
     public_key = models.CharField(max_length=66)
-    metadata = models.ManyToManyField(Metadata, related_name="metadata")
     explorer_link = models.URLField()
     active = models.BooleanField(default=False)
     active_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class Metadata(models.Model):
+    """
+    Individual tags that can be applied to a challenge
+    """
+
+    name = models.CharField(max_length=255)
+    challenge = models.ForeignKey(
+        Challenge, on_delete=models.CASCADE, related_name="metadata"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
