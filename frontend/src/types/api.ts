@@ -1,0 +1,35 @@
+export interface Challenge {
+  uuid: string;
+  p2pkh_address: string;
+  public_key: string;
+  explorer_link: string;
+  metadata: Metadata[];
+  active: boolean;
+  active_date: string | null;
+  created_at: string;
+}
+
+export interface Metadata {
+  id: number;
+  name: string;
+}
+
+export interface Guess {
+  uuid: string;
+  public_key: string;
+  signature: string;
+  result: 'correct' | 'incorrect' | null;
+  is_key_valid: boolean | null;
+  is_signature_valid: boolean | null;
+  validated_at: string | null;
+  created_at: string;
+}
+
+export interface GuessRequest {
+  public_key: string;
+  signature: string;
+}
+
+export interface GuessResponse extends Guess {
+  challenge: string; // UUID
+}
