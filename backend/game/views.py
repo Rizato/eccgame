@@ -3,6 +3,7 @@ import datetime
 from django.db import transaction
 from rest_framework import status, views, viewsets
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import get_object_or_404
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
@@ -83,22 +84,19 @@ class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin
     Guesses for any challenge
     """
 
-    queryset = Guess.objects.all()
     serializer_class = GuessSerializer
     throttle_classes = [AnonRateThrottle]
     lookup_field = "uuid"
+
+    def get_queryset(self):
+        return Guess.objects.filter(challenge=self.kwargs["challenge_uuid"])
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Ensure challenge is active
-        challenge = serializer.validated_data["challenge"]
-        if not challenge.active:
-            raise PermissionDenied(f"Challenge {challenge.uuid} is not active")
-
         # Enforce guess limits per user per challenge
-        self.enforce_guess_limit(request, challenge.uuid)
+        self.enforce_guess_limit(request, self.kwargs["challenge_uuid"])
 
         # Calls perform_create, and update
         self.perform_create(serializer)
@@ -123,7 +121,14 @@ class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin
         request.session.modified = True
 
     def perform_create(self, serializer):
-        guess = serializer.save()
+        challenge_uuid = self.kwargs["challenge_uuid"]
+        challenge = get_object_or_404(Challenge, uuid=challenge_uuid)
+
+        # Ensure challenge is active
+        if not challenge.active:
+            raise PermissionDenied(f"Challenge {challenge.uuid} is not active")
+
+        guess = serializer.save(challenge=challenge)
         guess.evaluate_key()
         # TODO Defer verification until later
         guess.verify()

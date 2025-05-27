@@ -1,6 +1,5 @@
 from ecdsa import MalformedPointError, SECP256k1, VerifyingKey
 from rest_framework import serializers
-from rest_framework.reverse import reverse
 
 from game.models import Challenge, Guess, Metadata
 
@@ -33,9 +32,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 class GuessSerializer(serializers.ModelSerializer):
     public_key = serializers.CharField(max_length=66)  # 9.62 compressed
-    challenge = serializers.PrimaryKeyRelatedField(
-        queryset=Challenge.objects.filter(active=True)
-    )
+    challenge = serializers.PrimaryKeyRelatedField(read_only=True)
     signature = serializers.CharField(max_length=128)  # hex string of signature data
 
     def validate_key(self, value):

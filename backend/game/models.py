@@ -89,7 +89,7 @@ class Guess(models.Model):
             self.is_key_valid = True
             if challenge.pubkey == guess.pubkey:
                 self.result = "correct"
-            elif challenge.pubkey.x() == guess.pubkey.x():
+            elif challenge.pubkey.point.x() == guess.pubkey.point.x():
                 self.result = "negated"
             else:
                 self.result = "incorrect"
@@ -108,7 +108,7 @@ class Guess(models.Model):
         try:
             message = bytearray.fromhex(self.public_key) + self.challenge.uuid.bytes
             vk.verify(
-                self.signature, message, allow_truncate=False
+                bytearray.fromhex(self.signature), message, allow_truncate=False
             )  # Returns true, or throws exception
             self.is_signature_valid = True
         except (ValueError, BadSignatureError, BadDigestError) as e:
