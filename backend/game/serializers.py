@@ -12,14 +12,25 @@ class MetaDataSerializer(serializers.ModelSerializer):
 
 class ChallengeSerializer(serializers.ModelSerializer):
     metadata = MetaDataSerializer(many=True)
+    showHalf = serializers.BooleanField(default=False)
+    showDouble = serializers.BooleanField(default=False)
+    showGraph = serializers.BooleanField(default=False)
+    showPlaypen = serializers.BooleanField(default=False)
+    guesses = serializers.IntegerField(default=0)
 
     class Meta:
         model = Challenge
         fields = (
             "uuid",
-            "public_key",
+            "p2pkh_address",
             "metadata",
             "explorer_link",
+            "public_key",
+            "showHalf",
+            "showDouble",
+            "showGraph",
+            "showPlaypen",
+            "guesses",
             "active",
             "active_date",
         )

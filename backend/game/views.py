@@ -1,6 +1,5 @@
 import datetime
 
-import settings
 from django.db import transaction
 from rest_framework import status, views, viewsets
 from rest_framework.exceptions import PermissionDenied
@@ -10,6 +9,7 @@ from rest_framework.throttling import AnonRateThrottle
 
 from game.models import Challenge, ChallengeSentinel, Guess
 from game.serializers import ChallengeSerializer, GuessSerializer
+from project import settings
 
 
 class DailyChallengeView(views.APIView):
@@ -22,7 +22,31 @@ class DailyChallengeView(views.APIView):
 
     def get(self, request, *args, **kwargs) -> Response:
         challenge = self.get_or_create_daily_challenge()
-        return Response(ChallengeSerializer(challenge).data, status=status.HTTP_200_OK)
+        serializer = ChallengeSerializer(challenge)
+
+        # Get current guess by session
+        request.session.setdefault("guesses", {})
+        guesses = request.session["guesses"].get(challenge.uuid, 0)
+
+        # Drip feed information with each guess
+        # Order: p2pkh, public key, half, double, graph, playpen
+        serializer.guesses = guesses
+        if guesses < settings.PUBKEY_GUESS_THRESHOLD:
+            serializer.public_key = None
+
+        if guesses >= settings.GRAPH_GUESS_THRESHOLD:
+            serializer.showGraph = True
+
+        if guesses >= settings.HALF_GUESS_THRESHOLD:
+            serializer.showHalf = True
+
+        if guesses >= settings.DOUBLE_GUESS_THRESHOLD:
+            serializer.showDouble = True
+
+        if guesses >= settings.PLAYPEN_GUESS_THRESHOLD:
+            serializer.showPlaypen = True
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @transaction.atomic()
     def get_or_create_daily_challenge(self) -> Challenge:
@@ -40,6 +64,7 @@ class DailyChallengeView(views.APIView):
             active.active = False
             active.save(update_fields=("active",))
 
+        # TODO Select from curated keys first
         # Get a new active challenge (randomly selected)
         challenge = (
             Challenge.objects.filter(active=False, active_date=None)

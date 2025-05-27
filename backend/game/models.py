@@ -28,6 +28,7 @@ class ChallengeSentinel(models.Model):
     Ensures that we can safely select a new challenge even if none is set
     """
 
+    # TODO FKEY here instead for active challenges
     updated_at = models.DateField(auto_now=True)
 
 
@@ -38,6 +39,7 @@ class Challenge(models.Model):
     """
 
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
+    p2pkh_address = models.CharField(max_length=34)
     public_key = models.CharField(max_length=66)
     metadata = models.ManyToManyField(Metadata, related_name="metadata")
     explorer_link = models.URLField()
