@@ -14,38 +14,14 @@ from project import settings
 
 class DailyChallengeView(views.APIView):
     """
-    Class-based view to get the current daily challenge.
-    This updates the challenge lazily upon first request of the day
+    The current daily challenge, updates lazily
     """
 
     throttle_classes = [AnonRateThrottle]
 
     def get(self, request, *args, **kwargs) -> Response:
         challenge = self.get_or_create_daily_challenge()
-        serializer = ChallengeSerializer(challenge)
-
-        # Get current guess by session
-        request.session.setdefault("guesses", {})
-        guesses = request.session["guesses"].get(challenge.uuid, 0)
-
-        # Drip feed information with each guess
-        # Order: p2pkh, public key, half, double, graph, playpen
-        serializer.guesses = guesses
-        if guesses < settings.PUBKEY_GUESS_THRESHOLD:
-            serializer.public_key = None
-
-        if guesses >= settings.GRAPH_GUESS_THRESHOLD:
-            serializer.showGraph = True
-
-        if guesses >= settings.HALF_GUESS_THRESHOLD:
-            serializer.showHalf = True
-
-        if guesses >= settings.DOUBLE_GUESS_THRESHOLD:
-            serializer.showDouble = True
-
-        if guesses >= settings.PLAYPEN_GUESS_THRESHOLD:
-            serializer.showPlaypen = True
-
+        serializer = ChallengeSerializer(challenge, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @transaction.atomic()
@@ -89,7 +65,24 @@ class DailyChallengeView(views.APIView):
         return challenge
 
 
+# TODO Drip feed information with each guess client side
+# Order: p2pkh, public key, half, double, graph, playpen
+class ChallengeViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
+    """
+    A Challenge Wallet
+    """
+
+    queryset = Challenge.objects.all()
+    serializer_class = ChallengeSerializer
+    throttle_classes = [AnonRateThrottle]
+    lookup_field = "uuid"
+
+
 class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
+    """
+    Guesses for any challenge
+    """
+
     queryset = Guess.objects.all()
     serializer_class = GuessSerializer
     throttle_classes = [AnonRateThrottle]

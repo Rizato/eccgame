@@ -1,5 +1,6 @@
 from ecdsa import MalformedPointError, SECP256k1, VerifyingKey
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from game.models import Challenge, Guess, Metadata
 
@@ -12,11 +13,9 @@ class MetaDataSerializer(serializers.ModelSerializer):
 
 class ChallengeSerializer(serializers.ModelSerializer):
     metadata = MetaDataSerializer(many=True)
-    showHalf = serializers.BooleanField(default=False)
-    showDouble = serializers.BooleanField(default=False)
-    showGraph = serializers.BooleanField(default=False)
-    showPlaypen = serializers.BooleanField(default=False)
-    guesses = serializers.IntegerField(default=0)
+    hyperlink = serializers.HyperlinkedIdentityField(
+        lookup_field="uuid", read_only=True, view_name="challenge-detail"
+    )
 
     class Meta:
         model = Challenge
@@ -26,11 +25,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
             "metadata",
             "explorer_link",
             "public_key",
-            "showHalf",
-            "showDouble",
-            "showGraph",
-            "showPlaypen",
-            "guesses",
+            "hyperlink",
             "active",
             "active_date",
         )
