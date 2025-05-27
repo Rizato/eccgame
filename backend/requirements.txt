@@ -5,14 +5,19 @@
 #    pip-compile --output-file=requirements.txt pyproject.toml
 #
 asgiref==3.8.1
-    # via django
+    # via
+    #   django
+    #   django-cors-headers
 base58==2.1.1
     # via crypto (pyproject.toml)
 django==5.2
     # via
     #   crypto (pyproject.toml)
+    #   django-cors-headers
     #   djangorestframework
     #   drf-nested-routers
+django-cors-headers==4.7.0
+    # via crypto (pyproject.toml)
 djangorestframework==3.16.0
     # via
     #   crypto (pyproject.toml)
