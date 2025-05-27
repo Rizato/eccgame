@@ -112,7 +112,7 @@ class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin
     def enforce_guess_limit(self, request, challenge_uuid):
         request.session.setdefault("guesses", {})
         guesses = request.session["guesses"].get(challenge_uuid, 0)
-        if guesses > settings.MAX_GUESSES:
+        if guesses >= settings.MAX_GUESSES:
             raise PermissionDenied(
                 "You have already submitted the maximum number of guesses for this challenge."
             )
