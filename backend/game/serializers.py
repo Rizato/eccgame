@@ -66,6 +66,7 @@ class GuessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Guess
         fields = (
+            "uuid",
             "public_key",
             "challenge",
             "signature",
@@ -75,7 +76,9 @@ class GuessSerializer(serializers.ModelSerializer):
             "validated_at",
         )
         read_only_fields = (
+            "uuid",
             "result",
+            "challenge",
             "is_signature_valid",
             "is_key_valid",
             "validated_at",
