@@ -118,8 +118,8 @@ const GamePage: React.FC = () => {
       <header className="game-header">
         <div className="header-content">
           <div className="header-text">
-            <h1>🔐 Crypto Guesser</h1>
-            <p>Find the private key that controls this Bitcoin address!</p>
+            <h1>🔐 PuzzleECC</h1>
+            <p>Master elliptic curve cryptography through daily puzzles!</p>
           </div>
           <ThemeToggle />
         </div>
@@ -139,8 +139,8 @@ const GamePage: React.FC = () => {
           <div className="security-warning">
             <span className="warning-icon">⚠️</span>
             <div className="warning-text">
-              <strong>Security Warning:</strong> NEVER enter your wallet's private keys into any
-              website. Only use test keys or generated keys for this game.
+              <strong>Security Warning:</strong> NEVER enter your wallet's private keys into this or
+              any untrusted website. Only generate new keys for this game.
             </div>
           </div>
 
