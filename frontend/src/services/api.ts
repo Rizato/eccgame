@@ -1,3 +1,18 @@
+/**
+ * CRYPTO GUESSER API MODULE - TRANSPARENCY NOTICE
+ *
+ * This file is intentionally unminified in production builds to allow
+ * users to verify that private keys are NEVER transmitted to the server.
+ *
+ * PRIVACY GUARANTEE:
+ * - Only public keys and cryptographic signatures are sent to the server
+ * - Private keys remain in your browser and are never transmitted
+ * - All cryptographic operations happen client-side
+ *
+ * You can inspect this code in your browser's developer tools to verify
+ * that no private key data is included in any API requests.
+ */
+
 import axios from 'axios';
 import type { Challenge, GuessRequest, GuessResponse } from '../types/api';
 
@@ -34,7 +49,16 @@ export const challengeApi = {
   },
 
   // Submit a guess for a challenge
+  // TRANSPARENCY: This only sends public_key and signature - NO private key data
   submitGuess: async (challengeUuid: string, guess: GuessRequest): Promise<GuessResponse> => {
+    /*
+     * PRIVACY VERIFICATION:
+     * The 'guess' object only contains:
+     * - public_key: string (derived from private key, safe to transmit)
+     * - signature: string (cryptographic proof, safe to transmit)
+     *
+     * Private keys are NEVER included in this request
+     */
     const response = await api.post(`/api/challenges/${challengeUuid}/guess/`, guess);
     return response.data;
   },

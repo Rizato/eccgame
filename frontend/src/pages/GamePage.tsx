@@ -115,7 +115,7 @@ const GamePage: React.FC = () => {
 
       <main className="game-content">
         <ChallengeInfoPanel challenge={challenge} guessCount={guesses.length} />
-
+        <GuessHistory guesses={guesses} targetAddress={challenge.p2pkh_address} />
         {hasWon ? (
           <div className="victory-message">
             <h2>🎉 Congratulations!</h2>
@@ -128,8 +128,6 @@ const GamePage: React.FC = () => {
             remainingGuesses={remainingGuesses}
           />
         )}
-
-        <GuessHistory guesses={guesses} targetAddress={challenge.p2pkh_address} />
       </main>
     </div>
   );

@@ -1,7 +1,28 @@
+/**
+ * CRYPTO GUESSER CRYPTOGRAPHY MODULE - TRANSPARENCY NOTICE
+ *
+ * This file is intentionally unminified in production builds to allow
+ * users to verify the security and privacy of all cryptographic operations.
+ *
+ * SECURITY VERIFICATION:
+ * - All private key operations happen locally in your browser
+ * - Private keys are NEVER stored, logged, or transmitted anywhere
+ * - Only public keys and signatures are generated for server communication
+ * - Uses industry-standard secp256k1 elliptic curve cryptography
+ *
+ * PRIVACY GUARANTEE:
+ * - generateGuessFromPrivateKey() only returns public key + signature
+ * - No private key data is included in the return value
+ * - All intermediate calculations are local to this browser session
+ *
+ * You can inspect this code to verify these privacy guarantees.
+ */
+
 import * as secp256k1 from 'secp256k1';
 
 /**
  * Utility functions for SECP256k1 cryptographic operations
+ * All operations are performed CLIENT-SIDE for maximum security
  */
 
 /**
@@ -96,6 +117,10 @@ export async function createSignature(
 
 /**
  * Generate public key and signature from private key for a challenge
+ *
+ * PRIVACY VERIFICATION: This function takes a private key as input but
+ * NEVER includes it in the return value. Only the derived public key
+ * and cryptographic signature are returned for transmission.
  */
 export async function generateGuessFromPrivateKey(privateKeyHex: string, challengeUuid: string) {
   if (!isValidPrivateKey(privateKeyHex)) {
@@ -105,6 +130,12 @@ export async function generateGuessFromPrivateKey(privateKeyHex: string, challen
   const publicKey = getPublicKeyFromPrivate(privateKeyHex);
   const signature = await createSignature(privateKeyHex, challengeUuid);
 
+  /*
+   * TRANSPARENCY: Return object only contains public information
+   * - public_key: Safe to transmit (derived from private key)
+   * - signature: Safe to transmit (cryptographic proof)
+   * - privateKeyHex: NOT included in return value
+   */
   return {
     public_key: publicKey,
     signature: signature,
