@@ -3,9 +3,8 @@ import type { Challenge, GuessResponse } from '../types/api';
 import { challengeApi } from '../services/api';
 import { generateGuessFromPrivateKey } from '../utils/crypto';
 import { storageUtils } from '../utils/storage';
-import ChallengeInfoPanel from '../components/ChallengeInfoPanel';
-import GuessForm from '../components/GuessForm';
-import GuessCard from '../components/GuessCard';
+import ChallengeDisplay from '../components/ChallengeDisplay';
+import GuessSection from '../components/GuessSection';
 import ThemeToggle from '../components/ThemeToggle';
 import './GamePage.css';
 
@@ -133,63 +132,16 @@ const GamePage: React.FC = () => {
       )}
 
       <main className="game-content">
-        <ChallengeInfoPanel challenge={challenge} guessCount={guesses.length} />
+        <ChallengeDisplay challenge={challenge} guesses={guesses} />
 
-        <section className="game-grid-section">
-          <div className="security-warning">
-            <span className="warning-icon">⚠️</span>
-            <div className="warning-text">
-              <strong>Security Warning:</strong> NEVER enter your wallet's private keys into this or
-              any untrusted website. Only generate new keys for this game.
-            </div>
-          </div>
-
-          <div className="game-grid-header">
-            <h3>Your Guesses ({guesses.length}/6)</h3>
-            {!hasWon && remainingGuesses > 0 && (
-              <span className={`remaining-guesses ${remainingGuesses <= 2 ? 'warning' : ''}`}>
-                {remainingGuesses} remaining
-              </span>
-            )}
-          </div>
-
-          <div className="game-grid">
-            {/* Render completed guesses */}
-            {guesses.map((guess, index) => (
-              <GuessCard
-                key={guess.uuid}
-                guess={guess}
-                guessNumber={guesses.length - index}
-                targetAddress={challenge.p2pkh_address}
-              />
-            ))}
-
-            {/* Render input form for next guess or victory message */}
-            {hasWon ? (
-              <div className="victory-message">
-                <h2>🎉 Congratulations!</h2>
-                <p>
-                  You successfully found the private key! Come back tomorrow for a new challenge.
-                </p>
-              </div>
-            ) : remainingGuesses > 0 ? (
-              <div className="guess-input-row">
-                <div className="guess-number-indicator">#{guesses.length + 1}</div>
-                <GuessForm
-                  onSubmit={handleGuessSubmit}
-                  isLoading={submitting}
-                  remainingGuesses={remainingGuesses}
-                  compact={true}
-                />
-              </div>
-            ) : (
-              <div className="game-over-message">
-                <h3>Game Over</h3>
-                <p>You've used all your guesses. Come back tomorrow for a new challenge!</p>
-              </div>
-            )}
-          </div>
-        </section>
+        <GuessSection
+          challenge={challenge}
+          guesses={guesses}
+          onSubmit={handleGuessSubmit}
+          isLoading={submitting}
+          hasWon={hasWon}
+          remainingGuesses={remainingGuesses}
+        />
       </main>
     </div>
   );

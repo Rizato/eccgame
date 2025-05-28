@@ -172,8 +172,8 @@ const ChallengeInfoPanel: React.FC<ChallengeInfoPanelProps> = ({ challenge, gues
             <span>Negative Generator (-G)</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot target"></span>
-            <span>Target Public Key</span>
+            <span className="legend-dot challenge"></span>
+            <span>Challenge Public Key</span>
           </div>
         </div>
       </div>

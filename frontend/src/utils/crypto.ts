@@ -82,6 +82,145 @@ export function getPublicKeyFromPrivate(privateKeyHex: string): string {
 }
 
 /**
+ * Convert compressed public key to uncompressed format
+ */
+export function getUncompressedPublicKey(compressedHex: string): string {
+  try {
+    const compressedBytes = hexToBytes(compressedHex);
+    const uncompressedBytes = secp256k1.publicKeyConvert(compressedBytes, false);
+    return bytesToHex(uncompressedBytes);
+  } catch {
+    throw new Error('Invalid compressed public key');
+  }
+}
+
+/**
+ * Extract x and y coordinates from uncompressed public key
+ */
+export function getPublicKeyCoordinates(publicKeyHex: string): { x: string; y: string } {
+  try {
+    let uncompressedHex = publicKeyHex;
+
+    // If it's compressed, convert to uncompressed first
+    if (
+      publicKeyHex.length === 66 &&
+      (publicKeyHex.startsWith('02') || publicKeyHex.startsWith('03'))
+    ) {
+      uncompressedHex = getUncompressedPublicKey(publicKeyHex);
+    }
+
+    // Uncompressed key format: 04 + 32 bytes x + 32 bytes y
+    if (uncompressedHex.length !== 130 || !uncompressedHex.startsWith('04')) {
+      throw new Error('Invalid uncompressed public key format');
+    }
+
+    const x = uncompressedHex.slice(2, 66); // First 32 bytes (64 hex chars)
+    const y = uncompressedHex.slice(66, 130); // Second 32 bytes (64 hex chars)
+
+    return { x, y };
+  } catch {
+    throw new Error('Unable to extract coordinates from public key');
+  }
+}
+
+/**
+ * Generate P2PKH address from public key (simplified version)
+ * Note: This is a simplified implementation for display purposes
+ */
+export async function getP2PKHAddress(publicKeyHex: string): Promise<string> {
+  try {
+    let compressed = publicKeyHex;
+
+    // If input is uncompressed, convert to compressed
+    if (publicKeyHex.length === 130 && publicKeyHex.startsWith('04')) {
+      const uncompressedBytes = hexToBytes(publicKeyHex);
+      const compressedBytes = secp256k1.publicKeyConvert(uncompressedBytes, true);
+      compressed = bytesToHex(compressedBytes);
+    }
+
+    const pubKeyBytes = hexToBytes(compressed);
+
+    // SHA256 hash of the public key
+    const sha256Hash = await crypto.subtle.digest('SHA-256', pubKeyBytes);
+
+    // RIPEMD160 would be needed for real Bitcoin addresses, but we'll use a simplified approach
+    // Since we don't have RIPEMD160 in browsers, we'll just return a mock address format
+    // In a real implementation, you'd need a proper Bitcoin address library
+    const sha256Bytes = new Uint8Array(sha256Hash);
+    const addressHash = bytesToHex(sha256Bytes.slice(0, 20)); // Take first 20 bytes
+
+    return `1${addressHash.slice(0, 30)}`; // Mock P2PKH format
+  } catch {
+    throw new Error('Unable to generate P2PKH address');
+  }
+}
+
+/**
+ * Get all public key formats (compressed, uncompressed, coordinates, p2pkh)
+ */
+export async function getAllKeyFormats(publicKeyHex: string): Promise<{
+  compressed: string;
+  uncompressed: string;
+  coordinates: { x: string; y: string };
+  p2pkh: string;
+}> {
+  try {
+    let compressed = publicKeyHex;
+
+    // If input is uncompressed, convert to compressed
+    if (publicKeyHex.length === 130 && publicKeyHex.startsWith('04')) {
+      const uncompressedBytes = hexToBytes(publicKeyHex);
+      const compressedBytes = secp256k1.publicKeyConvert(uncompressedBytes, true);
+      compressed = bytesToHex(compressedBytes);
+    }
+
+    const uncompressed = getUncompressedPublicKey(compressed);
+    const coordinates = getPublicKeyCoordinates(uncompressed);
+    const p2pkh = await getP2PKHAddress(compressed);
+
+    return {
+      compressed,
+      uncompressed,
+      coordinates,
+      p2pkh,
+    };
+  } catch {
+    throw new Error('Invalid public key format');
+  }
+}
+
+/**
+ * Get all public key formats (compressed, uncompressed, coordinates) - synchronous version
+ */
+export function getPublicKeyFormats(publicKeyHex: string): {
+  compressed: string;
+  uncompressed: string;
+  coordinates: { x: string; y: string };
+} {
+  try {
+    let compressed = publicKeyHex;
+
+    // If input is uncompressed, convert to compressed
+    if (publicKeyHex.length === 130 && publicKeyHex.startsWith('04')) {
+      const uncompressedBytes = hexToBytes(publicKeyHex);
+      const compressedBytes = secp256k1.publicKeyConvert(uncompressedBytes, true);
+      compressed = bytesToHex(compressedBytes);
+    }
+
+    const uncompressed = getUncompressedPublicKey(compressed);
+    const coordinates = getPublicKeyCoordinates(uncompressed);
+
+    return {
+      compressed,
+      uncompressed,
+      coordinates,
+    };
+  } catch {
+    throw new Error('Invalid public key format');
+  }
+}
+
+/**
  * Create signature for challenge UUID using private key
  */
 export async function createSignature(
