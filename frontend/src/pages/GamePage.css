@@ -32,9 +32,53 @@
 
 .game-header p {
   font-size: 1.2rem;
-  margin: 0;
+  margin: 0 0 1rem 0;
   opacity: 0.9;
   color: white;
+}
+
+.challenge-address {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.address-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.address-value {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  word-break: break-all;
+  backdrop-filter: blur(10px);
+}
+
+.header-explorer {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 0.8rem;
+  padding: 0.4rem 0.75rem;
+  white-space: nowrap;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s;
+}
+
+.header-explorer:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
 }
 
 .game-content {
@@ -281,6 +325,19 @@
 
   .game-header p {
     font-size: 1rem;
+  }
+
+  .challenge-address {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .address-value {
+    width: 100%;
+    text-align: center;
+    font-size: 0.8rem;
   }
 
   .game-grid-section {

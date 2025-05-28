@@ -8,6 +8,10 @@
   align-items: center;
 }
 
+[data-theme='dark'] .guess-form-container {
+  background: #0f172a;
+}
+
 .guess-form-header {
   display: flex;
   justify-content: space-between;

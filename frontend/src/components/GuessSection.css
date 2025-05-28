@@ -269,14 +269,20 @@
 }
 
 .guess-input-entry {
-  background: var(--input-background);
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
   border: 2px dashed var(--border-color);
   border-radius: 8px;
   padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+[data-theme='dark'] .guess-input-entry {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
 }
 
 .guess-form-container {
-  margin-top: 0.75rem;
+  width: 100%;
 }
 
 .victory-message,

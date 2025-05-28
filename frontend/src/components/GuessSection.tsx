@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import type { Challenge, GuessResponse } from '../types/api';
 import { getPublicKeyFormats, getAllKeyFormats } from '../utils/crypto';
 import GuessForm from './GuessForm';
-import GuessCard from './GuessCard';
 import './GuessSection.css';
 
 interface GuesseSectionProps {
@@ -222,13 +221,16 @@ const GuessSection: React.FC<GuesseSectionProps> = ({
               // Create variations by adjusting these base colors
               const intensity = Math.min(1, guessNumber * 0.15); // 0.15 to 0.9
 
-              // Start from white and get progressively more blue-gray
-              const color1 = Math.round(255 - intensity * 20); // 255 down to 235
-              const color2r = Math.round(248 - intensity * 30); // 248 down to 218
-              const color2g = Math.round(250 - intensity * 25); // 250 down to 225
-              const color2b = Math.round(252 - intensity * 20); // 252 down to 232
+              // Start from white and get progressively more tinted
+              const color1r = Math.round(255 - intensity * 5); // 255 down to 250
+              const color1g = Math.round(255 - intensity * 5); // 255 down to 250
+              const color1b = Math.round(255 - intensity * 5); // 255 down to 250
 
-              return `linear-gradient(135deg, rgb(${color1}, ${color1}, ${color1}), rgb(${color2r}, ${color2g}, ${color2b}))`;
+              const color2r = Math.round(248 - intensity * 8); // 248 down to 240
+              const color2g = Math.round(250 - intensity * 6); // 250 down to 244
+              const color2b = Math.round(252 - intensity * 4); // 252 down to 248
+
+              return `linear-gradient(135deg, rgb(${color1r}, ${color1g}, ${color1b}), rgb(${color2r}, ${color2g}, ${color2b}))`;
             }
           };
 
@@ -268,26 +270,6 @@ const GuessSection: React.FC<GuesseSectionProps> = ({
                   </div>
                   <div className="data-value-container">
                     <code>{formattedData}</code>
-                    <div className="data-actions">
-                      <button
-                        className="copy-button"
-                        onClick={() => navigator.clipboard.writeText(formattedData)}
-                        title="Copy data"
-                      >
-                        📋
-                      </button>
-                      {entry.explorerLink && currentFormat === 'p2pkh' && (
-                        <a
-                          href={entry.explorerLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="explorer-button"
-                          title="View on blockchain explorer"
-                        >
-                          View Explorer
-                        </a>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>
@@ -306,13 +288,20 @@ const GuessSection: React.FC<GuesseSectionProps> = ({
             <div className="data-entry-header">
               <div className="data-entry-label">Guess #{guesses.length + 1}</div>
             </div>
-            <div className="guess-form-container">
-              <GuessForm
-                onSubmit={onSubmit}
-                isLoading={isLoading}
-                remainingGuesses={remainingGuesses}
-                compact={true}
-              />
+            <div className="data-entry-content">
+              <div className="data-row">
+                <div className="data-type-label">PRIVATE KEY</div>
+                <div className="data-value-container">
+                  <div className="guess-form-container">
+                    <GuessForm
+                      onSubmit={onSubmit}
+                      isLoading={isLoading}
+                      remainingGuesses={remainingGuesses}
+                      compact={true}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
