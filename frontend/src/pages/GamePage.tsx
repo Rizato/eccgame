@@ -117,6 +117,14 @@ const GamePage: React.FC = () => {
         <ChallengeInfoPanel challenge={challenge} guessCount={guesses.length} />
 
         <section className="game-grid-section">
+          <div className="security-warning">
+            <span className="warning-icon">⚠️</span>
+            <div className="warning-text">
+              <strong>Security Warning:</strong> NEVER enter your wallet's private keys into any
+              website. Only use test keys or generated keys for this game.
+            </div>
+          </div>
+
           <div className="game-grid-header">
             <h3>Your Guesses ({guesses.length}/6)</h3>
             {!hasWon && remainingGuesses > 0 && (
