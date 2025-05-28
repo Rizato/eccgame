@@ -1,10 +1,12 @@
 .guess-history-container {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-top: none;
   padding: 20px;
-  margin: 20px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0;
+  align-items: center;
+  text-align: center;
 }
 
 .guess-history-container h3 {
@@ -131,6 +133,10 @@
 }
 
 @media (max-width: 768px) {
+  .guess-history-container {
+    padding: 16px;
+  }
+
   .guess-header {
     flex-direction: column;
     align-items: flex-start;

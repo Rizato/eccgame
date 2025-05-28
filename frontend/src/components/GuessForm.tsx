@@ -6,9 +6,15 @@ interface GuessFormProps {
   onSubmit: (privateKey: string) => Promise<void>;
   isLoading: boolean;
   remainingGuesses?: number;
+  compact?: boolean;
 }
 
-const GuessForm: React.FC<GuessFormProps> = ({ onSubmit, isLoading, remainingGuesses }) => {
+const GuessForm: React.FC<GuessFormProps> = ({
+  onSubmit,
+  isLoading,
+  remainingGuesses,
+  compact = false,
+}) => {
   const [privateKey, setPrivateKey] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -46,6 +52,30 @@ const GuessForm: React.FC<GuessFormProps> = ({ onSubmit, isLoading, remainingGue
   };
 
   const isDisabled = isLoading || (remainingGuesses !== undefined && remainingGuesses <= 0);
+
+  if (compact) {
+    return (
+      <div className="guess-form-inline">
+        <form onSubmit={handleSubmit} className="guess-form-compact">
+          <div className="form-group-inline">
+            <input
+              type="text"
+              value={privateKey}
+              onChange={e => setPrivateKey(e.target.value)}
+              placeholder="Enter private key (64 character hex)"
+              className={errors.privateKey ? 'error' : ''}
+              disabled={isDisabled}
+              maxLength={66}
+            />
+            <button type="submit" className="submit-button-compact" disabled={isDisabled}>
+              {isLoading ? '⏳' : '➤'}
+            </button>
+          </div>
+          {errors.privateKey && <span className="error-message-inline">{errors.privateKey}</span>}
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="guess-form-container">

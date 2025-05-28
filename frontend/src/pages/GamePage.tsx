@@ -4,7 +4,7 @@ import { challengeApi } from '../services/api';
 import { generateGuessFromPrivateKey } from '../utils/crypto';
 import ChallengeInfoPanel from '../components/ChallengeInfoPanel';
 import GuessForm from '../components/GuessForm';
-import GuessHistory from '../components/GuessHistory';
+import GuessCard from '../components/GuessCard';
 import './GamePage.css';
 
 const MAX_GUESSES = 6; // Should match backend setting
@@ -115,19 +115,54 @@ const GamePage: React.FC = () => {
 
       <main className="game-content">
         <ChallengeInfoPanel challenge={challenge} guessCount={guesses.length} />
-        <GuessHistory guesses={guesses} targetAddress={challenge.p2pkh_address} />
-        {hasWon ? (
-          <div className="victory-message">
-            <h2>🎉 Congratulations!</h2>
-            <p>You successfully found the private key! Come back tomorrow for a new challenge.</p>
+
+        <section className="game-grid-section">
+          <div className="game-grid-header">
+            <h3>Your Guesses ({guesses.length}/6)</h3>
+            {!hasWon && remainingGuesses > 0 && (
+              <span className={`remaining-guesses ${remainingGuesses <= 2 ? 'warning' : ''}`}>
+                {remainingGuesses} remaining
+              </span>
+            )}
           </div>
-        ) : (
-          <GuessForm
-            onSubmit={handleGuessSubmit}
-            isLoading={submitting}
-            remainingGuesses={remainingGuesses}
-          />
-        )}
+
+          <div className="game-grid">
+            {/* Render completed guesses */}
+            {guesses.map((guess, index) => (
+              <GuessCard
+                key={guess.uuid}
+                guess={guess}
+                guessNumber={guesses.length - index}
+                targetAddress={challenge.p2pkh_address}
+              />
+            ))}
+
+            {/* Render input form for next guess or victory message */}
+            {hasWon ? (
+              <div className="victory-message">
+                <h2>🎉 Congratulations!</h2>
+                <p>
+                  You successfully found the private key! Come back tomorrow for a new challenge.
+                </p>
+              </div>
+            ) : remainingGuesses > 0 ? (
+              <div className="guess-input-row">
+                <div className="guess-number-indicator">#{guesses.length + 1}</div>
+                <GuessForm
+                  onSubmit={handleGuessSubmit}
+                  isLoading={submitting}
+                  remainingGuesses={remainingGuesses}
+                  compact={true}
+                />
+              </div>
+            ) : (
+              <div className="game-over-message">
+                <h3>Game Over</h3>
+                <p>You've used all your guesses. Come back tomorrow for a new challenge!</p>
+              </div>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );
