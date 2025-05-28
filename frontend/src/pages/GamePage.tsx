@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Challenge, GuessResponse } from '../types/api';
 import { challengeApi } from '../services/api';
 import { generateGuessFromPrivateKey } from '../utils/crypto';
-import ChallengeCard from '../components/ChallengeCard';
+import ChallengeInfoPanel from '../components/ChallengeInfoPanel';
 import GuessForm from '../components/GuessForm';
 import GuessHistory from '../components/GuessHistory';
 import './GamePage.css';
@@ -114,7 +114,7 @@ const GamePage: React.FC = () => {
       )}
 
       <main className="game-content">
-        <ChallengeCard challenge={challenge} />
+        <ChallengeInfoPanel challenge={challenge} guessCount={guesses.length} />
 
         {hasWon ? (
           <div className="victory-message">
@@ -129,7 +129,7 @@ const GamePage: React.FC = () => {
           />
         )}
 
-        <GuessHistory guesses={guesses} />
+        <GuessHistory guesses={guesses} targetAddress={challenge.p2pkh_address} />
       </main>
     </div>
   );

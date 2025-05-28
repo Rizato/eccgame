@@ -1,0 +1,308 @@
+.guess-card {
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background: white;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.guess-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Result-based styling (Wordle colors) */
+.guess-card.correct {
+  border-color: #6aaa64;
+  background: linear-gradient(135deg, #6aaa64 0%, #5a9a54 100%);
+  color: white;
+}
+
+.guess-card.negated {
+  border-color: #c9b458;
+  background: linear-gradient(135deg, #c9b458 0%, #b9a448 100%);
+  color: white;
+}
+
+.guess-card.incorrect {
+  border-color: #787c7e;
+  background: linear-gradient(135deg, #787c7e 0%, #68726e 100%);
+  color: white;
+}
+
+.guess-card.invalid-key,
+.guess-card.invalid-signature {
+  border-color: #d73027;
+  background: linear-gradient(135deg, #d73027 0%, #c72017 100%);
+  color: white;
+}
+
+.guess-card.pending {
+  border-color: #878a8c;
+  background: #f8f9fa;
+}
+
+/* Header section */
+.guess-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.guess-card-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.guess-number {
+  font-weight: bold;
+  font-size: 16px;
+  min-width: 32px;
+}
+
+.guess-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+}
+
+.result-icon {
+  font-size: 20px;
+}
+
+.result-text {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.guess-key {
+  flex: 1;
+}
+
+.guess-key code {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+}
+
+.guess-card.pending .guess-key code {
+  background: rgba(0, 0, 0, 0.1);
+  color: #666;
+}
+
+.expand-indicator {
+  margin-left: 16px;
+}
+
+.caret {
+  transition: transform 0.2s ease;
+  display: inline-block;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.caret.expanded {
+  transform: rotate(180deg);
+}
+
+/* Details section */
+.guess-card-details {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+}
+
+.guess-card.pending .guess-card-details {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  color: #333;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item label {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge.valid {
+  background: rgba(106, 170, 100, 0.3);
+  color: #4a7c59;
+}
+
+.badge.invalid {
+  background: rgba(215, 48, 39, 0.3);
+  color: #d73027;
+}
+
+.guess-card.pending .badge.valid {
+  background: rgba(34, 139, 34, 0.1);
+  color: #228b22;
+}
+
+.guess-card.pending .badge.invalid {
+  background: rgba(215, 48, 39, 0.1);
+  color: #d73027;
+}
+
+/* Crypto data section */
+.crypto-data {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.crypto-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.crypto-field label {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.crypto-value {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 11px;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.guess-card.pending .crypto-value {
+  background: rgba(0, 0, 0, 0.05);
+  color: #666;
+}
+
+/* Advanced section placeholder */
+.advanced-section {
+  opacity: 0.7;
+}
+
+.placeholder-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.feature-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  text-align: center;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.guess-card.pending .feature-placeholder {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px dashed rgba(0, 0, 0, 0.2);
+  color: #666;
+}
+
+.feature-placeholder span {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.feature-placeholder small {
+  font-size: 11px;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .guess-card-header {
+    padding: 12px 16px;
+  }
+
+  .guess-card-main {
+    gap: 12px;
+  }
+
+  .guess-number {
+    min-width: 28px;
+    font-size: 14px;
+  }
+
+  .guess-result {
+    min-width: 120px;
+  }
+
+  .result-text {
+    font-size: 13px;
+  }
+
+  .guess-key code {
+    font-size: 12px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .placeholder-content {
+    grid-template-columns: 1fr;
+  }
+}

@@ -18,7 +18,7 @@ export interface Guess {
   uuid: string;
   public_key: string;
   signature: string;
-  result: 'correct' | 'incorrect' | null;
+  result: 'correct' | 'incorrect' | 'negated' | null;
   is_key_valid: boolean | null;
   is_signature_valid: boolean | null;
   validated_at: string | null;
