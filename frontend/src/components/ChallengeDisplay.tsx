@@ -51,107 +51,66 @@ const ChallengeDisplay: React.FC<ChallengeDisplayProps> = ({ challenge, guesses 
 
   return (
     <div className="challenge-display">
-      {/* Header with title */}
-      <div className="challenge-header">
-        <div className="challenge-title">
-          <h2>Daily Challenge Wallet: {challenge.p2pkh_address}</h2>
-          <p>
-            Try your luck at the impossible, derving the scalar private key from a bitcoin wallet
-            public key
-          </p>
+      <div className="graph-content">
+        <div className="formula">y² = x³ + 7 (mod p)</div>
+        <div className="legend-grid">
+          <div className="legend-item">
+            <div className="legend-dot" style={{ backgroundColor: '#3b82f6' }}></div>
+            <span>G</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-dot" style={{ backgroundColor: '#ef4444' }}></div>
+            <span>Challenge</span>
+          </div>
+          {guesses.length > 0 && (
+            <div className="legend-item">
+              <div className="legend-dot" style={{ backgroundColor: '#6b7280' }}></div>
+              <span>Guesses</span>
+            </div>
+          )}
         </div>
-        {challenge.explorer_link && (
-          <a
-            href={challenge.explorer_link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="explorer-button header-explorer"
-            title="View on blockchain explorer"
+      </div>
+
+      <div className="ecc-graph">
+        {/* Graph border */}
+        <div className="graph-border"></div>
+
+        {/* Coordinate system */}
+        <div className="graph-axes">
+          <div className="axis-label x-label">x</div>
+          <div className="axis-label y-label">y</div>
+        </div>
+
+        {/* Vertical dashed line at G */}
+        <div className="generator-line"></div>
+
+        {/* Curve visualization */}
+        <div className="curve-line"></div>
+
+        {/* Plot points */}
+        {points.map(point => (
+          <div
+            key={point.id}
+            className={`ecc-point ${point.id}`}
+            style={
+              {
+                left: `${point.x}%`,
+                top: `${point.y}%`,
+                '--point-color': point.color,
+              } as React.CSSProperties
+            }
+            title={point.description}
           >
-            View Explorer
-          </a>
-        )}
+            <div className="point-dot"></div>
+            <div className="point-label">{point.label}</div>
+          </div>
+        ))}
+
+        {/* Graph range indicators */}
+        <div className="range-indicator bottom-left">0</div>
+        <div className="range-indicator bottom-right">p</div>
+        <div className="range-indicator top-left">p</div>
       </div>
-
-      {/* ECC Graph */}
-      <div className="ecc-graph-container">
-        <div className="graph-header">
-          <h3>secp256k1 Elliptic Curve</h3>
-          <p>y² = x³ + 7 (mod p)</p>
-        </div>
-
-        <div className="ecc-graph">
-          {/* Graph border */}
-          <div className="graph-border"></div>
-
-          {/* Coordinate system */}
-          <div className="graph-axes">
-            <div className="axis-label x-label">x</div>
-            <div className="axis-label y-label">y</div>
-          </div>
-
-          {/* Vertical dashed line at G */}
-          <div className="generator-line"></div>
-
-          {/* Curve visualization */}
-          <div className="curve-line"></div>
-
-          {/* Plot points */}
-          {points.map(point => (
-            <div
-              key={point.id}
-              className={`ecc-point ${point.id}`}
-              style={
-                {
-                  left: `${point.x}%`,
-                  top: `${point.y}%`,
-                  '--point-color': point.color,
-                } as React.CSSProperties
-              }
-              title={point.description}
-            >
-              <div className="point-dot"></div>
-              <div className="point-label">{point.label}</div>
-            </div>
-          ))}
-
-          {/* Graph range indicators */}
-          <div className="range-indicator bottom-left">0</div>
-          <div className="range-indicator bottom-right">p</div>
-          <div className="range-indicator top-left">p</div>
-        </div>
-
-        {/* Legend */}
-        <div className="graph-legend">
-          <div className="legend-grid">
-            <div className="legend-item">
-              <div className="legend-dot" style={{ backgroundColor: '#3b82f6' }}></div>
-              <span>Generator Point (G)</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-dot" style={{ backgroundColor: '#ef4444' }}></div>
-              <span>Challenge Public Point</span>
-            </div>
-            {guesses.length > 0 && (
-              <div className="legend-item">
-                <div className="legend-dot" style={{ backgroundColor: '#6b7280' }}></div>
-                <span>Your Guesses</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Playpen unlocks after 5 guesses */}
-      {guessCount >= 5 && (
-        <div className="playpen-access">
-          <div className="playpen-header">
-            <h4>🛠️ Interactive Playpen Unlocked!</h4>
-            <p>Explore elliptic curve operations interactively</p>
-          </div>
-          <button className="playpen-button">Open Playpen →</button>
-        </div>
-      )}
     </div>
   );
 };

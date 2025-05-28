@@ -1,123 +1,54 @@
 .challenge-display {
   width: 100%;
-  background: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
 }
 
-[data-theme='dark'] .challenge-display {
-  background: #1e293b;
-}
-
-/* Header Section */
-.challenge-header {
+.graph-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.challenge-title h2 {
-  margin: 0 0 0.5rem 0;
-  color: var(--text-primary);
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.challenge-title p {
-  margin: 0;
+.formula {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.address-value {
   font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  font-weight: 600;
-  word-break: break-all;
+  font-size: 0.8rem;
 }
 
-.header-explorer {
-  background: var(--accent-color);
-  color: white;
-  border: 1px solid var(--accent-color);
-  cursor: pointer;
-  padding: 0.4rem 0.75rem;
-  border-radius: 6px;
-  transition: all 0.2s;
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-decoration: none;
+.legend-grid {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.legend-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.header-explorer:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  transform: scale(1.05);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-}
-
-.explorer-link a {
-  color: var(--accent-color);
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.2s;
-}
-
-.explorer-link a:hover {
-  color: var(--accent-hover);
-  text-decoration: underline;
-}
-
-/* ECC Graph Container */
-.ecc-graph-container {
-  background: #f8fafc;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-[data-theme='dark'] .ecc-graph-container {
-  background: #0f172a;
-}
-
-.graph-header {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.graph-header h3 {
-  margin: 0 0 0.25rem 0;
-  color: var(--text-primary);
-  font-size: 1.2rem;
-}
-
-.graph-header p {
-  margin: 0;
+  gap: 0.5rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
-  font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--card-background);
 }
 
 /* ECC Graph */
 .ecc-graph {
   position: relative;
   width: 100%;
-  height: 300px;
+  flex: 1;
   background: #ffffff;
   border-radius: 6px;
-  margin-bottom: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--border-color);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -274,33 +205,6 @@
 .top-right {
   top: 5px;
   right: 5px;
-}
-
-/* Legend */
-.graph-legend {
-  margin-top: 0.75rem;
-}
-
-.legend-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 1px solid var(--card-background);
 }
 
 /* Data List Section */
@@ -517,6 +421,10 @@
     padding: 0.5rem 0.75rem;
   }
 
+  .ecc-graph {
+    height: 250px;
+  }
+
   .legend-grid {
     justify-content: flex-start;
     gap: 0.5rem;
@@ -524,9 +432,5 @@
 
   .legend-item {
     font-size: 0.7rem;
-  }
-
-  .ecc-graph {
-    height: 250px;
   }
 }

@@ -5,6 +5,7 @@ import { generateGuessFromPrivateKey } from '../utils/crypto';
 import { storageUtils } from '../utils/storage';
 import ChallengeDisplay from '../components/ChallengeDisplay';
 import GuessSection from '../components/GuessSection';
+import GuessForm from '../components/GuessForm';
 import ThemeToggle from '../components/ThemeToggle';
 import './GamePage.css';
 
@@ -16,6 +17,7 @@ const GamePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'graph' | 'guesses'>('graph');
 
   useEffect(() => {
     loadDailyChallenge();
@@ -116,33 +118,112 @@ const GamePage: React.FC = () => {
     <div className="game-page">
       <header className="game-header">
         <div className="header-content">
-          <div className="header-text">
-            <h1>🔐 PuzzleECC</h1>
-            <p>Master elliptic curve cryptography through daily puzzles!</p>
+          <div className="challenge-info">
+            <h1>Daily Challenge: {challenge.p2pkh_address}</h1>
+            <div className="challenge-details">
+              {challenge.explorer_link && (
+                <a
+                  href={challenge.explorer_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="explorer-link"
+                >
+                  View Explorer
+                </a>
+              )}
+              {challenge.metadata && challenge.metadata.length > 0 && (
+                <div className="metadata-tags">
+                  {challenge.metadata.map(meta => (
+                    <span key={meta.id} className="tag">
+                      {meta.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <ThemeToggle />
         </div>
+        {error && (
+          <div className="error-message">
+            <span>{error}</span>
+            <button onClick={() => setError(null)}>×</button>
+          </div>
+        )}
       </header>
 
-      {error && (
-        <div className="error-banner">
-          <span>{error}</span>
-          <button onClick={() => setError(null)}>×</button>
+      <div className="game-container">
+        <div className="content-section">
+          {/* Mobile: Tabbed content */}
+          <div className="tab-content mobile-only">
+            {/* Tab header - clickable on mobile, headings on desktop */}
+            <div className="tab-header">
+              <button
+                className={`tab-button ${activeTab === 'graph' ? 'active' : ''}`}
+                onClick={() => setActiveTab('graph')}
+              >
+                secp256k1 Elliptic Curve
+              </button>
+              <button
+                className={`tab-button ${activeTab === 'guesses' ? 'active' : ''}`}
+                onClick={() => setActiveTab('guesses')}
+              >
+                Guesses ({guesses.length}/6)
+              </button>
+            </div>
+            <div>
+              {activeTab === 'graph' ? (
+                <ChallengeDisplay challenge={challenge} guesses={guesses} />
+              ) : (
+                <GuessSection
+                  challenge={challenge}
+                  guesses={guesses}
+                  remainingGuesses={remainingGuesses}
+                  hasWon={hasWon}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Desktop: Side by side content */}
+          <div className="side-by-side desktop-only">
+            <div className="graph-panel">
+              <div className="panel-header">
+                <h3>secp256k1 Elliptic Curve</h3>
+              </div>
+              <ChallengeDisplay challenge={challenge} guesses={guesses} />
+            </div>
+            <div className="guesses-panel">
+              <div className="panel-header">
+                <h3>Guesses ({guesses.length}/6)</h3>
+              </div>
+              <GuessSection
+                challenge={challenge}
+                guesses={guesses}
+                remainingGuesses={remainingGuesses}
+                hasWon={hasWon}
+              />
+            </div>
+          </div>
         </div>
-      )}
 
-      <main className="game-content">
-        <ChallengeDisplay challenge={challenge} guesses={guesses} />
-
-        <GuessSection
-          challenge={challenge}
-          guesses={guesses}
-          onSubmit={handleGuessSubmit}
-          isLoading={submitting}
-          hasWon={hasWon}
-          remainingGuesses={remainingGuesses}
-        />
-      </main>
+        <div className="input-section">
+          {hasWon ? (
+            <div className="victory-message">🎉 Congratulations! You found the private key!</div>
+          ) : remainingGuesses > 0 ? (
+            <GuessForm
+              onSubmit={handleGuessSubmit}
+              isLoading={submitting}
+              remainingGuesses={remainingGuesses}
+              compact={false}
+            />
+          ) : (
+            <div className="game-over-message">
+              Game Over - All guesses used. Try again tomorrow!
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
