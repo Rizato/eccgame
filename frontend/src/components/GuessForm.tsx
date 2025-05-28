@@ -1,32 +1,25 @@
 import React, { useState } from 'react';
-import type { GuessRequest } from '../types/api';
-import { isValidPublicKey, isValidSignature } from '../utils/crypto';
+import { isValidPrivateKey } from '../utils/crypto';
 import './GuessForm.css';
 
 interface GuessFormProps {
-  onSubmit: (guess: GuessRequest) => Promise<void>;
+  onSubmit: (privateKey: string) => Promise<void>;
   isLoading: boolean;
   remainingGuesses?: number;
 }
 
 const GuessForm: React.FC<GuessFormProps> = ({ onSubmit, isLoading, remainingGuesses }) => {
-  const [publicKey, setPublicKey] = useState('');
-  const [signature, setSignature] = useState('');
+  const [privateKey, setPrivateKey] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!publicKey.trim()) {
-      newErrors.publicKey = 'Public key is required';
-    } else if (!isValidPublicKey(publicKey.trim())) {
-      newErrors.publicKey = 'Invalid public key format (must be hex, 66 or 130 characters)';
-    }
-
-    if (!signature.trim()) {
-      newErrors.signature = 'Signature is required';
-    } else if (!isValidSignature(signature.trim())) {
-      newErrors.signature = 'Invalid signature format (must be hex, 64-144 characters)';
+    if (!privateKey.trim()) {
+      newErrors.privateKey = 'Private key is required';
+    } else if (!isValidPrivateKey(privateKey.trim())) {
+      newErrors.privateKey =
+        'Invalid private key format (must be 64 character hex string / 256 bits)';
     }
 
     setErrors(newErrors);
@@ -41,14 +34,10 @@ const GuessForm: React.FC<GuessFormProps> = ({ onSubmit, isLoading, remainingGue
     }
 
     try {
-      await onSubmit({
-        public_key: publicKey.trim(),
-        signature: signature.trim(),
-      });
+      await onSubmit(privateKey.trim());
 
       // Clear form on successful submission
-      setPublicKey('');
-      setSignature('');
+      setPrivateKey('');
       setErrors({});
     } catch (error) {
       // Error handling is done in parent component
@@ -71,43 +60,24 @@ const GuessForm: React.FC<GuessFormProps> = ({ onSubmit, isLoading, remainingGue
 
       <form onSubmit={handleSubmit} className="guess-form">
         <div className="form-group">
-          <label htmlFor="publicKey">
-            Public Key:
+          <label htmlFor="privateKey">
+            Private Key:
             <span className="required">*</span>
           </label>
           <input
             type="text"
-            id="publicKey"
-            value={publicKey}
-            onChange={e => setPublicKey(e.target.value)}
-            placeholder="Enter the public key (hex format)"
-            className={errors.publicKey ? 'error' : ''}
+            id="privateKey"
+            value={privateKey}
+            onChange={e => setPrivateKey(e.target.value)}
+            placeholder="Enter the private key (64 character hex string)"
+            className={errors.privateKey ? 'error' : ''}
             disabled={isDisabled}
+            maxLength={66} // Allow for 0x prefix
           />
-          {errors.publicKey && <span className="error-message">{errors.publicKey}</span>}
+          {errors.privateKey && <span className="error-message">{errors.privateKey}</span>}
           <small className="help-text">
-            Enter the public key in hexadecimal format (66 characters for compressed, 130 for
-            uncompressed)
-          </small>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="signature">
-            Signature:
-            <span className="required">*</span>
-          </label>
-          <textarea
-            id="signature"
-            value={signature}
-            onChange={e => setSignature(e.target.value)}
-            placeholder="Enter the cryptographic signature"
-            rows={3}
-            className={errors.signature ? 'error' : ''}
-            disabled={isDisabled}
-          />
-          {errors.signature && <span className="error-message">{errors.signature}</span>}
-          <small className="help-text">
-            Enter the signature proving you control the private key
+            Enter a 256-bit private key in hexadecimal format (64 characters). Public key and
+            signature will be generated automatically.
           </small>
         </div>
 

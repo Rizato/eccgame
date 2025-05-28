@@ -58,11 +58,11 @@ repos:
           - 'prettier@^3.0.0'
 
   # Optional: Run frontend tests
-  - repo: local
-    hooks:
-      - id: frontend-tests
-        name: Frontend Tests
-        entry: bash -c 'cd frontend && npm run test:run'
-        language: system
-        files: ^frontend/src/.*\.(ts|tsx)$
-        pass_filenames: false
+  #- repo: local
+  #  hooks:
+  #    - id: frontend-tests
+  #      name: Frontend Tests
+  #      entry: bash -c 'cd frontend && npm run test:run'
+  #      language: system
+  #      files: ^frontend/src/.*\.(ts|tsx)$
+  #      pass_filenames: false

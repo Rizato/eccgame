@@ -1,17 +1,23 @@
+import * as secp256k1 from 'secp256k1';
+
 /**
- * Utility functions for cryptographic operations
+ * Utility functions for SECP256k1 cryptographic operations
  */
 
 /**
  * Convert a hex string to bytes
  */
 export function hexToBytes(hex: string): Uint8Array {
-  if (hex.length % 2 !== 0) {
+  // Remove 0x prefix if present
+  const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+
+  if (cleanHex.length % 2 !== 0) {
     throw new Error('Invalid hex string');
   }
-  const bytes = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+
+  const bytes = new Uint8Array(cleanHex.length / 2);
+  for (let i = 0; i < cleanHex.length; i += 2) {
+    bytes[i / 2] = parseInt(cleanHex.substr(i, 2), 16);
   }
   return bytes;
 }
@@ -26,33 +32,81 @@ export function bytesToHex(bytes: Uint8Array): string {
 }
 
 /**
- * Parse UUID string to bytes (for signature creation)
+ * Validate private key (must be 256 bits / 32 bytes)
  */
-export function uuidToBytes(uuid: string): Uint8Array {
-  const hex = uuid.replace(/-/g, '');
-  return hexToBytes(hex);
-}
-
-/**
- * Validate public key format (basic hex validation)
- */
-export function isValidPublicKey(publicKey: string): boolean {
-  // Basic validation: should be hex string
-  const hexRegex = /^[0-9a-fA-F]+$/;
-  if (!hexRegex.test(publicKey)) {
+export function isValidPrivateKey(privateKeyHex: string): boolean {
+  try {
+    const privateKeyBytes = hexToBytes(privateKeyHex);
+    if (privateKeyBytes.length !== 32) {
+      return false;
+    }
+    return secp256k1.privateKeyVerify(privateKeyBytes);
+  } catch {
     return false;
   }
-
-  // Common public key lengths (compressed: 66 chars, uncompressed: 130 chars)
-  const length = publicKey.length;
-  return length === 66 || length === 130;
 }
 
 /**
- * Validate signature format (basic hex validation)
+ * Generate public key from private key
  */
-export function isValidSignature(signature: string): boolean {
-  // Should be hex string of specific length (typically 128 characters for DER format)
-  const hexRegex = /^[0-9a-fA-F]+$/;
-  return hexRegex.test(signature) && signature.length >= 64 && signature.length <= 144;
+export function getPublicKeyFromPrivate(privateKeyHex: string): string {
+  const privateKeyBytes = hexToBytes(privateKeyHex);
+
+  if (!secp256k1.privateKeyVerify(privateKeyBytes)) {
+    throw new Error('Invalid private key');
+  }
+
+  const publicKeyBytes = secp256k1.publicKeyCreate(privateKeyBytes, true); // Compressed format
+  return bytesToHex(publicKeyBytes);
+}
+
+/**
+ * Create signature for challenge UUID using private key
+ */
+export async function createSignature(
+  privateKeyHex: string,
+  challengeUuid: string
+): Promise<string> {
+  const privateKeyBytes = hexToBytes(privateKeyHex);
+
+  if (!secp256k1.privateKeyVerify(privateKeyBytes)) {
+    throw new Error('Invalid private key');
+  }
+
+  // Generate public key from private key
+  const publicKeyBytes = secp256k1.publicKeyCreate(privateKeyBytes, false); // Uncompressed format
+
+  // Convert UUID to bytes (remove hyphens)
+  const uuidBytes = hexToBytes(challengeUuid.replace(/-/g, ''));
+
+  // Create message by concatenating public key + UUID bytes
+  const messageBytes = new Uint8Array(publicKeyBytes.length + uuidBytes.length);
+  messageBytes.set(publicKeyBytes, 0);
+  messageBytes.set(uuidBytes, publicKeyBytes.length);
+
+  // Hash the message to get 32 bytes using SHA-256
+  const hashBuffer = await crypto.subtle.digest('SHA-256', messageBytes);
+  const hashBytes = new Uint8Array(hashBuffer);
+
+  // Create signature
+  const signature = secp256k1.ecdsaSign(hashBytes, privateKeyBytes);
+
+  return bytesToHex(signature.signature);
+}
+
+/**
+ * Generate public key and signature from private key for a challenge
+ */
+export async function generateGuessFromPrivateKey(privateKeyHex: string, challengeUuid: string) {
+  if (!isValidPrivateKey(privateKeyHex)) {
+    throw new Error('Invalid private key format or value');
+  }
+
+  const publicKey = getPublicKeyFromPrivate(privateKeyHex);
+  const signature = await createSignature(privateKeyHex, challengeUuid);
+
+  return {
+    public_key: publicKey,
+    signature: signature,
+  };
 }

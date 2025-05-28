@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import type { Challenge, GuessRequest, GuessResponse } from '../types/api';
+import type { Challenge, GuessResponse } from '../types/api';
 import { challengeApi } from '../services/api';
+import { generateGuessFromPrivateKey } from '../utils/crypto';
 import ChallengeCard from '../components/ChallengeCard';
 import GuessForm from '../components/GuessForm';
 import GuessHistory from '../components/GuessHistory';
@@ -33,12 +34,15 @@ const GamePage: React.FC = () => {
     }
   };
 
-  const handleGuessSubmit = async (guess: GuessRequest) => {
+  const handleGuessSubmit = async (privateKey: string) => {
     if (!challenge) return;
 
     try {
       setSubmitting(true);
       setError(null);
+
+      // Generate public key and signature from private key
+      const guess = await generateGuessFromPrivateKey(privateKey, challenge.uuid);
 
       const result = await challengeApi.submitGuess(challenge.uuid, guess);
 
@@ -56,7 +60,9 @@ const GamePage: React.FC = () => {
       if (err.response?.status === 403) {
         setError('You have reached the maximum number of guesses for today. Try again tomorrow!');
       } else if (err.response?.status === 400) {
-        setError('Invalid guess format. Please check your public key and signature.');
+        setError('Invalid private key or cryptographic error. Please check your input.');
+      } else if (err.message?.includes('Invalid private key')) {
+        setError('Invalid private key format or value.');
       } else {
         setError('Failed to submit guess. Please try again.');
       }
