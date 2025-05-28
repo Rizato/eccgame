@@ -1,15 +1,15 @@
 .guess-card {
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-primary);
   border-radius: 8px;
   margin-bottom: 8px;
-  background: white;
+  background: var(--bg-card);
   overflow: hidden;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .guess-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 /* Result-based styling (Wordle colors) */
@@ -39,8 +39,8 @@
 }
 
 .guess-card.pending {
-  border-color: #878a8c;
-  background: #f8f9fa;
+  border-color: var(--border-secondary);
+  background: var(--bg-secondary);
 }
 
 /* Header section */
@@ -95,8 +95,8 @@
 }
 
 .guess-card.pending .guess-key code {
-  background: rgba(0, 0, 0, 0.1);
-  color: #666;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 .expand-indicator {
@@ -122,9 +122,9 @@
 }
 
 .guess-card.pending .guess-card-details {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  background: rgba(0, 0, 0, 0.02);
-  color: #333;
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .detail-section {
@@ -177,23 +177,23 @@
 }
 
 .badge.valid {
-  background: rgba(106, 170, 100, 0.3);
-  color: #4a7c59;
+  background: var(--bg-success);
+  color: var(--text-success);
 }
 
 .badge.invalid {
-  background: rgba(215, 48, 39, 0.3);
-  color: #d73027;
+  background: var(--bg-error);
+  color: var(--text-error);
 }
 
 .guess-card.pending .badge.valid {
-  background: rgba(34, 139, 34, 0.1);
-  color: #228b22;
+  background: var(--bg-success);
+  color: var(--text-success);
 }
 
 .guess-card.pending .badge.invalid {
-  background: rgba(215, 48, 39, 0.1);
-  color: #d73027;
+  background: var(--bg-error);
+  color: var(--text-error);
 }
 
 /* Crypto data section */
@@ -228,8 +228,8 @@
 }
 
 .guess-card.pending .crypto-value {
-  background: rgba(0, 0, 0, 0.05);
-  color: #666;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 /* Advanced section placeholder */
@@ -255,9 +255,9 @@
 }
 
 .guess-card.pending .feature-placeholder {
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px dashed rgba(0, 0, 0, 0.2);
-  color: #666;
+  background: var(--bg-tertiary);
+  border: 1px dashed var(--border-primary);
+  color: var(--text-secondary);
 }
 
 .feature-placeholder span {

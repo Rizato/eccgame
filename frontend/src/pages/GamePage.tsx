@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import type { Challenge, GuessResponse } from '../types/api';
 import { challengeApi } from '../services/api';
 import { generateGuessFromPrivateKey } from '../utils/crypto';
+import { storageUtils } from '../utils/storage';
 import ChallengeInfoPanel from '../components/ChallengeInfoPanel';
 import GuessForm from '../components/GuessForm';
 import GuessCard from '../components/GuessCard';
+import ThemeToggle from '../components/ThemeToggle';
 import './GamePage.css';
 
 const MAX_GUESSES = 6; // Should match backend setting
@@ -19,6 +21,14 @@ const GamePage: React.FC = () => {
   useEffect(() => {
     loadDailyChallenge();
   }, []);
+
+  // Load guess history when challenge is loaded
+  useEffect(() => {
+    if (challenge) {
+      const storedGuesses = storageUtils.loadGuessHistory(challenge.uuid);
+      setGuesses(storedGuesses);
+    }
+  }, [challenge]);
 
   const loadDailyChallenge = async () => {
     try {
@@ -47,7 +57,11 @@ const GamePage: React.FC = () => {
       const result = await challengeApi.submitGuess(challenge.uuid, guess);
 
       // Add the new guess to the beginning of the list (most recent first)
-      setGuesses(prev => [result, ...prev]);
+      const updatedGuesses = [result, ...guesses];
+      setGuesses(updatedGuesses);
+
+      // Save to local storage
+      storageUtils.saveGuessHistory(challenge.uuid, updatedGuesses);
 
       // Show success message if correct
       if (result.result === 'correct') {
@@ -102,8 +116,13 @@ const GamePage: React.FC = () => {
   return (
     <div className="game-page">
       <header className="game-header">
-        <h1>🔐 Crypto Guesser</h1>
-        <p>Find the private key that controls this Bitcoin address!</p>
+        <div className="header-content">
+          <div className="header-text">
+            <h1>🔐 Crypto Guesser</h1>
+            <p>Find the private key that controls this Bitcoin address!</p>
+          </div>
+          <ThemeToggle />
+        </div>
       </header>
 
       {error && (
