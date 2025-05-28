@@ -74,6 +74,7 @@ class GuessSerializer(serializers.ModelSerializer):
             "is_signature_valid",
             "is_key_valid",
             "validated_at",
+            "created_at",
         )
         read_only_fields = (
             "uuid",
@@ -82,4 +83,5 @@ class GuessSerializer(serializers.ModelSerializer):
             "is_signature_valid",
             "is_key_valid",
             "validated_at",
+            "created_at",
         )
