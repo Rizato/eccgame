@@ -37,8 +37,11 @@ const GuessForm: React.FC<GuessFormProps> = ({
     const cleanHex = hex.replace(/[^0-9a-fA-F]/g, '');
     const result = new Uint8Array(32);
 
-    for (let i = 0; i < Math.min(cleanHex.length / 2, 32); i++) {
-      result[i] = parseInt(cleanHex.substr(i * 2, 2), 16);
+    // Pad with zeros to make it 64 characters (32 bytes)
+    const paddedHex = cleanHex.padStart(64, '0');
+
+    for (let i = 0; i < 32; i++) {
+      result[i] = parseInt(paddedHex.substr(i * 2, 2), 16);
     }
 
     return result;
@@ -103,10 +106,14 @@ const GuessForm: React.FC<GuessFormProps> = ({
 
   // Handle hex input change
   const handleHexChange = (value: string) => {
-    const newBinary = hexToBinary(value);
-    setBinaryData(newBinary);
-    if (errors.privateKey) {
-      setErrors(prev => ({ ...prev, privateKey: '' }));
+    // Allow any hex input up to 64 characters
+    const cleanValue = value.replace(/[^0-9a-fA-F]/g, '');
+    if (cleanValue.length <= 64) {
+      const newBinary = hexToBinary(cleanValue);
+      setBinaryData(newBinary);
+      if (errors.privateKey) {
+        setErrors(prev => ({ ...prev, privateKey: '' }));
+      }
     }
   };
 
@@ -185,28 +192,45 @@ const GuessForm: React.FC<GuessFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="guess-form">
-      <div className="key-entry-layout">
-        {/* Left side: Binary/Hex view */}
-        <div className="key-preview-section">
-          <div className="entry-method-selector">
-            <div className="method-dropdown-container">
-              <label htmlFor="entryMethod">Entry Method:</label>
-              <select
-                id="entryMethod"
-                value={entryMethod}
-                onChange={e => setEntryMethod(e.target.value as KeyEntryMethod)}
-                disabled={isDisabled}
-                className="method-dropdown"
-              >
-                {entryMethods.map(method => (
-                  <option key={method.value} value={method.value}>
-                    {method.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+      {/* Entry method selector - mobile only on top */}
+      <div className="entry-method-card mobile-only">
+        <label htmlFor="entryMethod">Entry Method:</label>
+        <select
+          id="entryMethod"
+          value={entryMethod}
+          onChange={e => setEntryMethod(e.target.value as KeyEntryMethod)}
+          disabled={isDisabled}
+          className="method-dropdown"
+        >
+          {entryMethods.map(method => (
+            <option key={method.value} value={method.value}>
+              {method.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
+      <div className="form-layout">
+        {/* Entry method selector - desktop only */}
+        <div className="entry-method-card desktop-only">
+          <label htmlFor="entryMethod-desktop">Entry Method:</label>
+          <select
+            id="entryMethod-desktop"
+            value={entryMethod}
+            onChange={e => setEntryMethod(e.target.value as KeyEntryMethod)}
+            disabled={isDisabled}
+            className="method-dropdown"
+          >
+            {entryMethods.map(method => (
+              <option key={method.value} value={method.value}>
+                {method.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Key preview - desktop only */}
+        <div className="key-preview-card desktop-only">
           <div className="preview-header">
             <h4>Key Data Preview</h4>
             <span className={`status-indicator ${isValidKey ? 'valid' : 'invalid'}`}>
@@ -241,23 +265,35 @@ const GuessForm: React.FC<GuessFormProps> = ({
           </div>
         </div>
 
-        {/* Right side: Input controls */}
+        {/* Input controls */}
         <div className="key-input-section">
+          <div className="security-warning">
+            <span className="warning-icon">⚠️</span>
+            <div className="warning-text">
+              <strong>Security Warning:</strong> NEVER enter your wallet's private keys into this or
+              any other website.
+            </div>
+          </div>
           {entryMethod === 'hex' ? (
             <div className="hex-input">
               <label htmlFor="hex-field">Hexadecimal (64 characters):</label>
               <input
                 id="hex-field"
                 type="text"
-                value={hexValue}
+                value={
+                  hexValue === '0000000000000000000000000000000000000000000000000000000000000000'
+                    ? ''
+                    : hexValue.replace(/^0+/, '')
+                }
                 onChange={e => handleHexChange(e.target.value)}
-                placeholder="Enter 64 character hex string..."
+                placeholder="Enter hex value (e.g., a1, ff, 1234...)"
                 className={`hex-field ${errors.privateKey ? 'error' : ''}`}
                 disabled={isDisabled}
                 maxLength={64}
               />
               <small className="help-text">
-                Enter a 256-bit private key as hexadecimal (0-9, a-f)
+                Enter a hex value (1-64 digits). Short values like "a1" become "00...0a1" (padded to
+                64 digits)
               </small>
             </div>
           ) : entryMethod === 'ascii' ? (
@@ -305,16 +341,19 @@ const GuessForm: React.FC<GuessFormProps> = ({
 
           {errors.privateKey && <div className="error-message">{errors.privateKey}</div>}
 
-          <button type="submit" className="submit-button" disabled={isDisabled}>
-            {isLoading ? 'Submitting...' : 'Submit Guess'}
-          </button>
-
           {remainingGuesses !== undefined && remainingGuesses <= 0 && (
             <div className="no-guesses-warning">
               You have used all your guesses for this challenge. Try again tomorrow!
             </div>
           )}
         </div>
+      </div>
+
+      {/* Submit button - bottom right */}
+      <div className="submit-container">
+        <button type="submit" className="submit-button" disabled={isDisabled}>
+          {isLoading ? 'Submitting...' : 'Submit Guess'}
+        </button>
       </div>
     </form>
   );

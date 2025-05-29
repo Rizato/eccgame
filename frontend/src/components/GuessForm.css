@@ -54,22 +54,92 @@
   margin-bottom: 16px;
 }
 
-.key-entry-layout {
-  display: flex;
-  gap: 1rem;
-  flex: 1;
-  min-height: 0;
-}
-
-.key-preview-section {
-  flex: 0 0 40%;
+.entry-method-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
   border-radius: 8px;
   padding: 0.75rem;
-  overflow: hidden;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.entry-method-card label {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  min-width: auto;
+}
+
+.entry-method-card .method-dropdown {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  background: var(--bg-input);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.submit-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.security-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+[data-theme='dark'] .security-warning {
+  background: linear-gradient(135deg, #451a03, #78350f);
+  border-color: #d97706;
+}
+
+.warning-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  color: #92400e;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+[data-theme='dark'] .warning-text {
+  color: #fbbf24;
+}
+
+.warning-text strong {
+  font-weight: 600;
+}
+
+.key-preview-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
   display: flex;
   flex-direction: column;
+}
+
+.form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-height: 0;
 }
 
 .key-input-section {
@@ -78,6 +148,33 @@
   flex-direction: column;
   gap: 1rem;
   min-height: 0;
+}
+
+/* Desktop layout - side by side for preview and input */
+@media (min-width: 1024px) {
+  .form-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    grid-template-rows: auto 1fr;
+    gap: 0.75rem;
+    grid-template-areas:
+      'method input'
+      'preview input';
+  }
+
+  .entry-method-card.desktop-only {
+    grid-area: method;
+    margin-bottom: 0;
+  }
+
+  .key-preview-card {
+    grid-area: preview;
+    margin-bottom: 0;
+  }
+
+  .key-input-section {
+    grid-area: input;
+  }
 }
 
 .preview-header {
@@ -549,6 +646,10 @@
     align-self: stretch;
   }
 
+  .submit-container {
+    justify-content: stretch;
+  }
+
   .form-group-inline {
     flex-direction: column;
     gap: 8px;
@@ -583,10 +684,10 @@
     flex-direction: column;
   }
 
-  .key-entry-layout {
+  .form-layout {
+    display: flex;
     flex-direction: column;
-    gap: 1rem;
-    min-height: auto;
+    gap: 0.75rem;
   }
 
   .binary-grid {

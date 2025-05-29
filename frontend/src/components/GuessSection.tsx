@@ -78,9 +78,12 @@ const GuessSection: React.FC<GuesseSectionProps> = ({
   const getGuessData = (): GuessData[] => {
     const guessData: GuessData[] = [];
 
-    // Add actual guesses
-    guesses.forEach((guess, index) => {
-      const guessId = `guess-${index}`;
+    // Reverse guesses array to show chronological order (oldest first)
+    const chronologicalGuesses = [...guesses].reverse();
+
+    // Add actual guesses in chronological order
+    chronologicalGuesses.forEach((guess, index) => {
+      const guessId = `guess-${guesses.length - 1 - index}`; // Map back to original index for keyData
       const keyData = guessKeyFormats[guessId];
 
       guessData.push({

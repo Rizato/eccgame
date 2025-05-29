@@ -196,17 +196,17 @@
   background: #1e293b;
 }
 
-/* Desktop: Side by side layout */
-.side-by-side {
+/* Desktop: Three column layout */
+.three-column {
   flex: 1;
   display: flex;
   gap: 0.5rem;
   overflow: hidden;
 }
 
+.challenge-panel,
 .graph-panel,
 .guesses-panel {
-  flex: 1;
   background: white;
   border-radius: 8px;
   overflow: hidden;
@@ -216,6 +216,13 @@
   height: 100%;
 }
 
+.challenge-panel,
+.graph-panel,
+.guesses-panel {
+  flex: 1;
+}
+
+[data-theme='dark'] .challenge-panel,
 [data-theme='dark'] .graph-panel,
 [data-theme='dark'] .guesses-panel {
   background: #1e293b;

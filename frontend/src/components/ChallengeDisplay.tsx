@@ -10,10 +10,50 @@ interface ChallengeDisplayProps {
 const ChallengeDisplay: React.FC<ChallengeDisplayProps> = ({ challenge, guesses }) => {
   const guessCount = guesses.length;
 
+  // Extract x,y coordinates from a compressed public key (33 bytes, starts with 02 or 03)
+  const extractCoordinatesFromPubKey = (pubKeyHex: string) => {
+    try {
+      // Remove any 0x prefix and ensure it's 66 characters (33 bytes)
+      const cleanHex = pubKeyHex.replace(/^0x/, '');
+      if (cleanHex.length !== 66) return null;
+
+      // Extract x coordinate (32 bytes after the prefix byte)
+      const xHex = cleanHex.slice(2, 66);
+      const x = BigInt('0x' + xHex);
+
+      // For visualization, we'll use a simple hash of the coordinates to get y
+      // This isn't the actual y coordinate but gives us consistent positioning
+      const hashInput = xHex;
+      let hash = 0;
+      for (let i = 0; i < hashInput.length; i++) {
+        hash = ((hash << 5) - hash + hashInput.charCodeAt(i)) & 0xffffffff;
+      }
+      const y = Math.abs(hash);
+
+      return { x, y: BigInt(y) };
+    } catch (error) {
+      console.error('Error extracting coordinates:', error);
+      return null;
+    }
+  };
+
+  // Map large coordinate values to screen percentage (0-100)
+  const mapToScreenCoordinate = (coord: bigint, isY: boolean = false) => {
+    // Use the last 32 bits for better distribution
+    const lastBits = Number(coord & 0xffffffffn);
+    const percentage = (lastBits % 80) + 10; // Keep between 10-90% to avoid edges
+    return isY ? percentage : percentage;
+  };
+
   const getVisiblePoints = () => {
     const points = [];
 
-    // Always show generator point G and challenge public key
+    // Extract challenge coordinates
+    const challengeCoords = extractCoordinatesFromPubKey(challenge.public_key);
+    const challengeX = challengeCoords ? mapToScreenCoordinate(challengeCoords.x) : 70;
+    const challengeY = challengeCoords ? mapToScreenCoordinate(challengeCoords.y, true) : 35;
+
+    // Always show generator point G (fixed position)
     points.push({
       id: 'generator',
       x: 30,
@@ -23,24 +63,34 @@ const ChallengeDisplay: React.FC<ChallengeDisplayProps> = ({ challenge, guesses 
       description: 'Generator point',
     });
 
+    // Challenge public key at actual coordinates
     points.push({
       id: 'pubkey',
-      x: 70,
-      y: 35,
+      x: challengeX,
+      y: challengeY,
       label: 'Challenge',
       color: '#ef4444', // red
       description: 'Challenge public key',
     });
 
-    // Add guess points
+    // Add guess points at their actual coordinates
     guesses.forEach((guess, index) => {
+      const guessCoords = extractCoordinatesFromPubKey(guess.public_key);
+      const guessX = guessCoords ? mapToScreenCoordinate(guessCoords.x) : 20 + ((index * 10) % 60);
+      const guessY = guessCoords
+        ? mapToScreenCoordinate(guessCoords.y, true)
+        : 30 + ((index * 7) % 40);
+
+      // Since guesses array is newest-first, reverse the numbering for chronological order
+      const guessNumber = guesses.length - index;
+
       points.push({
         id: `guess-${index}`,
-        x: 20 + ((index * 10) % 60), // Spread guesses across
-        y: 30 + ((index * 7) % 40),
-        label: `G${index + 1}`,
+        x: guessX,
+        y: guessY,
+        label: `Guess ${guessNumber}`,
         color: guess.result === 'correct' ? '#22c55e' : '#6b7280', // green if correct, gray if not
-        description: `Guess ${index + 1}`,
+        description: `Guess ${guessNumber}`,
       });
     });
 

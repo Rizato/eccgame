@@ -4,6 +4,7 @@ import { challengeApi } from '../services/api';
 import { generateGuessFromPrivateKey } from '../utils/crypto';
 import { storageUtils } from '../utils/storage';
 import ChallengeDisplay from '../components/ChallengeDisplay';
+import ChallengeInfo from '../components/ChallengeInfo';
 import GuessSection from '../components/GuessSection';
 import GuessForm from '../components/GuessForm';
 import ThemeToggle from '../components/ThemeToggle';
@@ -17,7 +18,7 @@ const GamePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'graph' | 'guesses'>('graph');
+  const [activeTab, setActiveTab] = useState<'info' | 'graph' | 'guesses'>('info');
 
   useEffect(() => {
     loadDailyChallenge();
@@ -119,28 +120,7 @@ const GamePage: React.FC = () => {
       <header className="game-header">
         <div className="header-content">
           <div className="challenge-info">
-            <h1>Daily Challenge: {challenge.p2pkh_address}</h1>
-            <div className="challenge-details">
-              {challenge.explorer_link && (
-                <a
-                  href={challenge.explorer_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="explorer-link"
-                >
-                  View Explorer
-                </a>
-              )}
-              {challenge.metadata && challenge.metadata.length > 0 && (
-                <div className="metadata-tags">
-                  {challenge.metadata.map(meta => (
-                    <span key={meta.id} className="tag">
-                      {meta.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+            <h1>Curve Quest</h1>
           </div>
           <ThemeToggle />
         </div>
@@ -159,10 +139,16 @@ const GamePage: React.FC = () => {
             {/* Tab header - clickable on mobile, headings on desktop */}
             <div className="tab-header">
               <button
+                className={`tab-button ${activeTab === 'info' ? 'active' : ''}`}
+                onClick={() => setActiveTab('info')}
+              >
+                Challenge
+              </button>
+              <button
                 className={`tab-button ${activeTab === 'graph' ? 'active' : ''}`}
                 onClick={() => setActiveTab('graph')}
               >
-                secp256k1 Elliptic Curve
+                Graph
               </button>
               <button
                 className={`tab-button ${activeTab === 'guesses' ? 'active' : ''}`}
@@ -172,7 +158,9 @@ const GamePage: React.FC = () => {
               </button>
             </div>
             <div>
-              {activeTab === 'graph' ? (
+              {activeTab === 'info' ? (
+                <ChallengeInfo challenge={challenge} />
+              ) : activeTab === 'graph' ? (
                 <ChallengeDisplay challenge={challenge} guesses={guesses} />
               ) : (
                 <GuessSection
@@ -185,8 +173,14 @@ const GamePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Desktop: Side by side content */}
-          <div className="side-by-side desktop-only">
+          {/* Desktop: Three column layout */}
+          <div className="three-column desktop-only">
+            <div className="challenge-panel">
+              <div className="panel-header">
+                <h3>Challenge Info</h3>
+              </div>
+              <ChallengeInfo challenge={challenge} />
+            </div>
             <div className="graph-panel">
               <div className="panel-header">
                 <h3>secp256k1 Elliptic Curve</h3>
