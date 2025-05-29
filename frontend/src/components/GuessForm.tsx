@@ -211,11 +211,6 @@ const GuessForm: React.FC<GuessFormProps> = ({
       description: 'Type actions in an interactive story to generate your key',
     },
     {
-      value: 'personality',
-      label: 'Personality Test',
-      description: 'Answer questions to build your key (Coming Soon)',
-    },
-    {
       value: 'wheel',
       label: 'Combination Lock',
       description: 'Rotate wheel to generate bits: clockwise=1, counter-clockwise=0',
