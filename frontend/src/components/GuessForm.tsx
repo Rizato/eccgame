@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { isValidPrivateKey } from '../utils/crypto';
 import FileHasher from './FileHasher';
+import CombinationWheel from './CombinationWheel';
 import './GuessForm.css';
 
 interface GuessFormProps {
@@ -136,9 +137,18 @@ const GuessForm: React.FC<GuessFormProps> = ({
   };
 
   // Handle file hash generation
-  const handleFileHash = (hash: string, filename: string) => {
+  const handleFileHash = (hash: string, _filename: string) => {
     // Use SHA-256 hash directly as private key
     const newBinary = hexToBinary(hash);
+    setBinaryData(newBinary);
+    if (errors.privateKey) {
+      setErrors(prev => ({ ...prev, privateKey: '' }));
+    }
+  };
+
+  // Handle combination wheel private key generation
+  const handleWheelKeyGenerated = (privateKey: string) => {
+    const newBinary = hexToBinary(privateKey);
     setBinaryData(newBinary);
     if (errors.privateKey) {
       setErrors(prev => ({ ...prev, privateKey: '' }));
@@ -197,7 +207,7 @@ const GuessForm: React.FC<GuessFormProps> = ({
     {
       value: 'wheel',
       label: 'Combination Lock',
-      description: 'iPod-style wheel interface (Coming Soon)',
+      description: 'Rotate wheel to generate bits: clockwise=1, counter-clockwise=0',
     },
   ] as const;
 
@@ -343,6 +353,8 @@ const GuessForm: React.FC<GuessFormProps> = ({
             </div>
           ) : entryMethod === 'file' ? (
             <FileHasher onHashGenerated={handleFileHash} disabled={isDisabled} maxFileSize={100} />
+          ) : entryMethod === 'wheel' ? (
+            <CombinationWheel onKeyGenerated={handleWheelKeyGenerated} disabled={isDisabled} />
           ) : (
             <div className="coming-soon-placeholder">
               <div className="placeholder-icon">🚧</div>
