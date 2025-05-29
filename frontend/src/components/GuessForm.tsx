@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { isValidPrivateKey } from '../utils/crypto';
 import FileHasher from './FileHasher';
 import CombinationWheel from './CombinationWheel';
+import TextAdventure from './TextAdventure';
 import './GuessForm.css';
 
 interface GuessFormProps {
@@ -26,6 +27,7 @@ const GuessForm: React.FC<GuessFormProps> = ({
   onSubmit,
   isLoading,
   remainingGuesses,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   compact = false,
 }) => {
   const [binaryData, setBinaryData] = useState<Uint8Array>(new Uint8Array(32));
@@ -137,7 +139,7 @@ const GuessForm: React.FC<GuessFormProps> = ({
   };
 
   // Handle file hash generation
-  const handleFileHash = (hash: string, _filename: string) => {
+  const handleFileHash = (hash: string) => {
     // Use SHA-256 hash directly as private key
     const newBinary = hexToBinary(hash);
     setBinaryData(newBinary);
@@ -148,6 +150,15 @@ const GuessForm: React.FC<GuessFormProps> = ({
 
   // Handle combination wheel private key generation
   const handleWheelKeyGenerated = (privateKey: string) => {
+    const newBinary = hexToBinary(privateKey);
+    setBinaryData(newBinary);
+    if (errors.privateKey) {
+      setErrors(prev => ({ ...prev, privateKey: '' }));
+    }
+  };
+
+  // Handle text adventure private key generation
+  const handleAdventureKeyGenerated = (privateKey: string) => {
     const newBinary = hexToBinary(privateKey);
     setBinaryData(newBinary);
     if (errors.privateKey) {
@@ -197,7 +208,7 @@ const GuessForm: React.FC<GuessFormProps> = ({
     {
       value: 'zork',
       label: 'Text Adventure',
-      description: 'Generate keys through story choices (Coming Soon)',
+      description: 'Type actions in an interactive story to generate your key',
     },
     {
       value: 'personality',
@@ -355,6 +366,8 @@ const GuessForm: React.FC<GuessFormProps> = ({
             <FileHasher onHashGenerated={handleFileHash} disabled={isDisabled} maxFileSize={100} />
           ) : entryMethod === 'wheel' ? (
             <CombinationWheel onKeyGenerated={handleWheelKeyGenerated} disabled={isDisabled} />
+          ) : entryMethod === 'zork' ? (
+            <TextAdventure onKeyGenerated={handleAdventureKeyGenerated} disabled={isDisabled} />
           ) : (
             <div className="coming-soon-placeholder">
               <div className="placeholder-icon">🚧</div>

@@ -18,7 +18,7 @@ const CombinationWheel: React.FC<CombinationWheelProps> = ({
   const wheelRef = useRef<HTMLDivElement>(null);
   const lastAngleRef = useRef(0);
   const lastTimeRef = useRef(0);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>();
 
   // Convert rotation to ticks (each tick = ~1.41 degrees for 256 total)
   const DEGREES_PER_TICK = 360 / 256;
