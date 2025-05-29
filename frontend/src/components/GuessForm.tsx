@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { isValidPrivateKey } from '../utils/crypto';
+import ZoomSlider from './ZoomSlider';
 import './GuessForm.css';
 
 interface GuessFormProps {
@@ -23,6 +24,8 @@ const GuessForm: React.FC<GuessFormProps> = ({
   const [hexValue, setHexValue] = useState('');
   const [asciiValue, setAsciiValue] = useState('');
   const [paddingMode, setPaddingMode] = useState<PaddingMode>('none');
+  const [zoomExponent, setZoomExponent] = useState(1);
+  const [keyPosition, setKeyPosition] = useState(BigInt(1));
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Convert binary data to hex string
@@ -126,6 +129,72 @@ const GuessForm: React.FC<GuessFormProps> = ({
     }
   };
 
+  // Handle zoom exponent change (2^250 to 2^1)
+  const handleZoomExponentChange = (exponent: number) => {
+    setZoomExponent(Math.round(exponent));
+  };
+
+  // Calculate the current zoom level (2^exponent)
+  const getCurrentZoomLevel = () => {
+    return BigInt(2) ** BigInt(zoomExponent);
+  };
+
+  // Get the visible range start based on current position and zoom
+  const getVisibleRangeStart = () => {
+    const stepSize = getCurrentZoomLevel();
+    return (BigInt(keyPosition) / stepSize) * stepSize;
+  };
+
+  // Get the visible range end
+  const getVisibleRangeEnd = () => {
+    const stepSize = getCurrentZoomLevel();
+    return getVisibleRangeStart() + stepSize * BigInt(64);
+  };
+
+  // Handle position change within visible range (0-1 maps to current 64 steps)
+  const handlePositionChange = (relativePosition: number) => {
+    const stepSize = getCurrentZoomLevel();
+    const rangeStart = getVisibleRangeStart();
+    const stepIndex = Math.floor(relativePosition * 64);
+    const newPosition = rangeStart + stepSize * BigInt(stepIndex);
+
+    setKeyPosition(newPosition);
+
+    // Generate key from the BigInt position
+    generateKeyFromPosition(newPosition);
+  };
+
+  // Generate a 256-bit key from BigInt position
+  const generateKeyFromPosition = (position: bigint) => {
+    const newBinary = new Uint8Array(32);
+
+    // Convert BigInt to bytes (little-endian)
+    let pos = position;
+    for (let i = 0; i < 32; i++) {
+      newBinary[i] = Number(pos & BigInt(0xff));
+      pos = pos >> BigInt(8);
+    }
+
+    setBinaryData(newBinary);
+    if (errors.privateKey) {
+      setErrors(prev => ({ ...prev, privateKey: '' }));
+    }
+  };
+
+  // Format position for display
+  const formatPosition = (position: bigint) => {
+    const hex = position.toString(16).padStart(64, '0');
+    return `0x${hex.slice(0, 8)}...${hex.slice(-8)}`;
+  };
+
+  // Get current position as 0-1 relative to visible range
+  const getCurrentRelativePosition = () => {
+    const stepSize = getStepSize();
+    const rangeStart = getVisibleRangeStart();
+    const offset = keyPosition - rangeStart;
+    return Number((offset * BigInt(64)) / (stepSize * BigInt(64))) / 64;
+  };
+
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     const privateKey = binaryToHex(binaryData);
@@ -163,7 +232,7 @@ const GuessForm: React.FC<GuessFormProps> = ({
     {
       value: 'slider',
       label: 'Zooming Slider',
-      description: 'Fast navigation with precision zoom (Coming Soon)',
+      description: 'Fast navigation with precision zoom',
     },
     {
       value: 'zork',
@@ -326,6 +395,66 @@ const GuessForm: React.FC<GuessFormProps> = ({
               <small className="help-text">
                 Text will be UTF-8 encoded to bytes. Max 32 characters/bytes.
               </small>
+            </div>
+          ) : entryMethod === 'slider' ? (
+            <div className="slider-input">
+              <div className="slider-description">
+                <h4>Zooming Slider Key Generation</h4>
+                <p>Use the zoom and position sliders to generate a deterministic private key.</p>
+              </div>
+
+              <div className="slider-controls">
+                <div className="slider-group">
+                  <ZoomSlider
+                    label="Zoom Level (2^n)"
+                    min={1}
+                    max={250}
+                    step={1}
+                    defaultValue={250}
+                    onChange={handleZoomExponentChange}
+                    formatValue={value => `2^${Math.round(value)}`}
+                    disabled={isDisabled}
+                  />
+                </div>
+
+                <div className="slider-group">
+                  <ZoomSlider
+                    label="Position in Range"
+                    min={0}
+                    max={1}
+                    step={1 / 64}
+                    defaultValue={0}
+                    onChange={handlePositionChange}
+                    formatValue={() => formatPosition(keyPosition)}
+                    disabled={isDisabled}
+                  />
+                </div>
+
+                <div className="zoom-info">
+                  <div className="info-row">
+                    <span className="info-label">Current Range:</span>
+                    <span className="info-value">
+                      {formatPosition(getVisibleRangeStart())} →{' '}
+                      {formatPosition(getVisibleRangeEnd())}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Step Size:</span>
+                    <span className="info-value">2^{zoomExponent - 6}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Steps Visible:</span>
+                    <span className="info-value">64</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="slider-info">
+                <small className="help-text">
+                  Zoom controls the scale (2^1 to 2^250). Position navigates within the visible
+                  64-step range. Each position generates a unique 256-bit key.
+                </small>
+              </div>
             </div>
           ) : (
             <div className="coming-soon-placeholder">
