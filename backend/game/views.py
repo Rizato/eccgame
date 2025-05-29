@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.db import transaction
 from rest_framework import status, views, viewsets
 from rest_framework.exceptions import PermissionDenied
@@ -10,7 +11,6 @@ from rest_framework.throttling import AnonRateThrottle
 
 from game.models import Challenge, ChallengeSentinel, Guess
 from game.serializers import ChallengeSerializer, GuessSerializer
-from project import settings
 
 
 class DailyChallengeView(views.APIView):
