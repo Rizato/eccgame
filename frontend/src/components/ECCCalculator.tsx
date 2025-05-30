@@ -20,10 +20,11 @@ interface ECCCalculatorProps {
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
   onShowPointModal: () => void;
-  onResetPoint: () => void;
+  onResetPoint: (startingMode: 'challenge' | 'generator') => void;
   isPracticeMode?: boolean;
   practicePrivateKey?: string;
   progress?: number | null;
+  startingMode: 'challenge' | 'generator'; // challenge: start from challenge point, generator: start from G
 }
 
 export interface Operation {
@@ -32,6 +33,7 @@ export interface Operation {
   description: string;
   value?: string;
   point?: ECPoint;
+  direction: 'forward' | 'reverse'; // forward: challenge->G, reverse: G->challenge
 }
 
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
@@ -43,6 +45,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   isPracticeMode = false,
   practicePrivateKey,
   progress,
+  startingMode,
 }) => {
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
   const [pendingOperation, setPendingOperation] = useState<
@@ -54,6 +57,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   >(null);
   const [hexMode, setHexMode] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<string>('');
+  const [showResetDropdown, setShowResetDropdown] = useState(false);
 
   const generatorPoint = getGeneratorPoint();
 
@@ -190,6 +194,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         type: 'add',
         description: '+G',
         point: generatorPoint,
+        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       onPointChange(newPoint, operation);
     } catch (error) {
@@ -210,6 +215,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         type: 'subtract',
         description: '-G',
         point: generatorPoint,
+        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       onPointChange(newPoint, operation);
     } catch (error) {
@@ -230,6 +236,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         type: 'multiply',
         description: '×2',
         value: '2',
+        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       onPointChange(newPoint, operation);
     } catch (error) {
@@ -250,6 +257,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         type: 'divide',
         description: '÷2',
         value: '2',
+        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       onPointChange(newPoint, operation);
     } catch (error) {
@@ -314,6 +322,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             type: operation,
             description,
             value,
+            direction: startingMode === 'challenge' ? 'forward' : 'reverse',
           };
           onPointChange(newPoint, operationObj);
 
@@ -344,6 +353,21 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
   executeCalculatorOperationRef.current = executeCalculatorOperation;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showResetDropdown && event.target instanceof Element) {
+        const dropdown = event.target.closest('.reset-dropdown');
+        if (!dropdown) {
+          setShowResetDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showResetDropdown]);
 
   // Keyboard event handler
   useEffect(() => {
@@ -434,29 +458,70 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         <div className="point-display-header">
           <h5>Current Point</h5>
           <div className="point-display-actions">
-            <button onClick={onResetPoint} className="reset-point-button">
-              Reset
-            </button>
+            <div className="reset-dropdown">
+              <button
+                onClick={() => setShowResetDropdown(!showResetDropdown)}
+                className="reset-point-button"
+              >
+                {startingMode === 'challenge' ? 'Challenge → G' : 'G → Challenge'} ▼
+              </button>
+              {showResetDropdown && (
+                <div className="reset-dropdown-menu">
+                  <button
+                    onClick={() => {
+                      onResetPoint('challenge');
+                      setShowResetDropdown(false);
+                    }}
+                    className="reset-dropdown-item"
+                  >
+                    Challenge → G
+                  </button>
+                  <button
+                    onClick={() => {
+                      onResetPoint('generator');
+                      setShowResetDropdown(false);
+                    }}
+                    className="reset-dropdown-item"
+                  >
+                    G → Challenge
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="point-display-content">
-          {currentPoint.isInfinity ? (
-            <span className="point-status">Point at Infinity (O)</span>
-          ) : (
-            <>
-              <div className="point-address">{currentAddress}</div>
-              {isPracticeMode && practicePrivateKey && (
-                <div className="point-progress">Progress: {progress?.toFixed(1)}%</div>
-              )}
-              <div className="point-coordinates-compact">
-                <span>x: {bigintToHex(currentPoint.x).slice(0, 16)}...</span>
-                <span>y: {bigintToHex(currentPoint.y).slice(0, 16)}...</span>
-              </div>
-              <div className="point-compressed-key">
-                <span>Compressed: {pointToPublicKey(currentPoint).slice(0, 16)}...</span>
-              </div>
-            </>
-          )}
+          <>
+            <div className="point-address">{currentAddress}</div>
+            {isPracticeMode && practicePrivateKey && (
+              <div className="point-progress">Progress: {progress?.toFixed(1)}%</div>
+            )}
+            <div className="point-coordinates-compact">
+              <span>
+                x:{' '}
+                {currentPoint.isInfinity
+                  ? '0000000000000000'
+                  : bigintToHex(currentPoint.x).slice(0, 16)}
+                ...
+              </span>
+              <span>
+                y:{' '}
+                {currentPoint.isInfinity
+                  ? '0000000000000000'
+                  : bigintToHex(currentPoint.y).slice(0, 16)}
+                ...
+              </span>
+            </div>
+            <div className="point-compressed-key">
+              <span>
+                Compressed:{' '}
+                {currentPoint.isInfinity
+                  ? '0200000000000000'
+                  : pointToPublicKey(currentPoint).slice(0, 16)}
+                ...
+              </span>
+            </div>
+          </>
         </div>
       </div>
 

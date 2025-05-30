@@ -55,6 +55,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     label: string;
   } | null>(null);
   const [selectedPointAddress, setSelectedPointAddress] = useState<string>('');
+  const [startingMode, setStartingMode] = useState<'challenge' | 'generator'>('challenge');
 
   const generatorPoint = getGeneratorPoint();
   const targetPoint = isPracticeMode ? generatorPoint : generatorPoint;
@@ -152,6 +153,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             const convertedOperations = operations.map(op => ({
               type: op.type,
               value: op.value ? BigInt(op.value) : op.point || { x: 0n, y: 0n, isInfinity: true },
+              direction: op.direction,
             }));
 
             // Estimate current private key from operations
@@ -200,152 +202,22 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     [calculatorDisplay, pendingOperation, lastOperationValue]
   );
 
-  // Quick operation functions
-  const quickAddG = useCallback(() => {
-    try {
+  // Reset to specified starting point
+  const resetToStartingPoint = useCallback(
+    (mode: 'challenge' | 'generator') => {
+      if (mode === 'challenge') {
+        setCurrentPoint(publicKeyToPoint(challenge.public_key));
+      } else {
+        setCurrentPoint(generatorPoint);
+      }
+      setStartingMode(mode);
+      setOperations([]);
       setError(null);
-      const newPoint = pointAdd(currentPoint, generatorPoint);
-      if (!isPointOnCurve(newPoint)) {
-        setError('Result is not on the curve');
-        return;
-      }
-      setCurrentPoint(newPoint);
-      setOperations(prev => [
-        ...prev,
-        {
-          id: `op_${Date.now()}`,
-          type: 'add',
-          description: '+G',
-          point: generatorPoint,
-        },
-      ]);
-    } catch (error) {
-      setError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }, [currentPoint, generatorPoint]);
-
-  const quickSubtractG = useCallback(() => {
-    try {
-      setError(null);
-      const newPoint = pointSubtract(currentPoint, generatorPoint);
-      if (!isPointOnCurve(newPoint)) {
-        setError('Result is not on the curve');
-        return;
-      }
-      setCurrentPoint(newPoint);
-      setOperations(prev => [
-        ...prev,
-        {
-          id: `op_${Date.now()}`,
-          type: 'subtract',
-          description: '-G',
-          point: generatorPoint,
-        },
-      ]);
-    } catch (error) {
-      setError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }, [currentPoint, generatorPoint]);
-
-  const executeCalculatorOperation = useCallback(
-    (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
-      try {
-        setError(null);
-
-        if (operation === 'multiply' || operation === 'divide') {
-          // For scalar operations
-          if (!value.trim()) {
-            setError('Please enter a scalar value');
-            return;
-          }
-
-          let scalar: bigint;
-          try {
-            if (value.startsWith('0x')) {
-              scalar = hexToBigint(value);
-            } else if (value.includes('.')) {
-              setError('Decimal numbers not supported. Use integers or hex values.');
-              return;
-            } else {
-              scalar = BigInt(value);
-            }
-          } catch {
-            setError('Invalid scalar value');
-            return;
-          }
-
-          if (scalar <= 0n) {
-            setError('Scalar must be positive');
-            return;
-          }
-
-          if (scalar >= CURVE_N) {
-            scalar %= CURVE_N;
-          }
-
-          let newPoint: ECPoint;
-          let description: string;
-
-          if (operation === 'multiply') {
-            newPoint = pointMultiply(scalar, currentPoint);
-            description = `×${value}`;
-          } else {
-            newPoint = pointDivide(scalar, currentPoint);
-            description = `÷${value}`;
-          }
-
-          if (!isPointOnCurve(newPoint)) {
-            setError('Result is not on the curve');
-            return;
-          }
-
-          setCurrentPoint(newPoint);
-          setOperations(prev => [
-            ...prev,
-            {
-              id: `op_${Date.now()}`,
-              type: operation,
-              description,
-              value,
-            },
-          ]);
-
-          // Store the value for potential chaining
-          setLastOperationValue(value);
-        } else {
-          // For point operations (+G, -G), execute directly
-          if (operation === 'add') {
-            quickAddG();
-          } else {
-            quickSubtractG();
-          }
-          // Store 'G' as the operation value for chaining
-          setLastOperationValue('G');
-          // For point operations, we can still keep the operation for chaining
-          // The user can press the same operator again to repeat +G or -G operations
-        }
-
-        // Keep the value in display for chaining, keep the operation selected for repeated equals
-        setCalculatorDisplay(value);
-        // Keep pending operation and highlighted state for chaining equals
-      } catch (error) {
-        setError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
+      clearCalculator();
+      setLastOperationValue(null);
     },
-    [currentPoint, clearCalculator, quickAddG, quickSubtractG]
+    [challenge.public_key, generatorPoint, clearCalculator]
   );
-
-  // Assign the function to the ref so it can be called from setCalculatorOperation
-  executeCalculatorOperationRef.current = executeCalculatorOperation;
-
-  // Reset to challenge point
-  const resetToChallenge = useCallback(() => {
-    setCurrentPoint(publicKeyToPoint(challenge.public_key));
-    setOperations([]);
-    setError(null);
-    clearCalculator();
-    setLastOperationValue(null);
-  }, [challenge.public_key, clearCalculator]);
 
   // Submit solution attempt
   const submitSolution = useCallback(async () => {
@@ -447,10 +319,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     calculatorDisplay,
     lastOperationValue,
   ]);
-
-  const handlePointChange = useCallback((newPoint: ECPoint) => {
-    setCurrentPoint(newPoint);
-  }, []);
 
   const handlePointClick = useCallback(async (pointId: string, point: ECPoint, label: string) => {
     setSelectedPoint({ point, id: pointId, label });
@@ -704,13 +572,17 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           {/* Calculator Section */}
           <ECCCalculator
             currentPoint={currentPoint}
-            onPointChange={handlePointChange}
+            onPointChange={(point, operation) => {
+              setCurrentPoint(point);
+              setOperations(prev => [...prev, operation]);
+            }}
             onError={setError}
             onShowPointModal={() => setShowPointModal(true)}
-            onResetPoint={resetToChallenge}
+            onResetPoint={resetToStartingPoint}
             isPracticeMode={isPracticeMode}
             practicePrivateKey={practicePrivateKey}
             progress={progress}
+            startingMode={startingMode}
           />
         </div>
       </div>
@@ -725,152 +597,164 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
               </button>
             </div>
             <div className="modal-content">
-              {selectedPoint.point.isInfinity ? (
+              <>
                 <div className="modal-item">
-                  <span className="modal-label">Status:</span>
+                  <span className="modal-label">Address:</span>
                   <div className="modal-value-container">
-                    <input className="modal-value-input" value="Point at Infinity (O)" readOnly />
+                    <input className="modal-value-input" value={selectedPointAddress} readOnly />
+                    <button
+                      className="copy-button"
+                      onClick={() => navigator.clipboard.writeText(selectedPointAddress)}
+                    >
+                      Copy
+                    </button>
                   </div>
                 </div>
-              ) : (
-                <>
-                  <div className="modal-item">
-                    <span className="modal-label">Address:</span>
-                    <div className="modal-value-container">
-                      <input className="modal-value-input" value={selectedPointAddress} readOnly />
-                      <button
-                        className="copy-button"
-                        onClick={() => navigator.clipboard.writeText(selectedPointAddress)}
-                      >
-                        Copy
-                      </button>
-                    </div>
-                  </div>
 
-                  <div className="modal-item">
-                    <span className="modal-label">Compressed Key:</span>
-                    <div className="modal-value-container">
-                      <input
-                        className="modal-value-input"
-                        value={(() => {
-                          try {
-                            return pointToPublicKey(selectedPoint.point);
-                          } catch {
-                            return 'Invalid point';
-                          }
-                        })()}
-                        readOnly
-                      />
-                      <button
-                        className="copy-button"
-                        onClick={() => {
-                          try {
-                            const compressedKey = pointToPublicKey(selectedPoint.point);
-                            navigator.clipboard.writeText(compressedKey);
-                          } catch {}
-                        }}
-                      >
-                        Copy
-                      </button>
-                    </div>
+                <div className="modal-item">
+                  <span className="modal-label">Compressed Key:</span>
+                  <div className="modal-value-container">
+                    <input
+                      className="modal-value-input"
+                      value={
+                        selectedPoint.point.isInfinity
+                          ? '020000000000000000000000000000000000000000000000000000000000000000'
+                          : (() => {
+                              try {
+                                return pointToPublicKey(selectedPoint.point);
+                              } catch {
+                                return 'Invalid point';
+                              }
+                            })()
+                      }
+                      readOnly
+                    />
+                    <button
+                      className="copy-button"
+                      onClick={() => {
+                        const value = selectedPoint.point.isInfinity
+                          ? '020000000000000000000000000000000000000000000000000000000000000000'
+                          : (() => {
+                              try {
+                                return pointToPublicKey(selectedPoint.point);
+                              } catch {
+                                return 'Invalid point';
+                              }
+                            })();
+                        navigator.clipboard.writeText(value);
+                      }}
+                    >
+                      Copy
+                    </button>
                   </div>
+                </div>
 
-                  <div className="modal-item">
-                    <span className="modal-label">X Coordinate:</span>
-                    <div className="modal-value-container">
-                      <input
-                        className="modal-value-input"
-                        value={bigintToHex(selectedPoint.point.x)}
-                        readOnly
-                      />
-                      <button
-                        className="copy-button"
-                        onClick={() =>
-                          navigator.clipboard.writeText(bigintToHex(selectedPoint.point.x))
-                        }
-                      >
-                        Copy
-                      </button>
-                    </div>
+                <div className="modal-item">
+                  <span className="modal-label">X Coordinate:</span>
+                  <div className="modal-value-container">
+                    <input
+                      className="modal-value-input"
+                      value={
+                        selectedPoint.point.isInfinity
+                          ? '0000000000000000000000000000000000000000000000000000000000000000'
+                          : bigintToHex(selectedPoint.point.x)
+                      }
+                      readOnly
+                    />
+                    <button
+                      className="copy-button"
+                      onClick={() => {
+                        const value = selectedPoint.point.isInfinity
+                          ? '0000000000000000000000000000000000000000000000000000000000000000'
+                          : bigintToHex(selectedPoint.point.x);
+                        navigator.clipboard.writeText(value);
+                      }}
+                    >
+                      Copy
+                    </button>
                   </div>
+                </div>
 
-                  <div className="modal-item">
-                    <span className="modal-label">Y Coordinate:</span>
-                    <div className="modal-value-container">
-                      <input
-                        className="modal-value-input"
-                        value={bigintToHex(selectedPoint.point.y)}
-                        readOnly
-                      />
-                      <button
-                        className="copy-button"
-                        onClick={() =>
-                          navigator.clipboard.writeText(bigintToHex(selectedPoint.point.y))
-                        }
-                      >
-                        Copy
-                      </button>
-                    </div>
+                <div className="modal-item">
+                  <span className="modal-label">Y Coordinate:</span>
+                  <div className="modal-value-container">
+                    <input
+                      className="modal-value-input"
+                      value={
+                        selectedPoint.point.isInfinity
+                          ? '0000000000000000000000000000000000000000000000000000000000000000'
+                          : bigintToHex(selectedPoint.point.y)
+                      }
+                      readOnly
+                    />
+                    <button
+                      className="copy-button"
+                      onClick={() => {
+                        const value = selectedPoint.point.isInfinity
+                          ? '0000000000000000000000000000000000000000000000000000000000000000'
+                          : bigintToHex(selectedPoint.point.y);
+                        navigator.clipboard.writeText(value);
+                      }}
+                    >
+                      Copy
+                    </button>
                   </div>
+                </div>
 
-                  {isPracticeMode && practicePrivateKey && (
-                    <>
+                {isPracticeMode && practicePrivateKey && (
+                  <>
+                    <div className="modal-item">
+                      <span className="modal-label">Private Key:</span>
+                      <div className="modal-value-container">
+                        <input className="modal-value-input" value={practicePrivateKey} readOnly />
+                        <button
+                          className="copy-button"
+                          onClick={() => navigator.clipboard.writeText(practicePrivateKey)}
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+
+                    {selectedPoint.id === 'current' && (
                       <div className="modal-item">
-                        <span className="modal-label">Private Key:</span>
+                        <span className="modal-label">Distance to Target:</span>
                         <div className="modal-value-container">
                           <input
                             className="modal-value-input"
-                            value={practicePrivateKey}
+                            value={(() => {
+                              try {
+                                const targetPrivateKey = BigInt('0x' + practicePrivateKey);
+                                const startingPoint = publicKeyToPoint(challenge.public_key);
+                                const convertedOperations = operations.map(op => ({
+                                  type: op.type,
+                                  value: op.value
+                                    ? BigInt(op.value)
+                                    : op.point || { x: 0n, y: 0n, isInfinity: true },
+                                  direction: op.direction,
+                                }));
+                                const estimatedPrivateKey = estimatePrivateKeyFromOperations(
+                                  convertedOperations,
+                                  startingPoint,
+                                  targetPoint
+                                );
+                                const distance = getPrivateKeyDistance(
+                                  estimatedPrivateKey,
+                                  targetPrivateKey
+                                );
+                                return `${distance.toFixed(3)}% similarity`;
+                              } catch {
+                                return 'Unable to calculate';
+                              }
+                            })()}
                             readOnly
                           />
-                          <button
-                            className="copy-button"
-                            onClick={() => navigator.clipboard.writeText(practicePrivateKey)}
-                          >
-                            Copy
-                          </button>
                         </div>
                       </div>
-
-                      {selectedPoint.id === 'current' && (
-                        <div className="modal-item">
-                          <span className="modal-label">Distance to Target:</span>
-                          <div className="modal-value-container">
-                            <input
-                              className="modal-value-input"
-                              value={(() => {
-                                try {
-                                  const targetPrivateKey = BigInt('0x' + practicePrivateKey);
-                                  const startingPoint = publicKeyToPoint(challenge.public_key);
-                                  const convertedOperations = operations.map(op => ({
-                                    type: op.type,
-                                    value: op.value
-                                      ? BigInt(op.value)
-                                      : op.point || { x: 0n, y: 0n, isInfinity: true },
-                                  }));
-                                  const estimatedPrivateKey = estimatePrivateKeyFromOperations(
-                                    convertedOperations,
-                                    startingPoint,
-                                    targetPoint
-                                  );
-                                  const distance = getPrivateKeyDistance(
-                                    estimatedPrivateKey,
-                                    targetPrivateKey
-                                  );
-                                  return `${distance.toFixed(3)}% similarity`;
-                                } catch {
-                                  return 'Unable to calculate';
-                                }
-                              })()}
-                              readOnly
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
+              </>
             </div>
           </div>
         </div>

@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 20px;
 }
 
 .challenge-header {
@@ -280,7 +279,6 @@
 /* Mobile responsive */
 @media (max-width: 768px) {
   .challenge-info-container {
-    padding: 16px;
   }
 
   .address-row {

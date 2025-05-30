@@ -188,6 +188,7 @@ export function estimatePrivateKeyFromOperations(
   operations: Array<{
     type: 'multiply' | 'divide' | 'add' | 'subtract';
     value: bigint | ECPoint;
+    direction?: 'forward' | 'reverse';
   }>,
   startingPoint: ECPoint,
   targetPoint: ECPoint
@@ -305,26 +306,52 @@ export function reconstructPrivateKey(
   operations: Array<{
     type: 'multiply' | 'divide' | 'add' | 'subtract';
     value: bigint | ECPoint;
+    direction?: 'forward' | 'reverse';
   }>
 ): bigint {
   // Start with 1 (multiplying by the private key gives the public key)
   let accumulatedScalar = 1n;
 
   for (const op of operations.reverse()) {
+    // Direction affects how we interpret the operations:
+    // forward: challenge->G (normal interpretation)
+    // reverse: G->challenge (inverted interpretation for key inflation)
+    const isReverse = op.direction === 'reverse';
+
     switch (op.type) {
       case 'multiply':
-        // If we multiplied by k, we need to divide by k
-        accumulatedScalar = (accumulatedScalar * modInverse(op.value as bigint, CURVE_N)) % CURVE_N;
+        if (isReverse) {
+          // In reverse mode, multiplication becomes multiplication (key inflation)
+          accumulatedScalar = (accumulatedScalar * (op.value as bigint)) % CURVE_N;
+        } else {
+          // In forward mode, if we multiplied by k, we need to divide by k
+          accumulatedScalar =
+            (accumulatedScalar * modInverse(op.value as bigint, CURVE_N)) % CURVE_N;
+        }
         break;
       case 'divide':
-        // If we divided by k, we need to multiply by k
-        accumulatedScalar = (accumulatedScalar * (op.value as bigint)) % CURVE_N;
+        if (isReverse) {
+          // In reverse mode, division becomes division
+          accumulatedScalar =
+            (accumulatedScalar * modInverse(op.value as bigint, CURVE_N)) % CURVE_N;
+        } else {
+          // In forward mode, if we divided by k, we need to multiply by k
+          accumulatedScalar = (accumulatedScalar * (op.value as bigint)) % CURVE_N;
+        }
         break;
       case 'add':
-        accumulatedScalar = (accumulatedScalar - (op.value as bigint)) % CURVE_N;
+        if (isReverse) {
+          accumulatedScalar = (accumulatedScalar + (op.value as bigint)) % CURVE_N;
+        } else {
+          accumulatedScalar = (accumulatedScalar - (op.value as bigint)) % CURVE_N;
+        }
         break;
       case 'subtract':
-        accumulatedScalar = (accumulatedScalar + (op.value as bigint)) % CURVE_N;
+        if (isReverse) {
+          accumulatedScalar = (accumulatedScalar - (op.value as bigint)) % CURVE_N;
+        } else {
+          accumulatedScalar = (accumulatedScalar + (op.value as bigint)) % CURVE_N;
+        }
         break;
       // Point addition/subtraction operations are more complex and would require
       // tracking the specific points and operations in a different way

@@ -42,6 +42,21 @@
   font-weight: 500;
 }
 
+.mode-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mode-badge {
+  background: #8b5cf6;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 .error-message {
   background: #fee;
   color: #c33;
