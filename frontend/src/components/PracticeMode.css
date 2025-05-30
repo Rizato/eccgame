@@ -1,0 +1,305 @@
+.practice-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Challenge Info Row Layout */
+.challenge-info-row {
+  max-width: 900px;
+  margin: 0 auto 24px auto;
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.playground-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Practice Challenge Layout - same as daily challenge */
+.practice-challenge-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  height: 100%;
+}
+
+.practice-header {
+  background: var(--card-background);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header-content h2 {
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+  font-size: 1.8rem;
+}
+
+.header-content p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.practice-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Challenge Controls in Sidebar */
+.challenge-controls {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.challenge-controls .difficulty-selector {
+  margin-bottom: 12px;
+}
+
+.challenge-controls .difficulty-selector label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.challenge-controls .difficulty-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card-background);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.challenge-controls .difficulty-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.challenge-controls .new-challenge-button {
+  width: 100%;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.challenge-controls .new-challenge-button:hover {
+  background: var(--accent-color-dark);
+}
+
+/* Target Information */
+.target-info {
+  margin-bottom: 16px;
+}
+
+.target-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.target-item:last-child {
+  border-bottom: none;
+}
+
+.target-label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.target-value {
+  color: var(--text-secondary);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9rem;
+}
+
+/* Solution Controls */
+.solution-controls {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.reveal-solution-button {
+  background: var(--card-background);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.reveal-solution-button:hover {
+  background: var(--hover-background);
+}
+
+.solution-panel {
+  background: var(--hover-background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.solution-panel h4 {
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.solution-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.solution-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.solution-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+.solution-value {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background: var(--card-background);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  word-break: break-all;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.solution-explanation {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 12px;
+  color: #856404;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-top: 8px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+/* Dark mode overrides for solution panel */
+[data-theme='dark'] .solution-panel {
+  background: linear-gradient(135deg, #2d3748, #1a202c);
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .solution-panel h3 {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .solution-item label {
+  color: #cbd5e0;
+}
+
+[data-theme='dark'] .solution-value {
+  background: #1a202c;
+  border-color: #4a5568;
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .solution-explanation {
+  background: #744210;
+  border-color: #975a16;
+  color: #faf089;
+}
+
+/* Mobile responsive */
+@media (max-width: 1024px) {
+  .practice-challenge-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .challenge-info-card {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .practice-mode {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .practice-header {
+    padding: 16px;
+  }
+
+  .header-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .target-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    text-align: left;
+  }
+
+  .target-label {
+    font-size: 0.85rem;
+  }
+
+  .target-value {
+    font-size: 0.8rem;
+  }
+
+  .solution-item {
+    gap: 6px;
+  }
+
+  .solution-label {
+    font-size: 0.8rem;
+  }
+
+  .solution-value {
+    font-size: 0.75rem;
+  }
+}

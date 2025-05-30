@@ -1,7 +1,10 @@
 import type { GuessResponse } from '../types/api';
+import type { SavedPoint } from './ecc';
 
 const STORAGE_PREFIX = 'cryptoguesser_';
 const GUESS_HISTORY_KEY = `${STORAGE_PREFIX}guess_history`;
+const DAILY_WINS_KEY = `${STORAGE_PREFIX}daily_wins`;
+const SAVED_POINTS_KEY = `${STORAGE_PREFIX}saved_points`;
 
 interface GuessHistoryStorage {
   [challengeUuid: string]: GuessResponse[];
@@ -82,5 +85,58 @@ export const storageUtils = {
       totalGuesses,
       storageSize: JSON.stringify(allHistory).length,
     };
+  },
+
+  // Daily challenge win tracking
+  markWonToday: (challengeUuid: string): void => {
+    try {
+      const today = new Date().toDateString();
+      const winData = { challengeUuid, date: today };
+      localStorage.setItem(DAILY_WINS_KEY, JSON.stringify(winData));
+    } catch (error) {
+      console.warn('Failed to mark daily win:', error);
+    }
+  },
+
+  hasWonToday: (challengeUuid: string): boolean => {
+    try {
+      const stored = localStorage.getItem(DAILY_WINS_KEY);
+      if (!stored) return false;
+
+      const winData = JSON.parse(stored);
+      const today = new Date().toDateString();
+
+      return winData.challengeUuid === challengeUuid && winData.date === today;
+    } catch (error) {
+      console.warn('Failed to check daily win status:', error);
+      return false;
+    }
+  },
+
+  // Saved points management
+  saveSavedPoints: (points: SavedPoint[]): void => {
+    try {
+      localStorage.setItem(SAVED_POINTS_KEY, JSON.stringify(points));
+    } catch (error) {
+      console.warn('Failed to save points:', error);
+    }
+  },
+
+  loadSavedPoints: (): SavedPoint[] => {
+    try {
+      const stored = localStorage.getItem(SAVED_POINTS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn('Failed to load saved points:', error);
+      return [];
+    }
+  },
+
+  clearSavedPoints: (): void => {
+    try {
+      localStorage.removeItem(SAVED_POINTS_KEY);
+    } catch (error) {
+      console.warn('Failed to clear saved points:', error);
+    }
   },
 };
