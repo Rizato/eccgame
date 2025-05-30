@@ -320,6 +320,12 @@ export function reconstructPrivateKey(
         // If we divided by k, we need to multiply by k
         accumulatedScalar = (accumulatedScalar * (op.value as bigint)) % CURVE_N;
         break;
+      case 'add':
+        accumulatedScalar = (accumulatedScalar - (op.value as bigint)) % CURVE_N;
+        break;
+      case 'subtract':
+        accumulatedScalar = (accumulatedScalar + (op.value as bigint)) % CURVE_N;
+        break;
       // Point addition/subtraction operations are more complex and would require
       // tracking the specific points and operations in a different way
       default:

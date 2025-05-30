@@ -290,8 +290,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           }
 
           if (scalar >= CURVE_N) {
-            onError('Scalar too large for secp256k1 curve');
-            return;
+            scalar %= CURVE_N;
           }
 
           let newPoint: ECPoint;

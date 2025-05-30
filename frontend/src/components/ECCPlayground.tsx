@@ -67,29 +67,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     setHexMode(false);
   }, []);
 
-  const toggleHexMode = useCallback(() => {
-    setCalculatorDisplay(prev => {
-      if (prev.startsWith('0x')) {
-        // Check if there are hex letters (A-F) in the value
-        const valueAfterPrefix = prev.slice(2);
-        const hasHexLetters = /[A-Fa-f]/.test(valueAfterPrefix);
-
-        if (hasHexLetters) {
-          // Don't allow removing 0x if there are hex letters
-          return prev;
-        }
-
-        // Remove 0x prefix only if no hex letters
-        setHexMode(false);
-        return valueAfterPrefix;
-      } else {
-        // Add 0x prefix
-        setHexMode(true);
-        return '0x' + prev;
-      }
-    });
-  }, []);
-
   const addToCalculator = useCallback((value: string) => {
     // Check if this is a hex digit (A-F)
     const isHexDigit = /^[A-F]$/i.test(value);
@@ -270,52 +247,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     }
   }, [currentPoint, generatorPoint]);
 
-  const quickDouble = useCallback(() => {
-    try {
-      setError(null);
-      const newPoint = pointMultiply(2n, currentPoint);
-      if (!isPointOnCurve(newPoint)) {
-        setError('Result is not on the curve');
-        return;
-      }
-      setCurrentPoint(newPoint);
-      setOperations(prev => [
-        ...prev,
-        {
-          id: `op_${Date.now()}`,
-          type: 'multiply',
-          description: '×2',
-          value: '2',
-        },
-      ]);
-    } catch (error) {
-      setError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }, [currentPoint]);
-
-  const quickHalve = useCallback(() => {
-    try {
-      setError(null);
-      const newPoint = pointDivide(2n, currentPoint);
-      if (!isPointOnCurve(newPoint)) {
-        setError('Result is not on the curve');
-        return;
-      }
-      setCurrentPoint(newPoint);
-      setOperations(prev => [
-        ...prev,
-        {
-          id: `op_${Date.now()}`,
-          type: 'divide',
-          description: '÷2',
-          value: '2',
-        },
-      ]);
-    } catch (error) {
-      setError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }, [currentPoint]);
-
   const executeCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
       try {
@@ -349,8 +280,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           }
 
           if (scalar >= CURVE_N) {
-            setError('Scalar too large for secp256k1 curve');
-            return;
+            scalar %= CURVE_N;
           }
 
           let newPoint: ECPoint;
