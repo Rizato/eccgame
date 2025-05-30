@@ -171,11 +171,11 @@ def test_create_guess_inactive_challenge(active_challenge, guess_data):
 
 @pytest.mark.django_db
 def test_guess_limit_enforcement(active_challenge):
-    from project.settings import MAX_GUESSES
+    from django.conf import settings
 
     client = APIClient()
     # Make MAX_GUESSES + 1 requests
-    for i in range(MAX_GUESSES + 1):
+    for i in range(settings.MAX_GUESSES + 1):
         # Generate new signature for each request
         signing_key = SigningKey.generate(curve=SECP256k1)
         public_key = signing_key.verifying_key.to_string("compressed").hex()
@@ -191,7 +191,7 @@ def test_guess_limit_enforcement(active_challenge):
             f"/api/challenges/{active_challenge.uuid}/guess/", data, format="json"
         )
 
-        if i < MAX_GUESSES:
+        if i < settings.MAX_GUESSES:
             assert response.status_code == status.HTTP_201_CREATED
         else:
             assert response.status_code == status.HTTP_403_FORBIDDEN

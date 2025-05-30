@@ -35,7 +35,7 @@ class GuessSerializer(serializers.ModelSerializer):
     challenge = serializers.PrimaryKeyRelatedField(read_only=True)
     signature = serializers.CharField(max_length=128)  # hex string of signature data
 
-    def validate_key(self, value):
+    def validate_public_key(self, value):
         try:
             VerifyingKey.from_string(
                 bytearray.fromhex(value), curve=SECP256k1, validate_point=True
@@ -74,6 +74,7 @@ class GuessSerializer(serializers.ModelSerializer):
             "is_signature_valid",
             "is_key_valid",
             "validated_at",
+            "created_at",
         )
         read_only_fields = (
             "uuid",
@@ -82,4 +83,5 @@ class GuessSerializer(serializers.ModelSerializer):
             "is_signature_valid",
             "is_key_valid",
             "validated_at",
+            "created_at",
         )
