@@ -493,9 +493,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         <div className="point-display-content">
           <>
             <div className="point-address">{currentAddress}</div>
-            {isPracticeMode && practicePrivateKey && (
-              <div className="point-progress">Progress: {progress?.toFixed(1)}%</div>
-            )}
             <div className="point-coordinates-compact">
               {currentPoint.isInfinity ? (
                 <span>Point at Infinity</span>

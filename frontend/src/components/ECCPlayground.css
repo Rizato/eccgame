@@ -506,7 +506,6 @@
 /* Vertical dashed line at G position */
 .generator-line {
   position: absolute;
-  left: 30%;
   top: 20px;
   bottom: 20px;
   width: 2px;

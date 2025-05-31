@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Challenge, GuessResponse } from '../types/api';
 import { getPublicKeyFormats, getAllKeyFormats } from '../utils/crypto';
+import { Modal } from './Modal';
 import './GuessSection.css';
 
 interface GuesseSectionProps {
@@ -137,91 +138,22 @@ const GuessSection: React.FC<GuesseSectionProps> = ({
         })}
       </div>
 
-      {/* Modal for guess details */}
-      {selectedGuess && (
-        <div className="modal-overlay" onClick={() => setSelectedGuess(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h4>Guess #{selectedGuess.guessNumber} Details</h4>
-              <button className="modal-close" onClick={() => setSelectedGuess(null)}>
-                ×
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <div className="detail-section">
-                <label>Bitcoin Address</label>
-                <div className="code-with-copy">
-                  <code>{selectedGuess.address}</code>
-                  <button
-                    className="copy-icon"
-                    onClick={() => navigator.clipboard.writeText(selectedGuess.address)}
-                    title="Copy address"
-                  >
-                    📋
-                  </button>
-                </div>
-              </div>
-
-              {selectedGuess.keyData && (
-                <>
-                  <div className="detail-section">
-                    <label>Compressed Public Key</label>
-                    <div className="code-with-copy">
-                      <code>{selectedGuess.keyData.compressed}</code>
-                      <button
-                        className="copy-icon"
-                        onClick={() =>
-                          navigator.clipboard.writeText(selectedGuess.keyData.compressed)
-                        }
-                        title="Copy public key"
-                      >
-                        📋
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="detail-section">
-                    <label>Coordinates</label>
-                    <div className="code-with-copy">
-                      <code>x: {selectedGuess.keyData.coordinates.x}</code>
-                      <button
-                        className="copy-icon"
-                        onClick={() =>
-                          navigator.clipboard.writeText(selectedGuess.keyData.coordinates.x)
-                        }
-                        title="Copy x coordinate"
-                      >
-                        📋
-                      </button>
-                    </div>
-                    <div className="code-with-copy">
-                      <code>y: {selectedGuess.keyData.coordinates.y}</code>
-                      <button
-                        className="copy-icon"
-                        onClick={() =>
-                          navigator.clipboard.writeText(selectedGuess.keyData.coordinates.y)
-                        }
-                        title="Copy y coordinate"
-                      >
-                        📋
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="detail-section">
-                    <label>Difference to Challenge</label>
-                    <div className="difference-section">
-                      <code>Point difference calculation would go here</code>
-                      <button className="add-to-graph-btn">Add Difference Point to Graph</button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={!!selectedGuess}
+        onClose={() => setSelectedGuess(null)}
+        title={selectedGuess ? `Guess #${selectedGuess.guessNumber} Details` : ''}
+        pointData={
+          selectedGuess?.keyData
+            ? {
+                address: selectedGuess.address,
+                compressedKey: selectedGuess.keyData.compressed,
+                xCoordinate: selectedGuess.keyData.coordinates.x,
+                yCoordinate: selectedGuess.keyData.coordinates.y,
+                distanceToTarget: 'Point difference calculation would go here',
+              }
+            : undefined
+        }
+      />
     </div>
   );
 };

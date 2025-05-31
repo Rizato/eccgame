@@ -1,14 +1,45 @@
-import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Challenge } from '../types/api';
+import { Modal } from './Modal';
 import './ChallengeInfo.css';
 
 interface ChallengeInfoProps {
   challenge: Challenge;
+  isPracticeMode?: boolean;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  onDifficultyChange?: (difficulty: 'easy' | 'medium' | 'hard') => void;
+  onNewChallenge?: () => void;
+  practicePrivateKey?: string;
 }
 
-const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ challenge }) => {
+const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
+  challenge,
+  isPracticeMode,
+  difficulty,
+  onDifficultyChange,
+  onNewChallenge,
+  practicePrivateKey,
+}) => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
+  const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDifficultyDropdown(false);
+      }
+    };
+
+    if (showDifficultyDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showDifficultyDropdown]);
 
   return (
     <>
@@ -17,10 +48,61 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ challenge }) => {
 
         <div className="challenge-info-content">
           <div className="info-section">
-            <h4 className="address-heading">Target Address</h4>
+            <h4 className="address-heading">
+              {isPracticeMode ? 'Practice Wallet' : 'Daily Wallet'}
+            </h4>
             <div className="address-row">
               <code className="address-code">{challenge.p2pkh_address}</code>
-              {challenge.explorer_link && (
+              <button onClick={() => setShowDetailsModal(true)} className="details-button">
+                Details
+              </button>
+              {isPracticeMode && (
+                <div className="combined-control" ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowDifficultyDropdown(!showDifficultyDropdown)}
+                    className="details-button combined-control-button"
+                  >
+                    New Challenge (
+                    {difficulty === 'easy' ? 'Easy' : difficulty === 'medium' ? 'Medium' : 'Hard'})
+                    ▼
+                  </button>
+                  {showDifficultyDropdown && (
+                    <div className="difficulty-dropdown">
+                      <button
+                        onClick={() => {
+                          onDifficultyChange?.('easy');
+                          onNewChallenge?.();
+                          setShowDifficultyDropdown(false);
+                        }}
+                        className="difficulty-option"
+                      >
+                        New Easy Challenge
+                      </button>
+                      <button
+                        onClick={() => {
+                          onDifficultyChange?.('medium');
+                          onNewChallenge?.();
+                          setShowDifficultyDropdown(false);
+                        }}
+                        className="difficulty-option"
+                      >
+                        New Medium Challenge
+                      </button>
+                      <button
+                        onClick={() => {
+                          onDifficultyChange?.('hard');
+                          onNewChallenge?.();
+                          setShowDifficultyDropdown(false);
+                        }}
+                        className="difficulty-option"
+                      >
+                        New Hard Challenge
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {!isPracticeMode && challenge.explorer_link && (
                 <a
                   href={challenge.explorer_link}
                   target="_blank"
@@ -33,7 +115,33 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ challenge }) => {
             </div>
           </div>
 
-          {challenge.metadata && challenge.metadata.length > 0 && (
+          {isPracticeMode && practicePrivateKey && (
+            <div className="info-section">
+              <label>Private Key:</label>
+              <div className="private-key-input-container">
+                <button
+                  type="button"
+                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                  className={`private-key-format-toggle ${privateKeyHexMode ? 'active' : ''}`}
+                  aria-label={privateKeyHexMode ? 'Switch to decimal' : 'Switch to hex'}
+                >
+                  {privateKeyHexMode ? '0x' : '10'}
+                </button>
+                <input
+                  type="text"
+                  value={
+                    privateKeyHexMode
+                      ? '0x' + BigInt('0x' + practicePrivateKey).toString(16)
+                      : BigInt('0x' + practicePrivateKey).toString()
+                  }
+                  readOnly
+                  className="private-key-input"
+                />
+              </div>
+            </div>
+          )}
+
+          {!isPracticeMode && challenge.metadata && challenge.metadata.length > 0 && (
             <div className="info-section">
               <label>Tags:</label>
               <div className="metadata-tags">
@@ -48,188 +156,14 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ challenge }) => {
         </div>
       </div>
 
-      {showDetailsModal &&
-        createPortal(
-          <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
-            <div className="challenge-modal" onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>Challenge Details</h3>
-                <button onClick={() => setShowDetailsModal(false)} className="modal-close">
-                  ×
-                </button>
-              </div>
-              <div className="modal-content">
-                <div className="modal-item">
-                  <span className="modal-label">Address:</span>
-                  <div className="modal-value-container">
-                    <input className="modal-value-input" value={challenge.p2pkh_address} readOnly />
-                    <button
-                      className="copy-button"
-                      onClick={() => navigator.clipboard.writeText(challenge.p2pkh_address)}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                <div className="modal-item">
-                  <span className="modal-label">Compressed Key:</span>
-                  <div className="modal-value-container">
-                    <input
-                      className="modal-value-input"
-                      value={(() => {
-                        try {
-                          const pubKey = challenge.public_key;
-                          // If already compressed, return as-is
-                          if (
-                            (pubKey.startsWith('02') || pubKey.startsWith('03')) &&
-                            pubKey.length === 66
-                          ) {
-                            return pubKey;
-                          }
-                          // If uncompressed, convert to compressed
-                          else if (pubKey.startsWith('04') && pubKey.length === 130) {
-                            const x = pubKey.slice(2, 66);
-                            const y = pubKey.slice(66);
-                            // Check if Y coordinate is even or odd
-                            const yBigInt = BigInt('0x' + y);
-                            const prefix = yBigInt % 2n === 0n ? '02' : '03';
-                            return prefix + x;
-                          }
-                          return 'Invalid key format';
-                        } catch {
-                          return 'Parse error';
-                        }
-                      })()}
-                      readOnly
-                    />
-                    <button
-                      className="copy-button"
-                      onClick={() => {
-                        try {
-                          const pubKey = challenge.public_key;
-                          let compressedKey = '';
-                          if (
-                            (pubKey.startsWith('02') || pubKey.startsWith('03')) &&
-                            pubKey.length === 66
-                          ) {
-                            compressedKey = pubKey;
-                          } else if (pubKey.startsWith('04') && pubKey.length === 130) {
-                            const x = pubKey.slice(2, 66);
-                            const y = pubKey.slice(66);
-                            const yBigInt = BigInt('0x' + y);
-                            const prefix = yBigInt % 2n === 0n ? '02' : '03';
-                            compressedKey = prefix + x;
-                          }
-                          navigator.clipboard.writeText(compressedKey);
-                        } catch {}
-                      }}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                <div className="modal-item">
-                  <span className="modal-label">X Coordinate:</span>
-                  <div className="modal-value-container">
-                    <input
-                      className="modal-value-input"
-                      value={(() => {
-                        try {
-                          const pubKey = challenge.public_key;
-                          // Uncompressed key: 04 + X (32 bytes) + Y (32 bytes) = 65 bytes total
-                          if (pubKey.startsWith('04') && pubKey.length === 130) {
-                            return pubKey.slice(2, 66); // X coordinate: bytes 1-32 (chars 2-65)
-                          }
-                          // Compressed key: 02/03 + X (32 bytes) = 33 bytes total
-                          else if (
-                            (pubKey.startsWith('02') || pubKey.startsWith('03')) &&
-                            pubKey.length === 66
-                          ) {
-                            return pubKey.slice(2); // X coordinate: bytes 1-32 (chars 2-65)
-                          }
-                          return 'Invalid key format';
-                        } catch {
-                          return 'Parse error';
-                        }
-                      })()}
-                      readOnly
-                    />
-                    <button
-                      className="copy-button"
-                      onClick={() => {
-                        try {
-                          const pubKey = challenge.public_key;
-                          let x = '';
-                          if (pubKey.startsWith('04') && pubKey.length === 130) {
-                            x = pubKey.slice(2, 66);
-                          } else if (
-                            (pubKey.startsWith('02') || pubKey.startsWith('03')) &&
-                            pubKey.length === 66
-                          ) {
-                            x = pubKey.slice(2);
-                          }
-                          navigator.clipboard.writeText(x);
-                        } catch {}
-                      }}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                <div className="modal-item">
-                  <span className="modal-label">Y Coordinate:</span>
-                  <div className="modal-value-container">
-                    <input
-                      className="modal-value-input"
-                      value={(() => {
-                        try {
-                          const pubKey = challenge.public_key;
-                          // Uncompressed key: 04 + X (32 bytes) + Y (32 bytes) = 65 bytes total
-                          if (pubKey.startsWith('04') && pubKey.length === 130) {
-                            return pubKey.slice(66); // Y coordinate: bytes 33-64 (chars 66-129)
-                          }
-                          // Compressed key: 02/03 + X (32 bytes) = 33 bytes total
-                          else if (pubKey.startsWith('02') && pubKey.length === 66) {
-                            return 'Even (02 prefix)';
-                          } else if (pubKey.startsWith('03') && pubKey.length === 66) {
-                            return 'Odd (03 prefix)';
-                          }
-                          return 'Invalid key format';
-                        } catch {
-                          return 'Parse error';
-                        }
-                      })()}
-                      readOnly
-                    />
-                    <button
-                      className="copy-button"
-                      onClick={() => {
-                        try {
-                          const pubKey = challenge.public_key;
-                          let y = '';
-                          if (pubKey.startsWith('04') && pubKey.length === 130) {
-                            y = pubKey.slice(66);
-                          } else if (pubKey.startsWith('02') && pubKey.length === 66) {
-                            y = 'Even (02 prefix)';
-                          } else if (pubKey.startsWith('03') && pubKey.length === 66) {
-                            y = 'Odd (03 prefix)';
-                          }
-                          navigator.clipboard.writeText(y);
-                        } catch {}
-                      }}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title={isPracticeMode ? 'Practice Challenge Details' : 'Challenge Details'}
+        challenge={challenge}
+        isPracticeMode={isPracticeMode}
+        practicePrivateKey={practicePrivateKey}
+      />
     </>
   );
 };

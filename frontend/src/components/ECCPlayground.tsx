@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import type { Challenge } from '../types/api';
 import type { ECPoint } from '../utils/ecc';
 import ECCCalculator, { type Operation } from './ECCCalculator';
+import { Modal } from './Modal';
 import {
   getGeneratorPoint,
   publicKeyToPoint,
@@ -347,44 +348,23 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     return isY ? percentage : percentage;
   };
 
+  // Calculate generator point screen coordinates
+  const generatorX = generatorPoint.isInfinity ? 50 : mapToScreenCoordinate(generatorPoint.x);
+  const generatorY = generatorPoint.isInfinity ? 50 : mapToScreenCoordinate(generatorPoint.y, true);
+
   const getVisiblePoints = () => {
     const points = [];
 
-    // Always show generator point G (fixed position)
+    // Always show generator point G (using actual coordinates)
     points.push({
       id: 'generator',
-      x: 30,
-      y: 40,
+      x: generatorX,
+      y: generatorY,
       label: 'G',
       color: '#3b82f6', // blue
       description: 'Generator point',
       point: generatorPoint,
     });
-
-    // Show target point in practice mode
-    if (isPracticeMode && practicePrivateKey) {
-      try {
-        const targetPrivateKey = BigInt('0x' + practicePrivateKey);
-        const calculatedTargetPoint = pointMultiply(targetPrivateKey, generatorPoint);
-
-        if (!calculatedTargetPoint.isInfinity) {
-          const targetX = mapToScreenCoordinate(calculatedTargetPoint.x);
-          const targetY = mapToScreenCoordinate(calculatedTargetPoint.y, true);
-
-          points.push({
-            id: 'target',
-            x: targetX,
-            y: targetY,
-            label: 'Target',
-            color: '#8b5cf6', // purple
-            description: 'Target point (practice mode)',
-            point: calculatedTargetPoint,
-          });
-        }
-      } catch {
-        // If target calculation fails, don't show target point
-      }
-    }
 
     // Always show original challenge point
     const originalPoint = publicKeyToPoint(challenge.public_key);
@@ -395,7 +375,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       id: 'original',
       x: originalX,
       y: originalY,
-      label: 'Start',
+      label: 'Wallet',
       color: '#f59e0b', // amber
       description: 'Original challenge point',
       point: originalPoint,
@@ -472,18 +452,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   return (
     <div className="ecc-playground">
-      {/* Practice/Target Info Section */}
-      <div className="practice-target-info">
-        {isPracticeMode && (
-          <div className="practice-indicator">
-            <span className="practice-badge">Practice Mode</span>
-            {progress !== null && (
-              <div className="progress-display">Progress: {progress.toFixed(1)}%</div>
-            )}
-          </div>
-        )}
-      </div>
-
       {error && <div className="error-message">{error}</div>}
 
       <div className="playground-content">
@@ -506,7 +474,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
               </div>
 
               {/* Vertical dashed line at G */}
-              <div className="generator-line"></div>
+              <div className="generator-line" style={{ left: `${generatorX}%` }}></div>
 
               {/* Curve visualization */}
               <div className="curve-line"></div>
@@ -545,14 +513,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
               </div>
               <div className="legend-item">
                 <div className="legend-dot" style={{ backgroundColor: '#f59e0b' }}></div>
-                <span>Start</span>
+                <span>Wallet</span>
               </div>
-              {isPracticeMode && graphPoints.some(p => p.id === 'target') && (
-                <div className="legend-item">
-                  <div className="legend-dot" style={{ backgroundColor: '#8b5cf6' }}></div>
-                  <span>Target</span>
-                </div>
-              )}
               {graphPoints.some(p => p.id === 'previous') && (
                 <div className="legend-item">
                   <div className="legend-dot" style={{ backgroundColor: '#9ca3af' }}></div>
@@ -587,178 +549,63 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         </div>
       </div>
 
-      {showPointModal && selectedPoint && (
-        <div className="modal-overlay" onClick={() => setShowPointModal(false)}>
-          <div className="point-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{selectedPoint.label} Point Information</h3>
-              <button onClick={() => setShowPointModal(false)} className="modal-close">
-                ×
-              </button>
-            </div>
-            <div className="modal-content">
-              <>
-                <div className="modal-item">
-                  <span className="modal-label">Address:</span>
-                  <div className="modal-value-container">
-                    <input className="modal-value-input" value={selectedPointAddress} readOnly />
-                    <button
-                      className="copy-button"
-                      onClick={() => navigator.clipboard.writeText(selectedPointAddress)}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                <div className="modal-item">
-                  <span className="modal-label">Compressed Key:</span>
-                  <div className="modal-value-container">
-                    <input
-                      className="modal-value-input"
-                      value={
-                        selectedPoint.point.isInfinity
-                          ? '020000000000000000000000000000000000000000000000000000000000000000'
-                          : (() => {
-                              try {
-                                return pointToPublicKey(selectedPoint.point);
-                              } catch {
-                                return 'Invalid point';
-                              }
-                            })()
+      <Modal
+        isOpen={showPointModal && !!selectedPoint}
+        onClose={() => setShowPointModal(false)}
+        title={selectedPoint ? `${selectedPoint.label} Point Information` : ''}
+        isPracticeMode={isPracticeMode}
+        practicePrivateKey={practicePrivateKey}
+        pointData={
+          selectedPoint
+            ? {
+                address: selectedPointAddress,
+                compressedKey: selectedPoint.point.isInfinity
+                  ? '020000000000000000000000000000000000000000000000000000000000000000'
+                  : (() => {
+                      try {
+                        return pointToPublicKey(selectedPoint.point);
+                      } catch {
+                        return 'Invalid point';
                       }
-                      readOnly
-                    />
-                    <button
-                      className="copy-button"
-                      onClick={() => {
-                        const value = selectedPoint.point.isInfinity
-                          ? '020000000000000000000000000000000000000000000000000000000000000000'
-                          : (() => {
-                              try {
-                                return pointToPublicKey(selectedPoint.point);
-                              } catch {
-                                return 'Invalid point';
-                              }
-                            })();
-                        navigator.clipboard.writeText(value);
-                      }}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                <div className="modal-item">
-                  <span className="modal-label">X Coordinate:</span>
-                  <div className="modal-value-container">
-                    <input
-                      className="modal-value-input"
-                      value={
-                        selectedPoint.point.isInfinity
-                          ? '0000000000000000000000000000000000000000000000000000000000000000'
-                          : bigintToHex(selectedPoint.point.x)
-                      }
-                      readOnly
-                    />
-                    <button
-                      className="copy-button"
-                      onClick={() => {
-                        const value = selectedPoint.point.isInfinity
-                          ? '0000000000000000000000000000000000000000000000000000000000000000'
-                          : bigintToHex(selectedPoint.point.x);
-                        navigator.clipboard.writeText(value);
-                      }}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                <div className="modal-item">
-                  <span className="modal-label">Y Coordinate:</span>
-                  <div className="modal-value-container">
-                    <input
-                      className="modal-value-input"
-                      value={
-                        selectedPoint.point.isInfinity
-                          ? '0000000000000000000000000000000000000000000000000000000000000000'
-                          : bigintToHex(selectedPoint.point.y)
-                      }
-                      readOnly
-                    />
-                    <button
-                      className="copy-button"
-                      onClick={() => {
-                        const value = selectedPoint.point.isInfinity
-                          ? '0000000000000000000000000000000000000000000000000000000000000000'
-                          : bigintToHex(selectedPoint.point.y);
-                        navigator.clipboard.writeText(value);
-                      }}
-                    >
-                      Copy
-                    </button>
-                  </div>
-                </div>
-
-                {isPracticeMode && practicePrivateKey && (
-                  <>
-                    <div className="modal-item">
-                      <span className="modal-label">Private Key:</span>
-                      <div className="modal-value-container">
-                        <input className="modal-value-input" value={practicePrivateKey} readOnly />
-                        <button
-                          className="copy-button"
-                          onClick={() => navigator.clipboard.writeText(practicePrivateKey)}
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-
-                    {selectedPoint.id === 'current' && (
-                      <div className="modal-item">
-                        <span className="modal-label">Distance to Target:</span>
-                        <div className="modal-value-container">
-                          <input
-                            className="modal-value-input"
-                            value={(() => {
-                              try {
-                                const targetPrivateKey = BigInt('0x' + practicePrivateKey);
-                                const startingPoint = publicKeyToPoint(challenge.public_key);
-                                const convertedOperations = operations.map(op => ({
-                                  type: op.type,
-                                  value: op.value
-                                    ? BigInt(op.value)
-                                    : op.point || { x: 0n, y: 0n, isInfinity: true },
-                                  direction: op.direction,
-                                }));
-                                const estimatedPrivateKey = estimatePrivateKeyFromOperations(
-                                  convertedOperations,
-                                  startingPoint,
-                                  targetPoint
-                                );
-                                const distance = getPrivateKeyDistance(
-                                  estimatedPrivateKey,
-                                  targetPrivateKey
-                                );
-                                return `${distance.toFixed(3)}% similarity`;
-                              } catch {
-                                return 'Unable to calculate';
-                              }
-                            })()}
-                            readOnly
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </>
-            </div>
-          </div>
-        </div>
-      )}
+                    })(),
+                xCoordinate: selectedPoint.point.isInfinity
+                  ? '0000000000000000000000000000000000000000000000000000000000000000'
+                  : bigintToHex(selectedPoint.point.x),
+                yCoordinate: selectedPoint.point.isInfinity
+                  ? '0000000000000000000000000000000000000000000000000000000000000000'
+                  : bigintToHex(selectedPoint.point.y),
+                distanceToTarget:
+                  selectedPoint.id === 'current'
+                    ? (() => {
+                        try {
+                          const targetPrivateKey = BigInt('0x' + practicePrivateKey);
+                          const startingPoint = publicKeyToPoint(challenge.public_key);
+                          const convertedOperations = operations.map(op => ({
+                            type: op.type,
+                            value: op.value
+                              ? BigInt(op.value)
+                              : op.point || { x: 0n, y: 0n, isInfinity: true },
+                            direction: op.direction,
+                          }));
+                          const estimatedPrivateKey = estimatePrivateKeyFromOperations(
+                            convertedOperations,
+                            startingPoint,
+                            targetPoint
+                          );
+                          const distance = getPrivateKeyDistance(
+                            estimatedPrivateKey,
+                            targetPrivateKey
+                          );
+                          return `${distance.toFixed(3)}% similarity`;
+                        } catch {
+                          return 'Unable to calculate';
+                        }
+                      })()
+                    : undefined,
+              }
+            : undefined
+        }
+      />
 
       {isAtGenerator && (
         <div className="generator-reached">
