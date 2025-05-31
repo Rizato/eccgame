@@ -112,7 +112,7 @@ npm run dev                     # Start development server (Vite)
 npm run build                   # Build for production
 npm run preview                 # Preview production build
 npm run lint                    # Lint TypeScript/React code
-npm run type-check              # Run TypeScript type checking
+npm run typecheck              # Run TypeScript type checking
 npm test                        # Run tests with Vitest
 ```
 
@@ -138,6 +138,7 @@ Access Django admin at `http://localhost:8000/admin/` after creating a superuser
 - API communication through `src/services/api.ts`
 - Local storage utilities in `src/utils/storage.ts`
 - Theme management in `src/utils/theme.ts`
+- Keep tests is .test.ts files, no mixing tests and code in the same file
 
 ## Task Management Guidelines
 
@@ -147,3 +148,4 @@ Access Django admin at `http://localhost:8000/admin/` after creating a superuser
 - Only have one task `in_progress` at a time
 - Break down large features into smaller, specific tasks
 - Use descriptive task names that clearly indicate the work to be done
+- When leaving a mock or fake implementation, leave a `TODO` so that it is obvious the implementation is incomplete
