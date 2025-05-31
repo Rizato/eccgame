@@ -19,6 +19,7 @@
  */
 
 import * as secp256k1 from 'secp256k1';
+import hash from 'hash.js';
 
 /**
  * Utility functions for SECP256k1 cryptographic operations
@@ -124,34 +125,81 @@ export function getPublicKeyCoordinates(publicKeyHex: string): { x: string; y: s
 }
 
 /**
- * Generate P2PKH address from public key (simplified version)
- * Note: This is a simplified implementation for display purposes
+ * Pure JavaScript Base58 encode (matching Kotlin implementation)
+ */
+export function base58Encode(data: Uint8Array): string {
+  const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+  // Convert the input bytes to a BigInt (matching Utils.bigIntegerFromArray)
+  let intValue = BigInt('0x' + bytesToHex(data));
+
+  // Perform Base58 encoding (matching Kotlin logic)
+  let encoded = '';
+  const fiftyEight = 58n;
+
+  while (intValue > 0n) {
+    const remainder = intValue % fiftyEight;
+    intValue = intValue / fiftyEight;
+    encoded = alphabet[Number(remainder)] + encoded; // Prepend (matching insert(0, ...))
+  }
+
+  // Encode leading zeros (matching takeWhile logic)
+  for (let i = 0; i < data.length && data[i] === 0; i++) {
+    encoded = alphabet[0] + encoded; // Prepend '1' for each leading zero
+  }
+
+  return encoded;
+}
+
+/**
+ * Base58Check encode with checksum (matching Kotlin implementation)
+ */
+export async function base58CheckEncode(data: Uint8Array): Promise<string> {
+  // Calculate the checksum (matching calculateChecksum)
+  const checksum = await calculateChecksum(data);
+
+  // Combine data and checksum (matching: data + checksum)
+  const combined = new Uint8Array(data.length + checksum.length);
+  combined.set(data, 0);
+  combined.set(checksum, data.length);
+
+  // Perform Base58 encoding (matching base58Encode call)
+  return base58Encode(combined);
+}
+
+/**
+ * Calculate checksum (matching Kotlin calculateChecksum function)
+ */
+async function calculateChecksum(data: Uint8Array): Promise<Uint8Array> {
+  // Double SHA256 (matching Kotlin implementation)
+  const hash1 = await crypto.subtle.digest('SHA-256', data);
+  const hash2 = await crypto.subtle.digest('SHA-256', hash1);
+
+  // Take the first 4 bytes of the second hash as the checksum
+  return new Uint8Array(hash2).slice(0, 4);
+}
+
+/**
+ * Generate proper Bitcoin P2PKH address from public key
+ * Uses uncompressed public key format: SHA256 → RIPEMD160 → Base58Check
  */
 export async function getP2PKHAddress(publicKeyHex: string): Promise<string> {
   try {
-    let compressed = publicKeyHex;
+    let uncompressed = secp256k1.publicKeyConvert(hexToBytes(publicKeyHex), false);
 
-    // If input is uncompressed, convert to compressed
-    if (publicKeyHex.length === 130 && publicKeyHex.startsWith('04')) {
-      const uncompressedBytes = hexToBytes(publicKeyHex);
-      const compressedBytes = secp256k1.publicKeyConvert(uncompressedBytes, true);
-      compressed = bytesToHex(compressedBytes);
-    }
-
-    const pubKeyBytes = hexToBytes(compressed);
-
-    // SHA256 hash of the public key
-    const sha256Hash = await crypto.subtle.digest('SHA-256', pubKeyBytes);
-
-    // RIPEMD160 would be needed for real Bitcoin addresses, but we'll use a simplified approach
-    // Since we don't have RIPEMD160 in browsers, we'll just return a mock address format
-    // In a real implementation, you'd need a proper Bitcoin address library
+    // Step 1: SHA256 hash of the uncompressed public key
+    const sha256Hash = await crypto.subtle.digest('SHA-256', uncompressed);
     const sha256Bytes = new Uint8Array(sha256Hash);
-    const addressHash = bytesToHex(sha256Bytes.slice(0, 20)); // Take first 20 bytes
+    // Step 2: RIPEMD160 hash of the SHA256 hash
+    const ripemd160 = hash.ripemd160().update(sha256Bytes).digest();
+    const prefixedHash = new Uint8Array(21);
+    prefixedHash.set(ripemd160, 1);
+    // Add 00 prefix for mainnet
+    const address = await base58CheckEncode(prefixedHash);
 
-    return `1${addressHash.slice(0, 30)}`; // Mock P2PKH format
-  } catch {
-    throw new Error('Unable to generate P2PKH address');
+    return address;
+  } catch (error) {
+    throw new Error(`Unable to generate P2PKH address: ${error}`);
   }
 }
 
@@ -249,6 +297,7 @@ export async function createSignature(
   const hashBytes = new Uint8Array(hashBuffer);
 
   // Create signature
+  // TODO Verify this is correct
   const signature = secp256k1.ecdsaSign(hashBytes, privateKeyBytes);
 
   return bytesToHex(signature.signature);

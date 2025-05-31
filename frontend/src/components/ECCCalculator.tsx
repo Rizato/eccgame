@@ -497,28 +497,21 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               <div className="point-progress">Progress: {progress?.toFixed(1)}%</div>
             )}
             <div className="point-coordinates-compact">
-              <span>
-                x:{' '}
-                {currentPoint.isInfinity
-                  ? '0000000000000000'
-                  : bigintToHex(currentPoint.x).slice(0, 16)}
-                ...
-              </span>
-              <span>
-                y:{' '}
-                {currentPoint.isInfinity
-                  ? '0000000000000000'
-                  : bigintToHex(currentPoint.y).slice(0, 16)}
-                ...
-              </span>
+              {currentPoint.isInfinity ? (
+                <span>Point at Infinity</span>
+              ) : (
+                <>
+                  <span>x: {bigintToHex(currentPoint.x).slice(0, 16)}...</span>
+                  <span>y: {bigintToHex(currentPoint.y).slice(0, 16)}...</span>
+                </>
+              )}
             </div>
             <div className="point-compressed-key">
               <span>
                 Compressed:{' '}
                 {currentPoint.isInfinity
-                  ? '0200000000000000'
-                  : pointToPublicKey(currentPoint).slice(0, 16)}
-                ...
+                  ? 'N/A (Point at Infinity)'
+                  : pointToPublicKey(currentPoint).slice(0, 16) + '...'}
               </span>
             </div>
           </>

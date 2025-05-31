@@ -6,6 +6,9 @@ import {
   getPublicKeyFromPrivate,
   createSignature,
   generateGuessFromPrivateKey,
+  getP2PKHAddress,
+  ripemd160,
+  base58CheckEncode,
 } from './crypto';
 
 describe('crypto utilities', () => {
@@ -124,6 +127,54 @@ describe('crypto utilities', () => {
 
       expect(guess1.public_key).toBe(guess2.public_key);
       expect(guess1.signature).toBe(guess2.signature);
+    });
+  });
+
+  describe('P2PKH Address Generation', () => {
+    it('should properly base58 encode with the correct ripemd160', async () => {
+      const h160 = '11b366edfc0a8b66feebae5c2e25a7b6a5d1cf31';
+      const expectedb58 = '12cbQLTFMXRnSzktFkuoG3eHoMeFtpTu3S';
+
+      const actual58 = await base58CheckEncode(hexToBytes('00' + h160));
+      expect(actual58).toBe(expectedb58);
+    });
+
+    it('should generate a matching p2phk address for statoshi pubkey', async () => {
+      // From your Kotlin test: satoshi_pubkey and satoshi_actual_address
+      const satoshiPubKey =
+        '0411db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5cb2e0eaddfb84ccf9744464f82e160bfa9b8b64f9d4c03f999b8643f656b412a3';
+      const expectedAddress = '12cbQLTFMXRnSzktFkuoG3eHoMeFtpTu3S';
+
+      const actualAddress = await getP2PKHAddress(satoshiPubKey);
+
+      expect(actualAddress).toBe(expectedAddress);
+    });
+
+    it('should handle compressed public keys by converting to uncompressed', async () => {
+      // Generate a compressed key and test address generation
+      const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
+      const compressedPubKey = getPublicKeyFromPrivate(privateKey);
+
+      // Should not throw and should return a valid Bitcoin address
+      const address = await getP2PKHAddress(compressedPubKey);
+
+      expect(address).toMatch(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/); // Bitcoin address regex
+    });
+
+    it('should handle uncompressed public keys directly', async () => {
+      const uncompressedPubKey =
+        '0496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858ee';
+
+      const address = await getP2PKHAddress(uncompressedPubKey);
+
+      expect(address).toMatch(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/); // Bitcoin address regex
+      expect(address).toBe('12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX');
+    });
+
+    it('should throw error for invalid public key format', async () => {
+      const invalidPubKey = 'invalid_key';
+
+      await expect(getP2PKHAddress(invalidPubKey)).rejects.toThrow();
     });
   });
 });
