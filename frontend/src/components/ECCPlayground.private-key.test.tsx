@@ -6,11 +6,7 @@ import {
   pointAdd,
   pointSubtract,
 } from '../utils/ecc';
-import {
-  calculatePrivateKeyFromOperations,
-  calculatePrivateKeyForPoint,
-  type Operation,
-} from '../utils/privateKeyCalculation';
+import { calculatePrivateKeyFromOperations, type Operation } from '../utils/privateKeyCalculation';
 
 describe('ECCPlayground Private Key Calculations', () => {
   const generatorPoint = getGeneratorPoint();

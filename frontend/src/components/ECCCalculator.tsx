@@ -199,8 +199,9 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       const operation: Operation = {
         id: `op_${Date.now()}`,
         type: 'add',
-        description: '+G',
+        description: '+1',
         point: generatorPoint,
+        value: '1',
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       handlePointChange(newPoint, operation);
@@ -220,8 +221,9 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       const operation: Operation = {
         id: `op_${Date.now()}`,
         type: 'subtract',
-        description: '-G',
+        description: '-1',
         point: generatorPoint,
+        value: '1',
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       handlePointChange(newPoint, operation);
