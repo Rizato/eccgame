@@ -112,6 +112,18 @@
   border-color: var(--accent-color);
 }
 
+.modal-value-input.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-value-input.clickable:hover {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
+}
+
 .copy-button {
   background: var(--card-background);
   border: 1px solid var(--border);

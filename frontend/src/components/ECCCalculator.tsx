@@ -520,16 +520,13 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 <div className="point-private-key">
                   <div className="private-key-row">
                     <span>Private Key: </span>
-                    <button
-                      type="button"
+                    <span
+                      className="private-key-value clickable"
                       onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
-                      className={`private-key-format-toggle ${privateKeyHexMode ? 'active' : ''}`}
-                      aria-label={privateKeyHexMode ? 'Switch to decimal' : 'Switch to hex'}
-                      title={privateKeyHexMode ? 'Switch to decimal' : 'Switch to hex'}
+                      title={
+                        privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
+                      }
                     >
-                      {privateKeyHexMode ? '0x' : '10'}
-                    </button>
-                    <span className="private-key-value">
                       {privateKeyHexMode
                         ? '0x' + currentPrivateKey.toString(16)
                         : currentPrivateKey.toString()}

@@ -90,16 +90,8 @@ export const Modal: React.FC<ModalProps> = ({
             <div className="modal-item">
               <span className="modal-label">Private Key:</span>
               <div className="modal-value-container">
-                <button
-                  type="button"
-                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
-                  className={`private-key-format-toggle ${privateKeyHexMode ? 'active' : ''}`}
-                  aria-label={privateKeyHexMode ? 'Switch to decimal' : 'Switch to hex'}
-                >
-                  {privateKeyHexMode ? '0x' : '10'}
-                </button>
                 <input
-                  className="modal-value-input"
+                  className="modal-value-input clickable"
                   type="text"
                   value={(() => {
                     const keyToUse = pointData?.privateKey || practicePrivateKey;
@@ -115,6 +107,10 @@ export const Modal: React.FC<ModalProps> = ({
                     }
                   })()}
                   readOnly
+                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                  title={
+                    privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
+                  }
                 />
                 <button
                   className="copy-button"

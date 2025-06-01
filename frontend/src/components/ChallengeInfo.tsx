@@ -119,14 +119,6 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
             <div className="info-section">
               <label>Private Key:</label>
               <div className="private-key-input-container">
-                <button
-                  type="button"
-                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
-                  className={`private-key-format-toggle ${privateKeyHexMode ? 'active' : ''}`}
-                  aria-label={privateKeyHexMode ? 'Switch to decimal' : 'Switch to hex'}
-                >
-                  {privateKeyHexMode ? '0x' : '10'}
-                </button>
                 <input
                   type="text"
                   value={
@@ -135,7 +127,11 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
                       : BigInt('0x' + practicePrivateKey).toString()
                   }
                   readOnly
-                  className="private-key-input"
+                  className="private-key-input clickable"
+                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                  title={
+                    privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
+                  }
                 />
               </div>
             </div>

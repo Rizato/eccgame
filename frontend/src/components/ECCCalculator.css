@@ -591,28 +591,6 @@
   color: var(--text-secondary);
 }
 
-.private-key-format-toggle {
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: 3px;
-  padding: 2px 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 24px;
-}
-
-.private-key-format-toggle:hover {
-  background: var(--accent-color-dark, var(--accent-color));
-  transform: translateY(-1px);
-}
-
-.private-key-format-toggle.active {
-  background: var(--accent-color-dark, var(--accent-color));
-}
-
 .private-key-value {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-weight: 500;
@@ -621,4 +599,18 @@
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+}
+
+.private-key-value.clickable {
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: all 0.2s ease;
+}
+
+.private-key-value.clickable:hover {
+  background: var(--accent-color);
+  color: white;
+  transform: translateY(-1px);
 }
