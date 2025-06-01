@@ -90,10 +90,14 @@ export const Modal: React.FC<ModalProps> = ({
             <div className="modal-item">
               <span className="modal-label">Private Key:</span>
               <div className="modal-value-container">
-                <input
-                  className="modal-value-input clickable"
-                  type="text"
-                  value={(() => {
+                <span
+                  className="modal-value-display clickable"
+                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                  title={
+                    privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
+                  }
+                >
+                  {(() => {
                     const keyToUse = pointData?.privateKey || practicePrivateKey;
                     if (!keyToUse) return '';
 
@@ -106,12 +110,7 @@ export const Modal: React.FC<ModalProps> = ({
                       return 'Invalid key';
                     }
                   })()}
-                  readOnly
-                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
-                  title={
-                    privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
-                  }
-                />
+                </span>
                 <button
                   className="copy-button"
                   onClick={() => {
@@ -287,7 +286,9 @@ export const ModalItem: React.FC<ModalItemProps> = ({ label, value, onCopy, type
     <div className="modal-item">
       <span className="modal-label">{label}:</span>
       <div className="modal-value-container">
-        <input className="modal-value-input" type={type} value={value} readOnly />
+        <span className="modal-value-display" title="Click to select text">
+          {value}
+        </span>
         {onCopy && (
           <button className="copy-button" onClick={onCopy}>
             Copy

@@ -576,9 +576,8 @@
 
 /* Private Key Display */
 .point-private-key {
-  margin-top: 6px;
-  padding: 4px 8px;
   background: var(--hover-background);
+  padding: 4px 8px;
   border-radius: 4px;
 }
 
@@ -604,8 +603,8 @@
 .private-key-value.clickable {
   cursor: pointer;
   border-radius: 3px;
-  padding: 2px 4px;
-  margin: -2px -4px;
+  padding: 1px 2px;
+  margin: -1px -2px;
   transition: all 0.2s ease;
 }
 

@@ -223,42 +223,13 @@
 }
 
 /* Private Key Input */
-.private-key-input-container {
+.private-key-display-container {
   display: flex;
   align-items: stretch;
   width: 100%;
 }
 
-.private-key-format-toggle {
-  background: var(--card-background);
-  border: 1px solid var(--border);
-  border-right: none;
-  border-radius: 4px 0 0 0;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px;
-}
-
-.private-key-format-toggle:hover {
-  background: var(--hover-background);
-  color: var(--text-primary);
-}
-
-.private-key-format-toggle.active {
-  background: var(--accent-color);
-  color: white;
-  border-color: var(--accent-color);
-}
-
-.private-key-input {
+.private-key-display {
   color: var(--text-primary);
   background: var(--hover-background);
   border: 1px solid var(--border);
@@ -267,20 +238,20 @@
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
   flex: 1;
-  outline: none;
   text-align: left;
+  word-break: break-all;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.private-key-input:focus {
-  border-color: var(--accent-color);
-}
-
-.private-key-input.clickable {
+.private-key-display.clickable {
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.private-key-input.clickable:hover {
+.private-key-display.clickable:hover {
   background: var(--accent-color);
   color: white;
   border-color: var(--accent-color);

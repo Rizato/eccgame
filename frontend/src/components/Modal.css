@@ -69,7 +69,7 @@
 .modal-item {
   display: flex;
   flex-direction: column;
-  padding: 12px 0;
+  padding: 6px 0;
   border-bottom: 1px solid var(--border);
   gap: 6px;
 }
@@ -112,12 +112,40 @@
   border-color: var(--accent-color);
 }
 
-.modal-value-input.clickable {
-  cursor: pointer;
+.modal-value-display {
+  color: var(--text-primary);
+  background: var(--hover-background);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  padding: 4px 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  flex: 1;
+  word-break: break-all;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  user-select: text;
+  cursor: text;
   transition: all 0.2s ease;
 }
 
-.modal-value-input.clickable:hover {
+.modal-value-display:hover {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+.modal-value-display.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.modal-value-display.clickable:hover {
   background: var(--accent-color);
   color: white;
   border-color: var(--accent-color);
