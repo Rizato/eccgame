@@ -85,8 +85,8 @@ export const Modal: React.FC<ModalProps> = ({
             }
           />
 
-          {/* Private Key (Practice Mode Only) */}
-          {isPracticeMode && practicePrivateKey && (
+          {/* Private Key (Practice Mode or when calculated) */}
+          {((isPracticeMode && practicePrivateKey) || pointData?.privateKey) && (
             <div className="modal-item">
               <span className="modal-label">Private Key:</span>
               <div className="modal-value-container">
@@ -101,22 +101,36 @@ export const Modal: React.FC<ModalProps> = ({
                 <input
                   className="modal-value-input"
                   type="text"
-                  value={
-                    privateKeyHexMode
-                      ? '0x' + BigInt('0x' + practicePrivateKey).toString(16)
-                      : BigInt('0x' + practicePrivateKey).toString()
-                  }
+                  value={(() => {
+                    const keyToUse = pointData?.privateKey || practicePrivateKey;
+                    if (!keyToUse) return '';
+
+                    try {
+                      const keyBigInt = BigInt('0x' + keyToUse);
+                      return privateKeyHexMode
+                        ? '0x' + keyBigInt.toString(16)
+                        : keyBigInt.toString();
+                    } catch {
+                      return 'Invalid key';
+                    }
+                  })()}
                   readOnly
                 />
                 <button
                   className="copy-button"
-                  onClick={() =>
-                    navigator.clipboard.writeText(
-                      privateKeyHexMode
-                        ? '0x' + BigInt('0x' + practicePrivateKey).toString(16)
-                        : BigInt('0x' + practicePrivateKey).toString()
-                    )
-                  }
+                  onClick={() => {
+                    const keyToUse = pointData?.privateKey || practicePrivateKey;
+                    if (!keyToUse) return;
+
+                    try {
+                      const keyBigInt = BigInt('0x' + keyToUse);
+                      navigator.clipboard.writeText(
+                        privateKeyHexMode ? '0x' + keyBigInt.toString(16) : keyBigInt.toString()
+                      );
+                    } catch {
+                      // Handle invalid key
+                    }
+                  }}
                 >
                   Copy
                 </button>

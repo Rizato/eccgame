@@ -11,7 +11,12 @@ import {
   isPointOnCurve,
   getGeneratorPoint,
   pointToPublicKey,
+  modInverse,
 } from '../utils/ecc';
+import {
+  calculateCurrentPrivateKey,
+  type Operation as SharedOperation,
+} from '../utils/privateKeyCalculation';
 import { getP2PKHAddress } from '../utils/crypto';
 import './ECCCalculator.css';
 
@@ -19,47 +24,53 @@ interface ECCCalculatorProps {
   currentPoint: ECPoint;
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
-  onShowPointModal: () => void;
   onResetPoint: (startingMode: 'challenge' | 'generator') => void;
+  startingMode: 'challenge' | 'generator'; // challenge: start from challenge point, generator: start from G
   isPracticeMode?: boolean;
   practicePrivateKey?: string;
-  progress?: number | null;
-  startingMode: 'challenge' | 'generator'; // challenge: start from challenge point, generator: start from G
 }
 
-export interface Operation {
-  id: string;
-  type: 'multiply' | 'divide' | 'add' | 'subtract';
-  description: string;
-  value?: string;
-  point?: ECPoint;
-  direction: 'forward' | 'reverse'; // forward: challenge->G, reverse: G->challenge
-}
+export type Operation = SharedOperation;
 
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   currentPoint,
   onPointChange,
   onError,
-  onShowPointModal,
   onResetPoint,
+  startingMode,
   isPracticeMode = false,
   practicePrivateKey,
-  progress,
-  startingMode,
 }) => {
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
   const [pendingOperation, setPendingOperation] = useState<
     'multiply' | 'divide' | 'add' | 'subtract' | null
   >(null);
   const [lastOperationValue, setLastOperationValue] = useState<string | null>(null);
-  const [operatorHighlighted, setOperatorHighlighted] = useState<
-    'multiply' | 'divide' | 'add' | 'subtract' | null
-  >(null);
   const [hexMode, setHexMode] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<string>('');
   const [showResetDropdown, setShowResetDropdown] = useState(false);
+  const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
+  const [operations, setOperations] = useState<Operation[]>([]);
 
   const generatorPoint = getGeneratorPoint();
+
+  // Track operations for private key calculation
+  const handlePointChange = useCallback(
+    (point: ECPoint, operation: Operation) => {
+      setOperations(prev => [...prev, operation]);
+      onPointChange(point, operation);
+    },
+    [onPointChange]
+  );
+
+  // Calculate the actual private key for the current point using shared utility
+  const currentPrivateKey = calculateCurrentPrivateKey(
+    currentPoint,
+    operations,
+    startingMode,
+    isPracticeMode,
+    practicePrivateKey
+  );
 
   // Calculate current address asynchronously
   useEffect(() => {
@@ -85,7 +96,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const clearCalculator = useCallback(() => {
     setCalculatorDisplay('');
     setPendingOperation(null);
-    setOperatorHighlighted(null);
     setHexMode(false);
   }, []);
 
@@ -161,20 +171,17 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       if (calculatorDisplay.trim() && !pendingOperation) {
         // Set pending operation and highlight the operator, wait for equals
         setPendingOperation(operation);
-        setOperatorHighlighted(operation);
       } else if (calculatorDisplay.trim() && pendingOperation) {
         // If there's already a pending operation, execute it with current display value
         executeCalculatorOperationRef.current?.(pendingOperation, calculatorDisplay.trim());
         // Then set the new operation as pending
         setPendingOperation(operation);
-        setOperatorHighlighted(operation);
       } else if (lastOperationValue) {
         // If no value but we have a last operation value, reuse it
         executeCalculatorOperationRef.current?.(operation, lastOperationValue);
       } else {
         // Just set the pending operation and highlight
         setPendingOperation(operation);
-        setOperatorHighlighted(operation);
       }
     },
     [calculatorDisplay, pendingOperation, lastOperationValue]
@@ -196,11 +203,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         point: generatorPoint,
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
-      onPointChange(newPoint, operation);
+      handlePointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, onPointChange, onError]);
+  }, [currentPoint, generatorPoint, handlePointChange, onError, startingMode]);
 
   const quickSubtractG = useCallback(() => {
     try {
@@ -217,11 +224,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         point: generatorPoint,
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
-      onPointChange(newPoint, operation);
+      handlePointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, onPointChange, onError]);
+  }, [currentPoint, generatorPoint, handlePointChange, onError, startingMode]);
 
   const quickDouble = useCallback(() => {
     try {
@@ -238,11 +245,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '2',
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
-      onPointChange(newPoint, operation);
+      handlePointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, onPointChange, onError]);
+  }, [currentPoint, handlePointChange, onError, startingMode]);
 
   const quickHalve = useCallback(() => {
     try {
@@ -259,88 +266,81 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '2',
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
-      onPointChange(newPoint, operation);
+      handlePointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, onPointChange, onError]);
+  }, [currentPoint, handlePointChange, onError, startingMode]);
 
   const executeCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
       try {
         onError(null);
 
-        if (operation === 'multiply' || operation === 'divide') {
-          // For scalar operations
-          if (!value.trim()) {
-            onError('Please enter a scalar value');
-            return;
-          }
-
-          let scalar: bigint;
-          try {
-            if (value.startsWith('0x')) {
-              scalar = hexToBigint(value);
-            } else if (value.includes('.')) {
-              onError('Decimal numbers not supported. Use integers or hex values.');
-              return;
-            } else {
-              scalar = BigInt(value);
-            }
-          } catch {
-            onError('Invalid scalar value');
-            return;
-          }
-
-          if (scalar <= 0n) {
-            onError('Scalar must be positive');
-            return;
-          }
-
-          if (scalar >= CURVE_N) {
-            scalar %= CURVE_N;
-          }
-
-          let newPoint: ECPoint;
-          let description: string;
-
-          if (operation === 'multiply') {
-            newPoint = pointMultiply(scalar, currentPoint);
-            description = `×${value}`;
-          } else {
-            newPoint = pointDivide(scalar, currentPoint);
-            description = `÷${value}`;
-          }
-
-          if (!isPointOnCurve(newPoint)) {
-            onError('Result is not on the curve');
-            return;
-          }
-
-          const operationObj: Operation = {
-            id: `op_${Date.now()}`,
-            type: operation,
-            description,
-            value,
-            direction: startingMode === 'challenge' ? 'forward' : 'reverse',
-          };
-          onPointChange(newPoint, operationObj);
-
-          // Store the value for potential chaining
-          setLastOperationValue(value);
-        } else {
-          // For point operations (+G, -G), execute directly
-          if (operation === 'add') {
-            quickAddG();
-          } else {
-            quickSubtractG();
-          }
-          // Store 'G' as the operation value for chaining
-          setLastOperationValue('G');
-          // For point operations, we can still keep the operation for chaining
-          // The user can press the same operator again to repeat +G or -G operations
+        // For scalar operations
+        if (!value.trim()) {
+          onError('Please enter a scalar value');
+          return;
         }
 
+        let scalar: bigint;
+        try {
+          if (value.startsWith('0x')) {
+            scalar = hexToBigint(value);
+          } else if (value.includes('.')) {
+            onError('Decimal numbers not supported. Use integers or hex values.');
+            return;
+          } else {
+            scalar = BigInt(value);
+          }
+        } catch {
+          onError('Invalid scalar value');
+          return;
+        }
+
+        if (scalar <= 0n) {
+          onError('Scalar must be positive');
+          return;
+        }
+
+        if (scalar >= CURVE_N) {
+          scalar %= CURVE_N;
+        }
+
+        let newPoint: ECPoint;
+        let description: string;
+
+        const differencePoint = pointMultiply(scalar, generatorPoint);
+        if (operation === 'multiply') {
+          newPoint = pointMultiply(scalar, currentPoint);
+          description = `×${value}`;
+        } else if (operation === 'divide') {
+          newPoint = pointDivide(scalar, currentPoint);
+          description = `÷${value}`;
+        } else if (operation === 'add') {
+          newPoint = pointAdd(currentPoint, differencePoint);
+          description = `+${value}`;
+        } else {
+          newPoint = pointSubtract(currentPoint, differencePoint);
+          description = `-${value}`;
+        }
+
+        if (!isPointOnCurve(newPoint)) {
+          onError('Result is not on the curve');
+          return;
+        }
+
+        const operationObj: Operation = {
+          id: `op_${Date.now()}`,
+          type: operation,
+          description,
+          value,
+          direction: startingMode === 'challenge' ? 'forward' : 'reverse',
+        };
+        handlePointChange(newPoint, operationObj);
+
+        // Store the value for potential chaining
+        setLastOperationValue(value);
         // Keep the value in display for chaining, keep the operation selected for repeated equals
         setCalculatorDisplay(value);
         // Keep pending operation and highlighted state for chaining equals
@@ -348,7 +348,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [currentPoint, onPointChange, onError, quickAddG, quickSubtractG]
+    [currentPoint, handlePointChange, onError, quickAddG, quickSubtractG, startingMode]
   );
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
@@ -511,6 +511,32 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                   : pointToPublicKey(currentPoint).slice(0, 16) + '...'}
               </span>
             </div>
+            {/* Private Key Display - show when we can calculate the actual private key */}
+            {(() => {
+              if (currentPrivateKey === null || currentPoint.isInfinity) return null;
+
+              return (
+                <div className="point-private-key">
+                  <div className="private-key-row">
+                    <span>Private Key: </span>
+                    <button
+                      type="button"
+                      onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                      className={`private-key-format-toggle ${privateKeyHexMode ? 'active' : ''}`}
+                      aria-label={privateKeyHexMode ? 'Switch to decimal' : 'Switch to hex'}
+                      title={privateKeyHexMode ? 'Switch to decimal' : 'Switch to hex'}
+                    >
+                      {privateKeyHexMode ? '0x' : '10'}
+                    </button>
+                    <span className="private-key-value">
+                      {privateKeyHexMode
+                        ? '0x' + currentPrivateKey.toString(16).slice(0, 16) + '...'
+                        : currentPrivateKey.toString().slice(0, 16) + '...'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
           </>
         </div>
       </div>
@@ -618,25 +644,25 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               <div className="operators-grid">
                 <button
                   onClick={() => setCalculatorOperation('divide')}
-                  className={`calc-button operator ${operatorHighlighted === 'divide' ? 'highlighted' : ''}`}
+                  className={`calc-button operator ${pendingOperation === 'divide' ? 'highlighted' : ''}`}
                 >
                   ÷
                 </button>
                 <button
                   onClick={() => setCalculatorOperation('multiply')}
-                  className={`calc-button operator ${operatorHighlighted === 'multiply' ? 'highlighted' : ''}`}
+                  className={`calc-button operator ${pendingOperation === 'multiply' ? 'highlighted' : ''}`}
                 >
                   ×
                 </button>
                 <button
                   onClick={() => setCalculatorOperation('subtract')}
-                  className={`calc-button operator ${operatorHighlighted === 'subtract' ? 'highlighted' : ''}`}
+                  className={`calc-button operator ${pendingOperation === 'subtract' ? 'highlighted' : ''}`}
                 >
                   -
                 </button>
                 <button
                   onClick={() => setCalculatorOperation('add')}
-                  className={`calc-button operator ${operatorHighlighted === 'add' ? 'highlighted' : ''}`}
+                  className={`calc-button operator ${pendingOperation === 'add' ? 'highlighted' : ''}`}
                 >
                   +
                 </button>

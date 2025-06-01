@@ -279,23 +279,33 @@ export function hexToBigint(hex: string): bigint {
  * Modular inverse using extended Euclidean algorithm
  */
 export function modInverse(a: bigint, m: bigint): bigint {
-  if (a < 0n) a = ((a % m) + m) % m;
-
-  const [g, x] = extendedGcd(a, m);
-  if (g !== 1n) {
-    throw new Error('Modular inverse does not exist');
+  const { gcd, x } = extendedGcd(a, m);
+  if (gcd !== 1n) {
+    throw new Error('Inverse does not exist — numbers are not coprime.');
   }
-  return ((x % m) + m) % m;
+  return ((x % m) + m) % m; // Normalize to [0, m)
 }
 
 /**
  * Extended Euclidean algorithm
  */
-function extendedGcd(a: bigint, b: bigint): [bigint, bigint] {
-  if (a === 0n) return [b, 0n];
-  const [g, y1] = extendedGcd(b % a, a);
-  const x1 = y1 - (b / a) * g;
-  return [g, x1];
+function extendedGcd(a: bigint, b: bigint): { gcd: bigint; x: bigint; y: bigint } {
+  let old_r = a,
+    r = b;
+  let old_s = 1n,
+    s = 0n;
+  let old_t = 0n,
+    t = 1n;
+
+  while (r !== 0n) {
+    const q = old_r / r;
+
+    [old_r, r] = [r, old_r - q * r];
+    [old_s, s] = [s, old_s - q * s];
+    [old_t, t] = [t, old_t - q * t];
+  }
+
+  return { gcd: old_r, x: old_s, y: old_t };
 }
 
 /**

@@ -16,8 +16,9 @@ import {
   CURVE_N,
   bigintToHex,
   hexToBigint,
-  isPointOnCurve,
+  modInverse,
 } from '../utils/ecc';
+import { calculatePrivateKeyForPoint } from '../utils/privateKeyCalculation';
 import { getP2PKHAddress } from '../utils/crypto';
 import './ECCPlayground.css';
 
@@ -39,15 +40,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   );
   const [operations, setOperations] = useState<Operation[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [currentAddress, setCurrentAddress] = useState<string>('');
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
   const [pendingOperation, setPendingOperation] = useState<
     'multiply' | 'divide' | 'add' | 'subtract' | null
   >(null);
   const [lastOperationValue, setLastOperationValue] = useState<string | null>(null);
-  const [operatorHighlighted, setOperatorHighlighted] = useState<
-    'multiply' | 'divide' | 'add' | 'subtract' | null
-  >(null);
   const [hexMode, setHexMode] = useState(false);
   const [showPointModal, setShowPointModal] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<{
@@ -61,11 +58,25 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   const generatorPoint = getGeneratorPoint();
   const targetPoint = isPracticeMode ? generatorPoint : generatorPoint;
 
+  // Calculate the actual private key for a given point using shared utility
+  const calculatePrivateKeyForPointWrapper = useCallback(
+    (point: ECPoint, pointId: string): string | undefined => {
+      return calculatePrivateKeyForPoint(
+        point,
+        pointId,
+        operations,
+        startingMode,
+        isPracticeMode,
+        practicePrivateKey
+      );
+    },
+    [operations, startingMode, isPracticeMode, practicePrivateKey]
+  );
+
   // Calculator functions
   const clearCalculator = useCallback(() => {
     setCalculatorDisplay('');
     setPendingOperation(null);
-    setOperatorHighlighted(null);
     setHexMode(false);
   }, []);
 
@@ -184,20 +195,17 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       if (calculatorDisplay.trim() && !pendingOperation) {
         // Set pending operation and highlight the operator, wait for equals
         setPendingOperation(operation);
-        setOperatorHighlighted(operation);
       } else if (calculatorDisplay.trim() && pendingOperation) {
         // If there's already a pending operation, execute it with current display value
         executeCalculatorOperationRef.current?.(pendingOperation, calculatorDisplay.trim());
         // Then set the new operation as pending
         setPendingOperation(operation);
-        setOperatorHighlighted(operation);
       } else if (lastOperationValue) {
         // If no value but we have a last operation value, reuse it
         executeCalculatorOperationRef.current?.(operation, lastOperationValue);
       } else {
         // Just set the pending operation and highlight
         setPendingOperation(operation);
-        setOperatorHighlighted(operation);
       }
     },
     [calculatorDisplay, pendingOperation, lastOperationValue]
@@ -539,12 +547,10 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
               setOperations(prev => [...prev, operation]);
             }}
             onError={setError}
-            onShowPointModal={() => setShowPointModal(true)}
             onResetPoint={resetToStartingPoint}
+            startingMode={startingMode}
             isPracticeMode={isPracticeMode}
             practicePrivateKey={practicePrivateKey}
-            progress={progress}
-            startingMode={startingMode}
           />
         </div>
       </div>
@@ -574,8 +580,12 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
                 yCoordinate: selectedPoint.point.isInfinity
                   ? '0000000000000000000000000000000000000000000000000000000000000000'
                   : bigintToHex(selectedPoint.point.y),
+                privateKey: calculatePrivateKeyForPointWrapper(
+                  selectedPoint.point,
+                  selectedPoint.id
+                ),
                 distanceToTarget:
-                  selectedPoint.id === 'current'
+                  selectedPoint.id === 'current' && isPracticeMode && practicePrivateKey
                     ? (() => {
                         try {
                           const targetPrivateKey = BigInt('0x' + practicePrivateKey);

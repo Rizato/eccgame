@@ -559,3 +559,49 @@
     font-size: 0.9rem;
   }
 }
+
+/* Private Key Display */
+.point-private-key {
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: var(--hover-background);
+  border-radius: 4px;
+  border-left: 3px solid #22c55e;
+}
+
+.private-key-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.private-key-format-toggle {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 24px;
+}
+
+.private-key-format-toggle:hover {
+  background: var(--accent-color-dark, var(--accent-color));
+  transform: translateY(-1px);
+}
+
+.private-key-format-toggle.active {
+  background: var(--accent-color-dark, var(--accent-color));
+}
+
+.private-key-value {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: #22c55e;
+  font-weight: 500;
+}
