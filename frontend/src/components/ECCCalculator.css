@@ -64,6 +64,15 @@
   padding: 4px 8px;
   border-radius: 4px;
   border-left: 3px solid var(--accent-color);
+  overflow: hidden;
+}
+
+.point-coordinates-compact span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .point-compressed-key {
@@ -73,14 +82,19 @@
   background: var(--hover-background);
   padding: 4px 8px;
   border-radius: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .calculator-point-display .point-address {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.85rem;
   color: var(--text-primary);
-  word-break: break-all;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .calculator-point-display .point-progress {
@@ -602,4 +616,9 @@
 .private-key-value {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }

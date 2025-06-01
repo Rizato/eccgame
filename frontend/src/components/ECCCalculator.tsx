@@ -11,7 +11,6 @@ import {
   isPointOnCurve,
   getGeneratorPoint,
   pointToPublicKey,
-  modInverse,
 } from '../utils/ecc';
 import {
   calculateCurrentPrivateKey,
@@ -500,8 +499,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 <span>Point at Infinity</span>
               ) : (
                 <>
-                  <span>x: {bigintToHex(currentPoint.x).slice(0, 16)}...</span>
-                  <span>y: {bigintToHex(currentPoint.y).slice(0, 16)}...</span>
+                  <span>x: {bigintToHex(currentPoint.x)}</span>
+                  <span>y: {bigintToHex(currentPoint.y)}</span>
                 </>
               )}
             </div>
@@ -510,7 +509,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 Compressed:{' '}
                 {currentPoint.isInfinity
                   ? 'N/A (Point at Infinity)'
-                  : pointToPublicKey(currentPoint).slice(0, 16) + '...'}
+                  : pointToPublicKey(currentPoint)}
               </span>
             </div>
             {/* Private Key Display - show when we can calculate the actual private key */}
@@ -532,8 +531,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                     </button>
                     <span className="private-key-value">
                       {privateKeyHexMode
-                        ? '0x' + currentPrivateKey.toString(16).slice(0, 16) + '...'
-                        : currentPrivateKey.toString().slice(0, 16) + '...'}
+                        ? '0x' + currentPrivateKey.toString(16)
+                        : currentPrivateKey.toString()}
                     </span>
                   </div>
                 </div>
