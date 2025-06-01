@@ -561,10 +561,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                   C
                 </button>
                 <button onClick={quickAddG} className="calc-button quick-op add">
-                  +G
+                  +1
                 </button>
                 <button onClick={quickSubtractG} className="calc-button quick-op subtract">
-                  -G
+                  -1
                 </button>
                 <button onClick={quickDouble} className="calc-button quick-op multiply">
                   ×2
