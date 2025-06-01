@@ -27,6 +27,7 @@ interface ECCCalculatorProps {
   startingMode: 'challenge' | 'generator'; // challenge: start from challenge point, generator: start from G
   isPracticeMode?: boolean;
   practicePrivateKey?: string;
+  isLocked?: boolean;
 }
 
 export type Operation = SharedOperation;
@@ -39,6 +40,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   startingMode,
   isPracticeMode = false,
   practicePrivateKey,
+  isLocked = false,
 }) => {
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
   const [pendingOperation, setPendingOperation] = useState<
@@ -121,24 +123,29 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     });
   }, []);
 
-  const addToCalculator = useCallback((value: string) => {
-    // Check if this is a hex digit (A-F)
-    const isHexDigit = /^[A-F]$/i.test(value);
+  const addToCalculator = useCallback(
+    (value: string) => {
+      if (isLocked) return;
+      // Check if this is a hex digit (A-F)
+      const isHexDigit = /^[A-F]$/i.test(value);
 
-    setCalculatorDisplay(prev => {
-      const newValue = prev + value;
+      setCalculatorDisplay(prev => {
+        const newValue = prev + value;
 
-      // Auto-enable hex mode if we're adding hex digits
-      if (isHexDigit && !prev.startsWith('0x')) {
-        setHexMode(true);
-        return '0x' + newValue;
-      }
+        // Auto-enable hex mode if we're adding hex digits
+        if (isHexDigit && !prev.startsWith('0x')) {
+          setHexMode(true);
+          return '0x' + newValue;
+        }
 
-      return newValue;
-    });
-  }, []);
+        return newValue;
+      });
+    },
+    [isLocked]
+  );
 
   const backspaceCalculator = useCallback(() => {
+    if (isLocked) return;
     setCalculatorDisplay(prev => {
       const newValue = prev.slice(0, -1);
 
@@ -157,7 +164,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
       return newValue;
     });
-  }, [hexMode]);
+  }, [hexMode, isLocked]);
 
   // Forward declare the executeCalculatorOperation function reference
   const executeCalculatorOperationRef = useRef<
@@ -188,6 +195,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
   // Quick operation functions
   const quickAddG = useCallback(() => {
+    if (isLocked) return;
     try {
       onError(null);
       const newPoint = pointAdd(currentPoint, generatorPoint);
@@ -207,9 +215,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, handlePointChange, onError, startingMode]);
+  }, [currentPoint, generatorPoint, handlePointChange, onError, startingMode, isLocked]);
 
   const quickSubtractG = useCallback(() => {
+    if (isLocked) return;
     try {
       onError(null);
       const newPoint = pointSubtract(currentPoint, generatorPoint);
@@ -229,9 +238,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, handlePointChange, onError, startingMode]);
+  }, [currentPoint, generatorPoint, handlePointChange, onError, startingMode, isLocked]);
 
   const quickDouble = useCallback(() => {
+    if (isLocked) return;
     try {
       onError(null);
       const newPoint = pointMultiply(2n, currentPoint);
@@ -250,9 +260,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, handlePointChange, onError, startingMode]);
+  }, [currentPoint, handlePointChange, onError, startingMode, isLocked]);
 
   const quickHalve = useCallback(() => {
+    if (isLocked) return;
     try {
       onError(null);
       const newPoint = pointDivide(2n, currentPoint);
@@ -271,10 +282,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, handlePointChange, onError, startingMode]);
+  }, [currentPoint, handlePointChange, onError, startingMode, isLocked]);
 
   const executeCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
+      if (isLocked) return;
       try {
         onError(null);
 
@@ -349,7 +361,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [currentPoint, handlePointChange, onError, quickAddG, quickSubtractG, startingMode]
+    [currentPoint, handlePointChange, onError, quickAddG, quickSubtractG, startingMode, isLocked]
   );
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
@@ -453,7 +465,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   ]);
 
   return (
-    <div className="calculator-section">
+    <div className={`calculator-section ${isLocked ? 'locked' : ''}`}>
       {/* Current Point Display in Calculator */}
       <div className="calculator-point-display">
         <div className="point-display-header">

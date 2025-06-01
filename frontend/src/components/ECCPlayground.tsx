@@ -3,6 +3,7 @@ import type { Challenge } from '../types/api';
 import type { ECPoint } from '../utils/ecc';
 import ECCCalculator, { type Operation } from './ECCCalculator';
 import { Modal } from './Modal';
+import { VictoryModal } from './VictoryModal';
 import {
   getGeneratorPoint,
   publicKeyToPoint,
@@ -40,6 +41,10 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   );
   const [operations, setOperations] = useState<Operation[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showVictoryModal, setShowVictoryModal] = useState(false);
+  const [hasWon, setHasWon] = useState(false);
+  const [currentAddress, setCurrentAddress] = useState<string>('');
+  const [challengeAddress, setChallengeAddress] = useState<string>('');
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
   const [pendingOperation, setPendingOperation] = useState<
     'multiply' | 'divide' | 'add' | 'subtract' | null
@@ -125,7 +130,47 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     setError(null);
     clearCalculator();
     setLastOperationValue(null);
+    setHasWon(false);
+    setShowVictoryModal(false);
   }, [challenge.public_key, clearCalculator]);
+
+  // Directional win detection (must come before useEffect that uses hasWonRound)
+  const challengePoint = publicKeyToPoint(challenge.public_key);
+
+  const isAtGenerator =
+    currentPoint.x === generatorPoint.x &&
+    currentPoint.y === generatorPoint.y &&
+    !currentPoint.isInfinity;
+
+  const isAtChallengePoint =
+    currentPoint.x === challengePoint.x &&
+    currentPoint.y === challengePoint.y &&
+    !currentPoint.isInfinity;
+
+  const isAtInfinity = currentPoint.isInfinity;
+
+  // Check for win condition based on direction
+  const hasWonRound = (() => {
+    if (startingMode === 'challenge') {
+      // Challenge -> G: win on generator point or infinity
+      return isAtGenerator || isAtInfinity;
+    } else {
+      // G -> Challenge: win on challenge point or infinity
+      return isAtChallengePoint || isAtInfinity;
+    }
+  })();
+
+  // Check for win condition
+  useEffect(() => {
+    if (hasWonRound && !hasWon) {
+      setHasWon(true);
+      setShowVictoryModal(true);
+      // For practice mode, allow continued play. For daily challenges, lock calculator
+      if (!isPracticeMode) {
+        // Calculator will be locked via hasWon state
+      }
+    }
+  }, [hasWonRound, hasWon, isPracticeMode]);
 
   // Calculate current address asynchronously
   useEffect(() => {
@@ -147,11 +192,21 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     calculateAddress();
   }, [currentPoint]);
 
-  // Check if we've reached the generator (solution)
-  const isAtGenerator =
-    currentPoint.x === generatorPoint.x &&
-    currentPoint.y === generatorPoint.y &&
-    !currentPoint.isInfinity;
+  // Calculate challenge address (this doesn't change during the session)
+  useEffect(() => {
+    const calculateChallengeAddress = async () => {
+      try {
+        const challengePoint = publicKeyToPoint(challenge.public_key);
+        const pubKey = pointToPublicKey(challengePoint);
+        const address = await getP2PKHAddress(pubKey);
+        setChallengeAddress(address);
+      } catch {
+        setChallengeAddress('Invalid');
+      }
+    };
+
+    calculateChallengeAddress();
+  }, [challenge.public_key]);
 
   // Calculate progress based on private key distance in practice mode
   const progress =
@@ -172,14 +227,14 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             const estimatedPrivateKey = estimatePrivateKeyFromOperations(
               convertedOperations,
               startingPoint,
-              targetPoint
+              generatorPoint
             );
 
             // Calculate progress based on private key distance
             return getPrivateKeyDistance(estimatedPrivateKey, targetPrivateKey);
           } catch {
-            // Fallback: basic progress based on whether we're at the generator
-            return isAtGenerator ? 100 : 0;
+            // Fallback: basic progress based on whether we've won
+            return hasWonRound ? 100 : 0;
           }
         })()
       : null;
@@ -224,14 +279,20 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       setError(null);
       clearCalculator();
       setLastOperationValue(null);
+      setHasWon(false);
+      setShowVictoryModal(false);
     },
     [challenge.public_key, generatorPoint, clearCalculator]
   );
 
-  // Submit solution attempt
+  // Submit solution attempt (keeping for backward compatibility, but victory modal is primary)
   const submitSolution = useCallback(async () => {
-    if (!isAtGenerator) {
-      setError('You must reach the generator point G to submit a solution');
+    if (!hasWonRound) {
+      const targetName =
+        startingMode === 'challenge'
+          ? 'generator point (G) or point at infinity'
+          : 'challenge point or point at infinity';
+      setError(`You must reach the ${targetName} to submit a solution`);
       return;
     }
 
@@ -245,7 +306,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         `Solution submission failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
-  }, [isAtGenerator, onSolve]);
+  }, [hasWonRound, onSolve, startingMode]);
 
   // Keyboard event handler
   useEffect(() => {
@@ -551,6 +612,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             startingMode={startingMode}
             isPracticeMode={isPracticeMode}
             practicePrivateKey={practicePrivateKey}
+            isLocked={hasWon && !isPracticeMode}
           />
         </div>
       </div>
@@ -617,14 +679,20 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         }
       />
 
-      {isAtGenerator && (
-        <div className="generator-reached">
-          🎯 You've reached the generator point G!
-          <button onClick={submitSolution} className="submit-solution">
-            Submit Solution
-          </button>
-        </div>
-      )}
+      <VictoryModal
+        isOpen={showVictoryModal}
+        onClose={() => {
+          setShowVictoryModal(false);
+          if (isPracticeMode) {
+            // Allow continuing in practice mode
+          }
+        }}
+        operationCount={operations.length}
+        challengeAddress={challengeAddress}
+        startingMode={startingMode}
+        targetPoint={currentPoint}
+        isPracticeMode={isPracticeMode}
+      />
     </div>
   );
 };
