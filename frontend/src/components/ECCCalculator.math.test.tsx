@@ -23,57 +23,6 @@ describe('modInverse Tests', () => {
 describe('ECC Calculator Mathematical Equivalence Tests', () => {
   const generatorPoint = getGeneratorPoint();
 
-  // Using the shared utility functions for consistency
-
-  describe('Required Mathematical Equivalences', () => {
-    it('should verify G + G = 2G (point addition equals scalar multiplication)', () => {
-      // G + G should equal 2G
-      const addedPoint = pointAdd(generatorPoint, generatorPoint);
-      const multipliedPoint = pointMultiply(2n, generatorPoint);
-
-      expect(addedPoint.x).toBe(multipliedPoint.x);
-      expect(addedPoint.y).toBe(multipliedPoint.y);
-      expect(addedPoint.isInfinity).toBe(multipliedPoint.isInfinity);
-    });
-
-    it('should verify G * 2 = 2G (scalar multiplication consistency)', () => {
-      // These should be identical operations
-      const point1 = pointMultiply(2n, generatorPoint);
-      const point2 = pointMultiply(2n, generatorPoint);
-
-      expect(point1.x).toBe(point2.x);
-      expect(point1.y).toBe(point2.y);
-      expect(point1.isInfinity).toBe(point2.isInfinity);
-    });
-
-    it('should verify 4G / 2 = 2G (division equals multiplication)', () => {
-      // pointDivide(2, 4G) means 4G * (inverse of 2)
-      // This should equal 2G because 4 * inverse(2) ≡ 2 (mod CURVE_N)
-      const quadrupledPoint = pointMultiply(4n, generatorPoint);
-      const halvedPoint = pointDivide(2n, quadrupledPoint);
-      const doubledPoint = pointMultiply(2n, generatorPoint);
-
-      // Verify mathematically: 4 * modInverse(2) should equal 2
-      const inverse2 = modInverse(2n, CURVE_N);
-      const result = (4n * inverse2) % CURVE_N;
-      expect(result).toBe(2n);
-
-      expect(halvedPoint.x).toBe(doubledPoint.x);
-      expect(halvedPoint.y).toBe(doubledPoint.y);
-      expect(halvedPoint.isInfinity).toBe(doubledPoint.isInfinity);
-    });
-
-    it('should verify 3G - G = 2G (point subtraction)', () => {
-      const tripledPoint = pointMultiply(3n, generatorPoint);
-      const subtractedPoint = pointSubtract(tripledPoint, generatorPoint);
-      const doubledPoint = pointMultiply(2n, generatorPoint);
-
-      expect(subtractedPoint.x).toBe(doubledPoint.x);
-      expect(subtractedPoint.y).toBe(doubledPoint.y);
-      expect(subtractedPoint.isInfinity).toBe(doubledPoint.isInfinity);
-    });
-  });
-
   describe('Private Key Calculations from G', () => {
     it('should calculate private key 1 for G itself', () => {
       const operations: Operation[] = [];
@@ -289,7 +238,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       const privateKey = calculateKeyFromOperations(operations, 1n);
 
       // The actual result from the function (JavaScript modulo behavior)
-      const expected = (1n - 5n) % CURVE_N; // This will be -4n in JavaScript
+      const expected = (CURVE_N - 4n) % CURVE_N; // This will be -4n in JavaScript
       expect(privateKey).toBe(expected);
 
       // However, the mathematical result should be equivalent to CURVE_N - 4

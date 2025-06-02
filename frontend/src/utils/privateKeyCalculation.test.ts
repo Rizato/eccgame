@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { getGeneratorPoint, pointMultiply, pointAdd, pointSubtract, CURVE_N } from './ecc';
+import {
+  getGeneratorPoint,
+  pointMultiply,
+  pointAdd,
+  pointSubtract,
+  CURVE_N,
+  pointDivide,
+  modInverse,
+} from './ecc';
 import {
   calculateKeyFromOperations,
   calculatePrivateKey,
@@ -95,7 +103,7 @@ describe('Private Key Calculation Tests', () => {
   describe('calculateCurrentPrivateKey', () => {
     it('should return 1n for generator point', () => {
       const operations: Operation[] = [];
-      const result = calculatePrivateKey(generatorPoint, operations, 'generator');
+      const result = calculatePrivateKey(operations, 'generator');
       expect(result).toBe(1n);
     });
 
@@ -105,7 +113,7 @@ describe('Private Key Calculation Tests', () => {
         { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
       ];
 
-      const result = calculatePrivateKey(doubledPoint, operations, 'generator');
+      const result = calculatePrivateKey(operations, 'generator');
       expect(result).toBe(2n);
     });
 
@@ -116,7 +124,6 @@ describe('Private Key Calculation Tests', () => {
       ];
 
       const result = calculatePrivateKey(
-        doubledPoint,
         operations,
         'generator',
         true,
@@ -153,6 +160,23 @@ describe('Private Key Calculation Tests', () => {
       expect(subtractedPoint.x).toBe(doubledPoint.x);
       expect(subtractedPoint.y).toBe(doubledPoint.y);
       expect(subtractedPoint.isInfinity).toBe(doubledPoint.isInfinity);
+    });
+
+    it('should verify 4G / 2 = 2G (division equals multiplication)', () => {
+      // pointDivide(2, 4G) means 4G * (inverse of 2)
+      // This should equal 2G because 4 * inverse(2) ≡ 2 (mod CURVE_N)
+      const quadrupledPoint = pointMultiply(4n, generatorPoint);
+      const halvedPoint = pointDivide(2n, quadrupledPoint);
+      const doubledPoint = pointMultiply(2n, generatorPoint);
+
+      // Verify mathematically: 4 * modInverse(2) should equal 2
+      const inverse2 = modInverse(2n, CURVE_N);
+      const result = (4n * inverse2) % CURVE_N;
+      expect(result).toBe(2n);
+
+      expect(halvedPoint.x).toBe(doubledPoint.x);
+      expect(halvedPoint.y).toBe(doubledPoint.y);
+      expect(halvedPoint.isInfinity).toBe(doubledPoint.isInfinity);
     });
 
     it('should verify private key calculations match point operations', () => {
