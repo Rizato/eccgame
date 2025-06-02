@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { VictoryModal } from './VictoryModal';
 import { getGeneratorPoint } from '../utils/ecc';
-import type { Operation } from './ECCCalculator';
+import type { Operation } from '../utils/privateKeyCalculation.ts';
 
 // Mock the crypto module
 vi.mock('../utils/crypto', () => ({

@@ -1,4 +1,4 @@
-import { calculatePrivateKey, Operation } from './privateKeyCalculation';
+import { calculatePrivateKey, type Operation } from './privateKeyCalculation';
 
 /**
  * Calculate the actual private key for a given point based on operations and context

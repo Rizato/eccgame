@@ -1,4 +1,4 @@
-import { calculateKeyFromOperations, Operation } from './privateKeyCalculation';
+import { calculateKeyFromOperations, type Operation } from './privateKeyCalculation';
 
 /**
  * Calculates the private key when victorious. It can always be calculated in this case
