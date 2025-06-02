@@ -1,4 +1,4 @@
-import { CURVE_N, hexToBigint, modInverse, getGeneratorPoint } from './ecc';
+import { CURVE_N, hexToBigint, modInverse } from './ecc';
 import type { ECPoint } from './ecc';
 
 export interface Operation {

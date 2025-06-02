@@ -8,10 +8,6 @@ import { VictoryModal } from './VictoryModal';
 import {
   getGeneratorPoint,
   publicKeyToPoint,
-  pointAdd,
-  pointSubtract,
-  pointMultiply,
-  pointDivide,
   getPrivateKeyDistance,
   estimatePrivateKeyFromOperations,
   pointToPublicKey,
@@ -570,7 +566,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         x: currentX,
         y: currentY,
         label: 'Current',
-        color: isAtGenerator ? '#22c55e' : '#ef4444', // green if at generator, red otherwise
+        color: '#ef4444', // red
         description: 'Current point',
         point: currentPoint,
         type: 'current' as const,
@@ -744,7 +740,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         title={selectedPoint ? `${selectedPoint.label} Point Information` : ''}
         isPracticeMode={isPracticeMode}
         practicePrivateKey={practicePrivateKey}
-        pointId={selectedPoint?.id}
         point={selectedPoint?.point}
         savedPoint={graphPoints.find(p => p.id === selectedPoint?.id)?.savedPoint}
         onLoadPoint={loadPoint}

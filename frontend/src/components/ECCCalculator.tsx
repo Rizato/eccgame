@@ -31,7 +31,6 @@ interface ECCCalculatorProps {
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
   onSavePoint: (label?: string) => void;
-  onLoadSavedPoint: (savedPoint: SavedPoint) => void;
   startingMode: 'challenge' | 'generator'; // challenge: start from challenge point, generator: start from G
   isPracticeMode?: boolean;
   practicePrivateKey?: string;
@@ -49,7 +48,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   onPointChange,
   onError,
   onSavePoint,
-  onLoadSavedPoint,
   startingMode,
   isPracticeMode = false,
   practicePrivateKey,

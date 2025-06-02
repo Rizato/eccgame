@@ -37,7 +37,6 @@ interface ModalItemProps {
   label: string;
   value: string;
   onCopy?: () => void;
-  type?: 'text' | 'password';
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -50,7 +49,6 @@ export const Modal: React.FC<ModalProps> = ({
   isPracticeMode = false,
   practicePrivateKey,
   pointData,
-  pointId,
   point,
   savedPoint,
   onLoadPoint,
@@ -371,7 +369,7 @@ export const Modal: React.FC<ModalProps> = ({
   );
 };
 
-export const ModalItem: React.FC<ModalItemProps> = ({ label, value, onCopy, type = 'text' }) => {
+export const ModalItem: React.FC<ModalItemProps> = ({ label, value, onCopy }) => {
   return (
     <div className="modal-item">
       <span className="modal-label">{label}:</span>
