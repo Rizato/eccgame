@@ -3,7 +3,7 @@ import type { ECPoint } from './ecc';
 
 export interface Operation {
   id: string;
-  type: 'multiply' | 'divide' | 'add' | 'subtract' | 'nop';
+  type: 'multiply' | 'divide' | 'add' | 'subtract' | 'negate' | 'nop';
   description: string;
   value: string;
   point?: ECPoint;
@@ -54,6 +54,10 @@ export function calculateKeyFromOperations(
           const scalar = op.value.startsWith('0x') ? hexToBigint(op.value) : BigInt(op.value);
           currentPrivateKey = (currentPrivateKey - scalar + CURVE_N) % CURVE_N;
         }
+        break;
+      case 'negate':
+        // Negate operation: CURVE_N - privateKey
+        currentPrivateKey = (CURVE_N - currentPrivateKey) % CURVE_N;
         break;
       case 'nop':
         break;

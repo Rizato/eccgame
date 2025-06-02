@@ -149,6 +149,19 @@ export function pointDivide(scalar: bigint, point: ECPoint): ECPoint {
 }
 
 /**
+ * Point negation (additive inverse)
+ */
+export function pointNegate(point: ECPoint): ECPoint {
+  if (point.isInfinity) {
+    return { x: 0n, y: 0n, isInfinity: true };
+  }
+
+  const ecPoint = pointToElliptic(point);
+  const result = ecPoint.neg();
+  return ellipticToPoint(result);
+}
+
+/**
  * Get distance between two points using ECC point subtraction
  * Returns the difference point P1 - P2 (useful for analysis but unknown private key)
  */

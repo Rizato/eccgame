@@ -10,6 +10,7 @@ import {
   pointAdd,
   pointDivide,
   pointMultiply,
+  pointNegate,
   pointSubtract,
   pointToPublicKey,
 } from '../utils/ecc';
@@ -314,6 +315,27 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         type: 'divide',
         description: '÷2',
         value: '2',
+      };
+      onPointChange(newPoint, operation);
+    } catch (error) {
+      onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [currentPoint, onPointChange, onError, isLocked]);
+
+  const quickNegate = useCallback(() => {
+    if (isLocked) return;
+    try {
+      onError(null);
+      const newPoint = pointNegate(currentPoint);
+      if (!isPointOnCurve(newPoint)) {
+        onError('Result is not on the curve');
+        return;
+      }
+      const operation: Operation = {
+        id: `op_${Date.now()}`,
+        type: 'negate',
+        description: '±',
+        value: '',
       };
       onPointChange(newPoint, operation);
     } catch (error) {
@@ -644,7 +666,9 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 >
                   0x
                 </button>
-                <button className="calc-button spacer"></button>
+                <button onClick={quickNegate} className="calc-button quick-op negate">
+                  ±
+                </button>
                 <button className="calc-button spacer"></button>
                 <button className="calc-button spacer"></button>
               </div>
