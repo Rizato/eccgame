@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import type { Challenge } from '../types/api';
-import { challengeApi } from '../services/api';
-import { storageUtils } from '../utils/storage';
+import React from 'react';
+import { useGameState } from '../hooks/useGameState';
 import ECCPlayground from '../components/ECCPlayground';
 import PracticeMode from '../components/PracticeMode';
 import ChallengeInfo from '../components/ChallengeInfo';
@@ -9,50 +7,17 @@ import ThemeToggle from '../components/ThemeToggle';
 import './ECCGamePage.css';
 
 const ECCGamePage: React.FC = () => {
-  const [gameMode, setGameMode] = useState<'daily' | 'practice'>('daily');
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [hasWon, setHasWon] = useState(false);
-
-  useEffect(() => {
-    if (gameMode === 'daily') {
-      loadDailyChallenge();
-    }
-  }, [gameMode]);
-
-  const loadDailyChallenge = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const dailyChallenge = await challengeApi.getDailyChallenge();
-      setChallenge(dailyChallenge);
-
-      // Check if already won today
-      const wonToday = storageUtils.hasWonToday(dailyChallenge.uuid);
-      setHasWon(wonToday);
-    } catch (err) {
-      console.error('Failed to load daily challenge:', err);
-      setError("Failed to load today's challenge. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDailySolve = async (_privateKey: string) => {
-    if (!challenge) return;
-
-    try {
-      // In a real implementation, this would submit to the backend
-      // For now, we'll just mark as won locally
-      setHasWon(true);
-      storageUtils.markWonToday(challenge.uuid);
-      alert("🎉 Congratulations! You solved today's challenge!");
-    } catch (error) {
-      console.error('Failed to submit solution:', error);
-      alert('Failed to submit solution. Please try again.');
-    }
-  };
+  const {
+    gameMode,
+    challenge,
+    loading,
+    error,
+    hasWon,
+    setGameMode,
+    loadDailyChallenge,
+    handleSolve,
+    clearError,
+  } = useGameState();
 
   if (gameMode === 'practice') {
     return (
@@ -154,7 +119,7 @@ const ECCGamePage: React.FC = () => {
         {error && (
           <div className="error-banner">
             <span>{error}</span>
-            <button onClick={() => setError(null)}>×</button>
+            <button onClick={clearError}>×</button>
           </div>
         )}
       </header>
@@ -177,7 +142,7 @@ const ECCGamePage: React.FC = () => {
         </div>
 
         <div className="playground-container">
-          <ECCPlayground challenge={challenge} onSolve={handleDailySolve} isPracticeMode={false} />
+          <ECCPlayground challenge={challenge} onSolve={handleSolve} isPracticeMode={false} />
         </div>
       </main>
     </div>
