@@ -59,7 +59,7 @@ const ECCGamePage: React.FC = () => {
       <div className="ecc-game-page">
         <header className="game-header">
           <div className="header-content">
-            <h1>Curve Quest</h1>
+            <h1>ECC Crypto Playground</h1>
             <div className="mode-controls">
               <div className="mode-selector">
                 <button
@@ -92,7 +92,7 @@ const ECCGamePage: React.FC = () => {
       <div className="ecc-game-page">
         <header className="game-header">
           <div className="header-content">
-            <h1>Curve Quest</h1>
+            <h1>ECC Crypto Playground</h1>
             <ThemeToggle />
           </div>
         </header>
@@ -111,7 +111,7 @@ const ECCGamePage: React.FC = () => {
       <div className="ecc-game-page">
         <header className="game-header">
           <div className="header-content">
-            <h1>Curve Quest</h1>
+            <h1>ECC Crypto Playground</h1>
             <ThemeToggle />
           </div>
         </header>
@@ -132,7 +132,7 @@ const ECCGamePage: React.FC = () => {
     <div className="ecc-game-page">
       <header className="game-header">
         <div className="header-content">
-          <h1>Curve Quest</h1>
+          <h1>ECC Crypto Playground</h1>
           <div className="mode-controls">
             <div className="mode-selector">
               <button
