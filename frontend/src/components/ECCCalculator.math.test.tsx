@@ -8,7 +8,7 @@ import {
   modInverse,
   CURVE_N,
 } from '../utils/ecc';
-import { calculatePrivateKeyFromOperations, type Operation } from '../utils/privateKeyCalculation';
+import { calculateKeyFromOperations, type Operation } from '../utils/privateKeyCalculation';
 
 describe('modInverse Tests', () => {
   it('should verify 2 modInverse N is the known value', () => {
@@ -77,7 +77,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
   describe('Private Key Calculations from G', () => {
     it('should calculate private key 1 for G itself', () => {
       const operations: Operation[] = [];
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(1n);
 
       // Verify the point
@@ -91,7 +91,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
       ];
 
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(2n);
 
       // Verify the point calculation matches
@@ -107,7 +107,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '2', type: 'divide', description: '÷2', value: '2', direction: 'reverse' },
       ];
 
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(2n);
 
       // Verify the point calculation matches the expected result
@@ -126,7 +126,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       ];
 
       // 1 * 3 * 4 / 6 = 12 / 6 = 2
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(2n);
 
       // Verify point calculation
@@ -141,7 +141,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '1', type: 'multiply', description: '×0xA', value: '0xA', direction: 'reverse' },
       ];
 
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(10n); // 0xA = 10
 
       // Verify point calculation
@@ -157,7 +157,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should maintain challenge private key with no operations', () => {
       const operations: Operation[] = [];
-      const privateKey = calculatePrivateKeyFromOperations(operations, challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(5n);
     });
 
@@ -166,7 +166,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'forward' },
       ];
 
-      const privateKey = calculatePrivateKeyFromOperations(operations, challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(10n);
 
       // Verify the point calculation matches
@@ -182,7 +182,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '1', type: 'divide', description: '÷5', value: '5', direction: 'forward' },
       ];
 
-      const privateKey = calculatePrivateKeyFromOperations(operations, challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(1n);
 
       // Verify we get back to G
@@ -199,7 +199,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
       ];
 
-      const privateKey = calculatePrivateKeyFromOperations(operations, largeNumber);
+      const privateKey = calculateKeyFromOperations(operations, largeNumber);
       const expected = (largeNumber * 2n) % CURVE_N;
       expect(privateKey).toBe(expected);
     });
@@ -209,7 +209,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '1', type: 'divide', description: '÷7', value: '7', direction: 'reverse' },
       ];
 
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
 
       // Verify that privateKey * 7 ≡ 1 (mod CURVE_N)
       const verification = (privateKey * 7n) % CURVE_N;
@@ -227,8 +227,8 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '1', type: 'multiply', description: '×6', value: '6', direction: 'reverse' },
       ];
 
-      const privateKey1 = calculatePrivateKeyFromOperations(operations1, 1n);
-      const privateKey2 = calculatePrivateKeyFromOperations(operations2, 1n);
+      const privateKey1 = calculateKeyFromOperations(operations1, 1n);
+      const privateKey2 = calculateKeyFromOperations(operations2, 1n);
 
       expect(privateKey1).toBe(privateKey2);
       expect(privateKey1).toBe(6n);
@@ -240,7 +240,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '2', type: 'divide', description: '÷7', value: '7', direction: 'reverse' },
       ];
 
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(1n);
     });
   });
@@ -252,7 +252,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       ];
 
       // Starting from 1: 1 + 3 = 4
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(4n);
 
       // Verify the point calculation matches
@@ -269,7 +269,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       ];
 
       // Starting from 5: 5 - 3 = 2
-      const privateKey = calculatePrivateKeyFromOperations(operations, challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(2n);
 
       // Verify the point calculation matches
@@ -286,7 +286,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
       // Starting from 1: 1 - 5 = -4
       // JavaScript's % operator can return negative values, so we need to handle this
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
 
       // The actual result from the function (JavaScript modulo behavior)
       const expected = (1n - 5n) % CURVE_N; // This will be -4n in JavaScript
@@ -309,7 +309,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       ];
 
       // Starting from 5: 5 + 3 = 8
-      const privateKey = calculatePrivateKeyFromOperations(operations, challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(8n);
 
       // Verify the point calculation matches
@@ -327,7 +327,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       ];
 
       // Starting from 1: 1 + 7 - 3 + 2 = 7
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(7n);
 
       // Verify the point calculation
@@ -344,7 +344,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       ];
 
       // Starting from 1: 1 + 10 - 5 = 6
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(6n);
 
       // Verify the point calculation
@@ -365,7 +365,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       ];
 
       // Starting from 1: (((1 * 6) + 4) / 2) - 1 = ((6 + 4) / 2) - 1 = (10 / 2) - 1 = 5 - 1 = 4
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(4n);
 
       // Verify the point calculation
@@ -384,7 +384,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       ];
 
       // Starting from 1: (((1 + 2) * 3) - 3) / 2 = ((3 * 3) - 3) / 2 = (9 - 3) / 2 = 6 / 2 = 3
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(3n);
 
       // Verify the point calculation
@@ -405,7 +405,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       // Starting from 10: (((10 - 1) / 2) + 5) * 2 = ((9 / 2) + 5) * 2
       // Note: 9 / 2 in modular arithmetic = 9 * modInverse(2)
       const startingKey = 10n;
-      const privateKey = calculatePrivateKeyFromOperations(operations, startingKey);
+      const privateKey = calculateKeyFromOperations(operations, startingKey);
 
       // Calculate expected step by step
       let expected = startingKey;
@@ -438,7 +438,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       // Reverse add 3: 14 + 3 = 17
       // Forward divide by 4: 17 / 4
       // Reverse subtract 1: (17/4) - 1
-      const privateKey = calculatePrivateKeyFromOperations(operations, challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
 
       // Calculate expected step by step
       let expected = challengePrivateKey;
@@ -467,7 +467,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       // Starting from 1: (((1 + 5) * 3) - 5) / 3 = ((6 * 3) - 5) / 3 = (18 - 5) / 3 = 13 / 3
       // But note: +5 and -5 cancel, *3 and /3 cancel, so we should get back to 1
       // However, due to order of operations: ((1 + 5) * 3 - 5) / 3 = (6 * 3 - 5) / 3 = (18 - 5) / 3 = 13 / 3
-      const privateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
 
       // Calculate expected: ((1 + 5) * 3 - 5) / 3 = (18 - 5) / 3 = 13 / 3
       const expected = (13n * modInverse(3n, CURVE_N)) % CURVE_N;
@@ -516,7 +516,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
       const ops1: Operation[] = [
         { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
       ];
-      const pk1 = calculatePrivateKeyFromOperations(ops1, 1n);
+      const pk1 = calculateKeyFromOperations(ops1, 1n);
       expect(pk1).toBe(2n);
 
       // 4G / 2: private key should be 2
@@ -524,7 +524,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
         { id: '1', type: 'multiply', description: '×4', value: '4', direction: 'reverse' },
         { id: '2', type: 'divide', description: '÷2', value: '2', direction: 'reverse' },
       ];
-      const pk2 = calculatePrivateKeyFromOperations(ops2, 1n);
+      const pk2 = calculateKeyFromOperations(ops2, 1n);
       expect(pk2).toBe(2n);
 
       // Both should give the same result

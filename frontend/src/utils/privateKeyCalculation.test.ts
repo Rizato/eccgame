@@ -1,16 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import { getGeneratorPoint, pointMultiply, pointAdd, pointSubtract, CURVE_N } from './ecc';
 import {
-  getGeneratorPoint,
-  pointMultiply,
-  pointDivide,
-  pointAdd,
-  pointSubtract,
-  CURVE_N,
-} from './ecc';
-import {
-  calculatePrivateKeyFromOperations,
-  calculatePrivateKeyForPoint,
-  calculateCurrentPrivateKey,
+  calculateKeyFromOperations,
+  calculatePrivateKey,
   type Operation,
 } from './privateKeyCalculation';
 
@@ -20,7 +12,7 @@ describe('Private Key Calculation Tests', () => {
   describe('calculatePrivateKeyFromOperations', () => {
     it('should handle no operations (identity)', () => {
       const operations: Operation[] = [];
-      const result = calculatePrivateKeyFromOperations(operations, 1n);
+      const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(1n);
     });
 
@@ -28,7 +20,7 @@ describe('Private Key Calculation Tests', () => {
       const operations: Operation[] = [
         { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
       ];
-      const result = calculatePrivateKeyFromOperations(operations, 1n);
+      const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(2n);
     });
 
@@ -38,7 +30,7 @@ describe('Private Key Calculation Tests', () => {
       const operations: Operation[] = [
         { id: '1', type: 'divide', description: '÷2', value: '2', direction: 'reverse' },
       ];
-      const result = calculatePrivateKeyFromOperations(operations, 1n);
+      const result = calculateKeyFromOperations(operations, 1n);
       // Just verify that we get a valid result
       expect(typeof result).toBe('bigint');
       expect(result > 0n).toBe(true);
@@ -48,7 +40,7 @@ describe('Private Key Calculation Tests', () => {
       const operations: Operation[] = [
         { id: '1', type: 'add', description: '+3', value: '3', direction: 'reverse' },
       ];
-      const result = calculatePrivateKeyFromOperations(operations, 1n);
+      const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(4n);
     });
 
@@ -56,7 +48,7 @@ describe('Private Key Calculation Tests', () => {
       const operations: Operation[] = [
         { id: '1', type: 'subtract', description: '-2', value: '2', direction: 'reverse' },
       ];
-      const result = calculatePrivateKeyFromOperations(operations, 5n);
+      const result = calculateKeyFromOperations(operations, 5n);
       expect(result).toBe(3n);
     });
 
@@ -64,7 +56,7 @@ describe('Private Key Calculation Tests', () => {
       const operations: Operation[] = [
         { id: '1', type: 'multiply', description: '×0xA', value: '0xA', direction: 'reverse' },
       ];
-      const result = calculatePrivateKeyFromOperations(operations, 1n);
+      const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(10n);
     });
 
@@ -74,7 +66,7 @@ describe('Private Key Calculation Tests', () => {
         { id: '2', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
       ];
       // Start with 1: 1 * 3 = 3, 3 * 2 = 6
-      const result = calculatePrivateKeyFromOperations(operations, 1n);
+      const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(6n);
 
       // Verify the point calculation matches
@@ -83,12 +75,27 @@ describe('Private Key Calculation Tests', () => {
       expect(resultPoint.x).toBe(expectedPoint.x);
       expect(resultPoint.y).toBe(expectedPoint.y);
     });
+
+    it('should handle modular arithmetic correctly for large numbers', () => {
+      const operations: Operation[] = [
+        {
+          id: 'op1',
+          type: 'add',
+          description: '+ CURVE_N + 5',
+          value: (CURVE_N + 5n).toString(),
+          direction: 'forward',
+        },
+      ];
+      const result = calculateKeyFromOperations(operations, 10n);
+      // (10 + CURVE_N + 5) % CURVE_N = 15
+      expect(result).toBe(15n);
+    });
   });
 
   describe('calculateCurrentPrivateKey', () => {
     it('should return 1n for generator point', () => {
       const operations: Operation[] = [];
-      const result = calculateCurrentPrivateKey(generatorPoint, operations, 'generator');
+      const result = calculatePrivateKey(generatorPoint, operations, 'generator');
       expect(result).toBe(1n);
     });
 
@@ -98,7 +105,7 @@ describe('Private Key Calculation Tests', () => {
         { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
       ];
 
-      const result = calculateCurrentPrivateKey(doubledPoint, operations, 'generator');
+      const result = calculatePrivateKey(doubledPoint, operations, 'generator');
       expect(result).toBe(2n);
     });
 
@@ -108,7 +115,7 @@ describe('Private Key Calculation Tests', () => {
         { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
       ];
 
-      const result = calculateCurrentPrivateKey(
+      const result = calculatePrivateKey(
         doubledPoint,
         operations,
         'generator',
@@ -116,38 +123,6 @@ describe('Private Key Calculation Tests', () => {
         '0000000000000000000000000000000000000000000000000000000000000001'
       );
       expect(result).toBe(2n);
-    });
-  });
-
-  describe('calculatePrivateKeyForPoint', () => {
-    it('should return hex string for generator point', () => {
-      const result = calculatePrivateKeyForPoint(generatorPoint, 'current', [], 'generator');
-      expect(result).toBe('0000000000000000000000000000000000000000000000000000000000000001');
-    });
-
-    it('should calculate private key for point operations', () => {
-      const doubledPoint = pointMultiply(2n, generatorPoint);
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
-      ];
-
-      const result = calculatePrivateKeyForPoint(doubledPoint, 'current', operations, 'generator');
-      expect(result).toBe('0000000000000000000000000000000000000000000000000000000000000002');
-    });
-
-    it('should handle practice mode with known private key', () => {
-      const practicePrivateKey = '0000000000000000000000000000000000000000000000000000000000000005';
-      const challengePoint = pointMultiply(5n, generatorPoint);
-
-      const result = calculatePrivateKeyForPoint(
-        challengePoint,
-        'original',
-        [],
-        'challenge',
-        true,
-        practicePrivateKey
-      );
-      expect(result).toBe(practicePrivateKey);
     });
   });
 
@@ -188,7 +163,7 @@ describe('Private Key Calculation Tests', () => {
       const operations: Operation[] = [
         { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
       ];
-      const calculatedPrivateKey = calculatePrivateKeyFromOperations(operations, 1n);
+      const calculatedPrivateKey = calculateKeyFromOperations(operations, 1n);
       const calculatedPoint = pointMultiply(calculatedPrivateKey, generatorPoint);
 
       expect(calculatedPoint.x).toBe(doubledPoint.x);
@@ -202,7 +177,7 @@ describe('Private Key Calculation Tests', () => {
         { id: '1', type: 'add', description: '+3', value: '3', direction: 'reverse' },
         { id: '2', type: 'subtract', description: '-2', value: '2', direction: 'reverse' },
       ];
-      const result = calculatePrivateKeyFromOperations(operations, 1n);
+      const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(2n);
 
       // Verify the point calculation matches

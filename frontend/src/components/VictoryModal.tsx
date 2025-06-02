@@ -1,6 +1,8 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import type { ECPoint } from '../utils/ecc';
+import { type ECPoint } from '../utils/ecc';
+import type { Operation } from './ECCCalculator';
+import { calculateVictoryPrivateKey } from '../utils/victoryPrivateKeyCalculation';
 import './VictoryModal.css';
 
 interface VictoryModalProps {
@@ -10,6 +12,7 @@ interface VictoryModalProps {
   challengeAddress: string;
   startingMode: 'challenge' | 'generator';
   targetPoint: ECPoint;
+  operations: Operation[];
   isPracticeMode?: boolean;
 }
 
@@ -20,9 +23,15 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   challengeAddress,
   startingMode,
   targetPoint,
+  operations,
   isPracticeMode = false,
 }) => {
   if (!isOpen) return null;
+
+  // Calculate the private key for the victory screen
+  const victoryPrivateKey =
+    '0x' +
+    calculateVictoryPrivateKey(operations, startingMode, targetPoint.isInfinity).toString(16);
 
   const getVictoryTitle = () => {
     if (isPracticeMode) {
@@ -78,6 +87,13 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
             <div className="stat-label">Direction</div>
             <div className="stat-value">
               {startingMode === 'challenge' ? 'Challenge → Generator' : 'Generator → Challenge'}
+            </div>
+          </div>
+
+          <div className="stat-item">
+            <div className="stat-label">Private Key</div>
+            <div className="stat-value address-value" title={victoryPrivateKey}>
+              {victoryPrivateKey}
             </div>
           </div>
         </div>

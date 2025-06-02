@@ -13,7 +13,7 @@ import {
   pointToPublicKey,
 } from '../utils/ecc';
 import {
-  calculateCurrentPrivateKey,
+  calculatePrivateKey,
   type Operation as SharedOperation,
 } from '../utils/privateKeyCalculation';
 import { getP2PKHAddress } from '../utils/crypto';
@@ -57,8 +57,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const generatorPoint = getGeneratorPoint();
 
   // Calculate the actual private key for the current point using shared utility
-  const currentPrivateKey = calculateCurrentPrivateKey(
-    currentPoint,
+  const currentPrivateKey = calculatePrivateKey(
     operations,
     startingMode,
     isPracticeMode,
@@ -343,7 +342,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           direction: startingMode === 'challenge' ? 'forward' : 'reverse',
         };
         onPointChange(newPoint, operationObj);
-
+        // TODO Clear this on calc clear
         // Store the value for potential chaining
         setLastOperationValue(value);
         // Keep the value in display for chaining, keep the operation selected for repeated equals

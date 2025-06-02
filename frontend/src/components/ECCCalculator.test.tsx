@@ -48,10 +48,12 @@ describe('ECCCalculator', () => {
 
   const mockProps = {
     currentPoint: mockPoint,
+    operations: [],
     onPointChange: vi.fn(),
     onError: vi.fn(),
     onShowPointModal: vi.fn(),
     onResetPoint: vi.fn(),
+    startingMode: 'generator' as const,
     isPracticeMode: false,
     practicePrivateKey: undefined,
     progress: null,

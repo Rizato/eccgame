@@ -14,12 +14,9 @@ import {
   getPrivateKeyDistance,
   estimatePrivateKeyFromOperations,
   pointToPublicKey,
-  CURVE_N,
   bigintToHex,
-  hexToBigint,
-  modInverse,
 } from '../utils/ecc';
-import { calculatePrivateKeyForPoint } from '../utils/privateKeyCalculation';
+import { calculatePrivateKeyByPointId } from '../utils/calculatePrivateKeyByPointId';
 import { getP2PKHAddress } from '../utils/crypto';
 import './ECCPlayground.css';
 
@@ -65,15 +62,15 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Calculate the actual private key for a given point using shared utility
   const calculatePrivateKeyForPointWrapper = useCallback(
-    (point: ECPoint, pointId: string): string | undefined => {
-      return calculatePrivateKeyForPoint(
-        point,
+    (pointId: string): string | undefined => {
+      const result = calculatePrivateKeyByPointId(
         pointId,
         operations,
         startingMode,
         isPracticeMode,
         practicePrivateKey
       );
+      return result ? bigintToHex(result) : undefined;
     },
     [operations, startingMode, isPracticeMode, practicePrivateKey]
   );
@@ -650,10 +647,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
                 yCoordinate: selectedPoint.point.isInfinity
                   ? '0000000000000000000000000000000000000000000000000000000000000000'
                   : bigintToHex(selectedPoint.point.y),
-                privateKey: calculatePrivateKeyForPointWrapper(
-                  selectedPoint.point,
-                  selectedPoint.id
-                ),
+                privateKey: bigintToHex(calculatePrivateKeyForPointWrapper(selectedPoint.id)),
                 distanceToTarget:
                   selectedPoint.id === 'current' && isPracticeMode && practicePrivateKey
                     ? (() => {
@@ -699,6 +693,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         challengeAddress={challengeAddress}
         startingMode={startingMode}
         targetPoint={currentPoint}
+        operations={operations}
         isPracticeMode={isPracticeMode}
       />
     </div>

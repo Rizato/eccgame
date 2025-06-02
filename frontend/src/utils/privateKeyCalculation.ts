@@ -3,7 +3,7 @@ import type { ECPoint } from './ecc';
 
 export interface Operation {
   id: string;
-  type: 'multiply' | 'divide' | 'add' | 'subtract';
+  type: 'multiply' | 'divide' | 'add' | 'subtract' | 'nop';
   description: string;
   value: string;
   point?: ECPoint;
@@ -13,7 +13,7 @@ export interface Operation {
 /**
  * Calculate private key from a series of operations starting from a given private key
  */
-export function calculatePrivateKeyFromOperations(
+export function calculateKeyFromOperations(
   operations: Operation[],
   startingPrivateKey: bigint
 ): bigint {
@@ -43,8 +43,10 @@ export function calculatePrivateKeyFromOperations(
       case 'subtract':
         if (op.value) {
           const scalar = op.value.startsWith('0x') ? hexToBigint(op.value) : BigInt(op.value);
-          currentPrivateKey = (currentPrivateKey - scalar) % CURVE_N;
+          currentPrivateKey = (currentPrivateKey - scalar + CURVE_N) % CURVE_N;
         }
+        break;
+      case 'nop':
         break;
     }
   }
@@ -53,69 +55,9 @@ export function calculatePrivateKeyFromOperations(
 }
 
 /**
- * Calculate the actual private key for a given point based on operations and context
- */
-export function calculatePrivateKeyForPoint(
-  point: ECPoint,
-  pointId: string,
-  operations: Operation[],
-  startingMode: 'generator' | 'challenge',
-  isPracticeMode: boolean = false,
-  practicePrivateKey?: string
-): string | undefined {
-  try {
-    const generatorPoint = getGeneratorPoint();
-
-    // Case 1: Point is G (generator)
-    if (point.x === generatorPoint.x && point.y === generatorPoint.y && !point.isInfinity) {
-      return '0000000000000000000000000000000000000000000000000000000000000001';
-    }
-
-    // Case 2: Practice mode - we can always calculate from known challenge private key
-    if (isPracticeMode && practicePrivateKey) {
-      const challengePrivateKey = BigInt('0x' + practicePrivateKey);
-
-      if (pointId === 'current' && operations.length > 0) {
-        let currentPrivateKey = startingMode === 'generator' ? 1n : challengePrivateKey;
-        currentPrivateKey = calculatePrivateKeyFromOperations(operations, currentPrivateKey);
-        return currentPrivateKey.toString(16).padStart(64, '0');
-      } else if (pointId === 'original') {
-        // Original challenge point
-        return practicePrivateKey;
-      }
-    }
-
-    // Case 3: Current point with operations
-    if (pointId === 'current' && operations.length > 0) {
-      if (startingMode === 'generator') {
-        // G -> current: start from 1
-        let currentPrivateKey = 1n;
-        currentPrivateKey = calculatePrivateKeyFromOperations(operations, currentPrivateKey);
-        return currentPrivateKey.toString(16).padStart(64, '0');
-      } else {
-        // Challenge -> G: start from 1 and apply operations in reverse
-        // TODO This should only be used for the final private key calculation at the end, once we have found victory
-        // Also it needs to account for matching the generator point and infinity
-        let currentPrivateKey = 1n;
-        currentPrivateKey = calculatePrivateKeyFromOperations(
-          operations.slice().reverse(),
-          currentPrivateKey
-        );
-        return currentPrivateKey.toString(16).padStart(64, '0');
-      }
-    }
-
-    return undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
  * Calculate the actual private key for the current point in ECCCalculator context
  */
-export function calculateCurrentPrivateKey(
-  currentPoint: ECPoint,
+export function calculatePrivateKey(
   operations: Operation[],
   startingMode: 'generator' | 'challenge',
   isPracticeMode: boolean = false,
@@ -125,11 +67,11 @@ export function calculateCurrentPrivateKey(
     // Case 1: We can always calculate if starting mode is generator
     if (startingMode === 'generator') {
       // G -> current: start from 1
-      return calculatePrivateKeyFromOperations(operations, 1n);
+      return calculateKeyFromOperations(operations, 1n);
     } else if (isPracticeMode && practicePrivateKey) {
       // Case 2: challenge->G with practice mode, we can always calculate from known challenge private key
       const challengePrivateKey = BigInt('0x' + practicePrivateKey);
-      return calculatePrivateKeyFromOperations(operations, challengePrivateKey);
+      return calculateKeyFromOperations(operations, challengePrivateKey);
     }
     // Case 3: For challenge->G without practice mode, we can't know the starting private key
     return null;
