@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { Challenge } from '../types/api';
-import { Modal } from './Modal';
 import './ChallengeInfo.css';
+import { Modal } from './Modal';
 
 interface ChallengeInfoProps {
   challenge: Challenge;

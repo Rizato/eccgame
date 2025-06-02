@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
 import { usePracticeMode } from '../hooks/usePracticeMode';
-import ECCPlayground from './ECCPlayground';
 import ChallengeInfo from './ChallengeInfo';
-import type { Challenge } from '../types/api';
+import ECCPlayground from './ECCPlayground';
 import './PracticeMode.css';
 
 const PracticeMode: React.FC = () => {

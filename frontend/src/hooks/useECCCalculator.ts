@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { ECPoint } from '../utils/ecc';
-import type { Operation } from '../components/ECCCalculator';
-import { type SavedPoint } from '../utils/privateKeyCalculation';
-import { getGeneratorPoint, publicKeyToPoint, pointToPublicKey } from '../utils/ecc';
+import { useCallback, useEffect, useState } from 'react';
 import { getP2PKHAddress } from '../utils/crypto';
+import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
+import { type SavedPoint } from '../utils/privateKeyCalculation';
+import type { Operation } from '../components/ECCCalculator';
+import type { ECPoint } from '../utils/ecc';
 
 export type StartingMode = 'challenge' | 'generator';
 

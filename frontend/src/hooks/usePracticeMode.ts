@@ -1,13 +1,13 @@
-import { useState, useCallback } from 'react';
-import type { Challenge } from '../types/api';
-import {
-  generateRandomScalar,
-  pointMultiply,
-  getGeneratorPoint,
-  pointToPublicKey,
-  bigintToHex,
-} from '../utils/ecc';
+import { useCallback, useState } from 'react';
 import { getP2PKHAddress } from '../utils/crypto';
+import {
+  bigintToHex,
+  generateRandomScalar,
+  getGeneratorPoint,
+  pointMultiply,
+  pointToPublicKey,
+} from '../utils/ecc';
+import type { Challenge } from '../types/api';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 

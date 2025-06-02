@@ -1,9 +1,9 @@
 import React from 'react';
-import { useGameState } from '../hooks/useGameState';
+import ChallengeInfo from '../components/ChallengeInfo';
 import ECCPlayground from '../components/ECCPlayground';
 import PracticeMode from '../components/PracticeMode';
-import ChallengeInfo from '../components/ChallengeInfo';
 import ThemeToggle from '../components/ThemeToggle';
+import { useGameState } from '../hooks/useGameState';
 import './ECCGamePage.css';
 
 const ECCGamePage: React.FC = () => {

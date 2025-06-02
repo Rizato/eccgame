@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { Challenge } from '../types/api';
+import { useCallback, useEffect, useState } from 'react';
 import { challengeApi } from '../services/api';
 import { storageUtils } from '../utils/storage';
+import type { Challenge } from '../types/api';
 
 export type GameMode = 'daily' | 'practice';
 

@@ -1,26 +1,25 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { Challenge } from '../types/api';
-import type { ECPoint } from '../utils/ecc';
+import { calculatePrivateKeyByPointId } from '../utils/calculatePrivateKeyByPointId';
+import { getP2PKHAddress } from '../utils/crypto';
+import {
+  bigintToHex,
+  estimatePrivateKeyFromOperations,
+  getGeneratorPoint,
+  getPrivateKeyDistance,
+  pointToPublicKey,
+  publicKeyToPoint,
+} from '../utils/ecc';
+import {
+  calculateKeyFromOperations,
+  calculatePrivateKeyFromSavedPoint,
+  type SavedPoint,
+} from '../utils/privateKeyCalculation';
 import ECCCalculator, { type Operation } from './ECCCalculator';
-import { type SavedPoint } from '../utils/privateKeyCalculation';
+import './ECCPlayground.css';
 import { Modal } from './Modal';
 import { VictoryModal } from './VictoryModal';
-import {
-  getGeneratorPoint,
-  publicKeyToPoint,
-  getPrivateKeyDistance,
-  estimatePrivateKeyFromOperations,
-  pointToPublicKey,
-  bigintToHex,
-} from '../utils/ecc';
-import { calculatePrivateKeyByPointId } from '../utils/calculatePrivateKeyByPointId';
-import {
-  calculatePrivateKeyFromSavedPoint,
-  calculatePrivateKey,
-  calculateKeyFromOperations,
-} from '../utils/privateKeyCalculation';
-import { getP2PKHAddress } from '../utils/crypto';
-import './ECCPlayground.css';
+import type { ECPoint } from '../utils/ecc';
 
 interface ECCPlaygroundProps {
   challenge: Challenge;

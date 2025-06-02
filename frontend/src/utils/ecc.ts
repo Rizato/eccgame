@@ -4,10 +4,9 @@
  * Extended cryptographic utilities for elliptic curve operations
  * using elliptic.js for robust and performant curve arithmetic.
  */
-
 import { ec as EC } from 'elliptic';
 import * as secp256k1 from 'secp256k1';
-import { hexToBytes, bytesToHex } from './crypto';
+import { bytesToHex, hexToBytes } from './crypto';
 
 // Initialize elliptic curve
 const ec = new EC('secp256k1');

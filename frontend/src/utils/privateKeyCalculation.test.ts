@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  getGeneratorPoint,
-  pointMultiply,
-  pointAdd,
-  pointSubtract,
   CURVE_N,
-  pointDivide,
+  getGeneratorPoint,
   modInverse,
+  pointAdd,
+  pointDivide,
+  pointMultiply,
+  pointSubtract,
 } from './ecc';
 import {
   calculateKeyFromOperations,

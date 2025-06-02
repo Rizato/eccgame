@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import axios from 'axios';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Challenge, GuessRequest, GuessResponse } from '../types/api';
 
 // Mock axios

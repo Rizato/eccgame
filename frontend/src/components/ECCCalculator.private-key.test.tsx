@@ -1,15 +1,15 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import ECCCalculator, { type Operation } from './ECCCalculator';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  getGeneratorPoint,
-  pointMultiply,
-  pointDivide,
-  pointAdd,
-  pointSubtract,
   CURVE_N,
+  getGeneratorPoint,
   modInverse,
+  pointAdd,
+  pointDivide,
+  pointMultiply,
+  pointSubtract,
 } from '../utils/ecc';
+import ECCCalculator, { type Operation } from './ECCCalculator';
 
 // Mock the crypto module to avoid async issues in tests
 vi.mock('../utils/crypto', () => ({

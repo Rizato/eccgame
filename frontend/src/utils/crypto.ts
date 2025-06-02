@@ -17,9 +17,8 @@
  *
  * You can inspect this code to verify these privacy guarantees.
  */
-
-import * as secp256k1 from 'secp256k1';
 import hash from 'hash.js';
+import * as secp256k1 from 'secp256k1';
 
 /**
  * Utility functions for SECP256k1 cryptographic operations
@@ -185,7 +184,7 @@ async function calculateChecksum(data: Uint8Array): Promise<Uint8Array> {
  */
 export async function getP2PKHAddress(publicKeyHex: string): Promise<string> {
   try {
-    let uncompressed = secp256k1.publicKeyConvert(hexToBytes(publicKeyHex), false);
+    const uncompressed = secp256k1.publicKeyConvert(hexToBytes(publicKeyHex), false);
 
     // Step 1: SHA256 hash of the uncompressed public key
     const sha256Hash = await crypto.subtle.digest('SHA-256', uncompressed);

@@ -1,8 +1,8 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { type ECPoint } from '../utils/ecc';
-import type { Operation } from '../utils/privateKeyCalculation.ts';
 import { calculateVictoryPrivateKey } from '../utils/victoryPrivateKeyCalculation';
+import type { Operation } from '../utils/privateKeyCalculation.ts';
 import './VictoryModal.css';
 
 interface VictoryModalProps {

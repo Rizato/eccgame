@@ -1,5 +1,5 @@
-import type { GuessResponse } from '../types/api';
 import type { SavedPoint } from './ecc';
+import type { GuessResponse } from '../types/api';
 
 const STORAGE_PREFIX = 'cryptoguesser_';
 const GUESS_HISTORY_KEY = `${STORAGE_PREFIX}guess_history`;

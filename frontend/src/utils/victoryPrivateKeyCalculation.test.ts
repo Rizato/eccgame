@@ -1,10 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { CURVE_N, hexToBigint, modInverse } from './ecc';
-import {
-  calculateVictoryPrivateKey,
-  calculateKeyFromOperations,
-  type Operation,
-} from './victoryPrivateKeyCalculation';
+import { calculateVictoryPrivateKey, type Operation } from './victoryPrivateKeyCalculation';
 
 describe('calculateVictoryPrivateKey', () => {
   describe('Generator mode starting point', () => {

@@ -12,7 +12,6 @@
  * You can inspect this code in your browser's developer tools to verify
  * that no private key data is included in any API requests.
  */
-
 import axios from 'axios';
 import type { Challenge, GuessRequest, GuessResponse } from '../types/api';
 

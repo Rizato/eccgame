@@ -1,10 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   getGeneratorPoint,
-  pointMultiply,
-  pointDivide,
   pointAdd,
+  pointDivide,
+  pointMultiply,
   pointSubtract,
+  CURVE_N,
 } from '../utils/ecc';
 import { calculateKeyFromOperations, type Operation } from '../utils/privateKeyCalculation';
 

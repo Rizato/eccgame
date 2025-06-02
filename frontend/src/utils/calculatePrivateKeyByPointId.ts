@@ -1,5 +1,5 @@
-import { calculatePrivateKey, type Operation } from './privateKeyCalculation';
 import { getGeneratorPoint } from './ecc';
+import { calculatePrivateKey, type Operation } from './privateKeyCalculation';
 import type { ECPoint } from './ecc';
 
 /**

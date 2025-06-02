@@ -1,25 +1,24 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getP2PKHAddress } from '../utils/crypto';
 import type { ECPoint } from '../utils/ecc';
 import {
-  pointAdd,
-  pointSubtract,
-  pointMultiply,
-  pointDivide,
-  CURVE_N,
   bigintToHex,
+  CURVE_N,
+  getGeneratorPoint,
   hexToBigint,
   isPointOnCurve,
-  getGeneratorPoint,
+  pointAdd,
+  pointDivide,
+  pointMultiply,
+  pointSubtract,
   pointToPublicKey,
 } from '../utils/ecc';
 import {
-  calculatePrivateKey,
-  calculatePrivateKeyFromSavedPoint,
   calculateKeyFromOperations,
-  type Operation as SharedOperation,
+  calculatePrivateKeyFromSavedPoint,
   type SavedPoint,
+  type Operation as SharedOperation,
 } from '../utils/privateKeyCalculation';
-import { getP2PKHAddress } from '../utils/crypto';
 import './ECCCalculator.css';
 import { SavePointModal } from './SavePointModal';
 
