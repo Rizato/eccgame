@@ -58,6 +58,9 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     'multiply' | 'divide' | 'add' | 'subtract' | null
   >(null);
   const [lastOperationValue, setLastOperationValue] = useState<string | null>(null);
+  const [lastOperationType, setLastOperationType] = useState<
+    'multiply' | 'divide' | 'add' | 'subtract' | null
+  >(null);
   const [hexMode, setHexMode] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<string>('');
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
@@ -133,6 +136,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const clearCalculator = useCallback(() => {
     setCalculatorDisplay('');
     setPendingOperation(null);
+    setLastOperationValue(null);
+    setLastOperationType(null);
     setHexMode(false);
   }, []);
 
@@ -209,24 +214,24 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
   const setCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract') => {
-      // If there's a value in the display and we haven't set a pending operation yet
-      if (calculatorDisplay.trim() && !pendingOperation) {
-        // Set pending operation and highlight the operator, wait for equals
+      if (isLocked) return;
+
+      // If there's a value in the display, set pending operation
+      if (calculatorDisplay.trim()) {
         setPendingOperation(operation);
-      } else if (calculatorDisplay.trim() && pendingOperation) {
-        // If there's already a pending operation, execute it with current display value
-        executeCalculatorOperationRef.current?.(pendingOperation, calculatorDisplay.trim());
-        // Then set the new operation as pending
-        setPendingOperation(operation);
-      } else if (lastOperationValue) {
-        // If no value but we have a last operation value, reuse it
+      } else if (
+        lastOperationValue &&
+        lastOperationType === operation &&
+        pendingOperation === operation
+      ) {
+        // If same operator is clicked and we have last operation value and it's already highlighted, repeat the operation
         executeCalculatorOperationRef.current?.(operation, lastOperationValue);
       } else {
-        // Just set the pending operation and highlight
+        // Set the pending operation to highlight the operator
         setPendingOperation(operation);
       }
     },
-    [calculatorDisplay, pendingOperation, lastOperationValue]
+    [calculatorDisplay, pendingOperation, lastOperationValue, lastOperationType, isLocked]
   );
 
   // Quick operation functions
@@ -382,12 +387,13 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           value,
         };
         onPointChange(newPoint, operationObj);
-        // TODO Clear this on calc clear
-        // Store the value for potential chaining
-        setLastOperationValue(value);
-        // Keep the value in display for chaining, keep the operation selected for repeated equals
+        // Keep the value in display for potential chaining
         setCalculatorDisplay(value);
-        // Keep pending operation and highlighted state for chaining equals
+        // Store the value and operation type for potential repeat operations
+        setLastOperationValue(value);
+        setLastOperationType(operation);
+        // Keep the operation highlighted so user can see what was just executed
+        setPendingOperation(operation);
       } catch (error) {
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
