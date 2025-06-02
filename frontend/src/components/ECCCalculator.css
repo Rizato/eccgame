@@ -247,6 +247,12 @@
   max-width: 290px; /* Match calculator button grid width */
 }
 
+@media (max-width: 768px) {
+  .calculator-display {
+    max-width: 100%;
+  }
+}
+
 .calculator-input {
   width: 100%;
   padding: 16px 20px;
@@ -552,49 +558,98 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  .calculator-container {
+    padding: 8px;
+    gap: 6px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
   .calculator-main-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 6px;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .number-section {
+    width: 100%;
+    max-width: 100%;
   }
 
   .button-row {
-    grid-template-columns: repeat(3, 1fr);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 2px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .button-row.top-row {
-    margin-bottom: 6px;
+    margin-bottom: 3px;
   }
 
   .operations-column {
-    order: -1;
+    order: 1;
     gap: 2px;
+    width: 100%;
   }
 
   .operations-column .backspace {
-    margin-bottom: 6px;
+    margin-bottom: 3px;
+    width: 100%;
   }
 
   .operators-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 2px;
+    width: 100%;
   }
 
   .equals-square {
-    width: 72px !important;
-    height: 72px !important;
+    width: 100% !important;
+    height: 50px !important;
     margin-top: 2px;
+    grid-column: span 2;
   }
 
   .calc-button {
-    font-size: 0.75rem;
-    height: 35px;
-    width: 35px;
+    font-size: 0.65rem;
+    height: 28px;
+    width: 100%;
     padding: 0;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .calculator-input {
-    padding: 10px 12px;
-    font-size: 0.9rem;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .calculator-status {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
+  }
+
+  .calculator-point-display {
+    padding: 6px 8px;
+  }
+
+  .point-display-actions {
+    gap: 3px;
+    margin-right: 3px;
+  }
+
+  .point-details-button,
+  .reset-point-button {
+    padding: 3px 6px;
+    font-size: 0.7rem;
   }
 }
 

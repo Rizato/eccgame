@@ -410,6 +410,8 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   max-width: 1000px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Graph Section as Display */
@@ -855,42 +857,69 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .ecc-playground {
-    padding: 16px;
-    gap: 16px;
+    padding: 8px;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   .playground-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 8px;
   }
 
-  .practice-indicator {
-    align-self: stretch;
-    justify-content: space-between;
+  .playground-header h3 {
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  .practice-indicator,
+  .mode-indicator {
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
   .point-controls {
     flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .toggle-button,
+  .save-button,
+  .reset-button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    flex: 1;
+    min-width: 80px;
   }
 
   .operation-tabs {
-    grid-template-columns: 1fr 1fr;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .operation-tabs .tab {
-    font-size: 0.85rem;
-    padding: 6px 8px;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    text-align: center;
   }
 
   .ecc-graph {
-    width: 300px;
-    height: 300px;
+    width: 100%;
+    max-width: 100%;
+    height: 280px;
+    margin: 0 auto;
+    display: block;
   }
 
   .legend-grid {
-    justify-content: flex-start;
-    gap: 8px;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
   }
 
   .legend-item {
@@ -898,57 +927,116 @@
   }
 
   .graph-calculator-integrated {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
     gap: 0;
-    max-width: none;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    border-radius: 8px;
+    box-sizing: border-box;
   }
 
   .graph-section.graph-display {
     border-right: none;
     border-bottom: 1px solid var(--border);
-    min-height: 250px;
-    order: -1;
+    min-height: 300px;
+    order: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .calculator-section {
+    order: 2;
+    padding: 8px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   .quick-buttons-vertical {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
   }
 
   .operations-header {
-    align-items: center;
     text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .operations-header h4 {
+    font-size: 1rem;
   }
 
   .last-operation {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    padding: 6px 8px;
   }
 
   .quick-button {
-    flex: 1;
-    min-width: 60px;
-    padding: 8px 12px;
+    padding: 10px 8px;
     font-size: 0.8rem;
+    text-align: center;
   }
 
   .point-info-item {
     flex-direction: column;
     gap: 4px;
     align-items: stretch;
+    padding: 6px 0;
   }
 
   .info-label {
     min-width: auto;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
   .info-value {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
   .info-value.hex-value {
-    font-size: 0.75rem;
-    padding: 6px 8px;
+    font-size: 0.7rem;
+    padding: 4px 6px;
+  }
+
+  .current-point-section,
+  .operations-section,
+  .saved-points-section,
+  .operations-history,
+  .point-info-display {
+    padding: 12px;
+  }
+
+  .section-header h4,
+  .point-info-display h4 {
+    font-size: 1rem;
+  }
+}
+
+/* Extra small mobile screens */
+@media (max-width: 480px) {
+  .graph-calculator-integrated {
+    margin: 0 -4px;
+    border-radius: 0;
+    width: calc(100% + 8px);
+  }
+
+  .ecc-playground {
+    padding: 4px;
+  }
+
+  .graph-section.graph-display,
+  .calculator-section {
+    padding: 6px;
+  }
+
+  .ecc-graph {
+    height: 220px;
   }
 }

@@ -123,6 +123,8 @@ body {
   overflow-x: hidden;
   background: var(--bg-primary);
   color: var(--text-primary);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 #root {
@@ -179,4 +181,31 @@ textarea:focus,
 select:focus {
   border-color: var(--border-focus);
   outline: none;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.2em;
+    line-height: 1.2;
+  }
+
+  button {
+    padding: 0.8em 1.4em;
+    font-size: 0.9em;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+    min-height: 44px;
+    padding: 12px;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
