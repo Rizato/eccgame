@@ -50,6 +50,7 @@ describe('ECCCalculator', () => {
     currentPoint: mockPoint,
     savedPoints: [],
     currentSavedPoint: null,
+    challengePoint: mockPoint,
     operations: [],
     onPointChange: vi.fn(),
     onError: vi.fn(),

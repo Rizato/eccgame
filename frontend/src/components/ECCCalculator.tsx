@@ -20,12 +20,14 @@ import {
 } from '../utils/privateKeyCalculation';
 import { getP2PKHAddress } from '../utils/crypto';
 import './ECCCalculator.css';
+import { SavePointModal } from './SavePointModal';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
   operations: Operation[]; // Operations passed from parent
   savedPoints: SavedPoint[];
   currentSavedPoint: SavedPoint | null; // Currently active saved point, if any
+  challengePoint: ECPoint; // Challenge point for comparison
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
   onSavePoint: (label?: string) => void;
@@ -43,6 +45,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   operations,
   savedPoints,
   currentSavedPoint,
+  challengePoint,
   onPointChange,
   onError,
   onSavePoint,
@@ -60,8 +63,21 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const [hexMode, setHexMode] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<string>('');
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   const generatorPoint = getGeneratorPoint();
+
+  // Check if current point is at a base point (generator or challenge)
+  const isAtBasePoint = useMemo(() => {
+    if (currentPoint.isInfinity) return false;
+
+    const isAtGenerator =
+      currentPoint.x === generatorPoint.x && currentPoint.y === generatorPoint.y;
+    const isAtChallenge =
+      currentPoint.x === challengePoint.x && currentPoint.y === challengePoint.y;
+
+    return isAtGenerator || isAtChallenge;
+  }, [currentPoint, generatorPoint, challengePoint]);
 
   // Calculate the actual private key for the current point using shared utility
   const currentPrivateKey = currentSavedPoint
@@ -451,7 +467,14 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         <div className="point-display-header">
           <h5>Current Point</h5>
           <div className="point-display-actions">
-            <button onClick={() => onSavePoint()} className="save-point-button" disabled={isLocked}>
+            <button
+              onClick={() => setShowSaveModal(true)}
+              className="save-point-button"
+              disabled={isLocked || isAtBasePoint}
+              title={
+                isAtBasePoint ? 'Cannot save at generator or challenge point' : 'Save current point'
+              }
+            >
               Save Point
             </button>
           </div>
@@ -655,6 +678,13 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           current point above.
         </small>
       </div>
+
+      <SavePointModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={label => onSavePoint(label)}
+        defaultLabel={`Point ${savedPoints.length + 1}`}
+      />
     </div>
   );
 };

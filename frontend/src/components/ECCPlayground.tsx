@@ -18,6 +18,7 @@ import {
   bigintToHex,
 } from '../utils/ecc';
 import { calculatePrivateKeyByPointId } from '../utils/calculatePrivateKeyByPointId';
+import { calculatePrivateKeyFromSavedPoint } from '../utils/privateKeyCalculation';
 import { getP2PKHAddress } from '../utils/crypto';
 import './ECCPlayground.css';
 
@@ -66,6 +67,21 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   // Calculate the actual private key for a given point using shared utility
   const calculatePrivateKeyForPointWrapper = useCallback(
     (pointId: string): string | undefined => {
+      // Check if this is a saved point
+      const savedPoint = savedPoints.find(sp => sp.id === pointId);
+
+      if (savedPoint) {
+        // For saved points, use the full operation chain from the saved point
+        const result = calculatePrivateKeyFromSavedPoint(
+          savedPoint,
+          [], // No additional operations since we want the saved point's exact private key
+          isPracticeMode,
+          practicePrivateKey
+        );
+        return result ? bigintToHex(result) : undefined;
+      }
+
+      // For other points, use the existing logic
       const result = calculatePrivateKeyByPointId(
         pointId,
         operations,
@@ -75,7 +91,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       );
       return result ? bigintToHex(result) : undefined;
     },
-    [operations, startingMode, isPracticeMode, practicePrivateKey]
+    [operations, startingMode, isPracticeMode, practicePrivateKey, savedPoints]
   );
 
   // Calculator functions
@@ -223,7 +239,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             const convertedOperations = operations.map(op => ({
               type: op.type,
               value: op.value ? BigInt(op.value) : op.point || { x: 0n, y: 0n, isInfinity: true },
-              direction: op.direction,
             }));
 
             // Estimate current private key from operations
@@ -320,6 +335,38 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     },
     [clearCalculator]
   );
+
+  // Load any point (for modal actions)
+  const loadPoint = useCallback(
+    (point: ECPoint, savedPoint?: SavedPoint) => {
+      if (savedPoint) {
+        loadSavedPoint(savedPoint);
+      } else {
+        // Loading a base point (generator or challenge)
+        setCurrentPoint(point);
+        setOperations([]);
+        setCurrentSavedPoint(null);
+
+        // Determine starting mode based on the point
+        const isGenerator = point.x === generatorPoint.x && point.y === generatorPoint.y;
+        setStartingMode(isGenerator ? 'generator' : 'challenge');
+
+        setError(null);
+        clearCalculator();
+        setLastOperationValue(null);
+        setHasWon(false);
+        setShowVictoryModal(false);
+      }
+    },
+    [loadSavedPoint, generatorPoint, clearCalculator]
+  );
+
+  // Rename saved point
+  const renameSavedPoint = useCallback((savedPoint: SavedPoint, newLabel: string) => {
+    setSavedPoints(prev =>
+      prev.map(sp => (sp.id === savedPoint.id ? { ...sp, label: newLabel } : sp))
+    );
+  }, []);
 
   // Submit solution attempt (keeping for backward compatibility, but victory modal is primary)
   const submitSolution = useCallback(async () => {
@@ -428,12 +475,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   const handlePointClick = useCallback(
     async (pointId: string, point: ECPoint, label: string, savedPoint?: SavedPoint) => {
-      // If clicking on a saved point, load it
-      if (savedPoint) {
-        loadSavedPoint(savedPoint);
-        return;
-      }
-
       setSelectedPoint({ point, id: pointId, label });
 
       // Calculate address for the selected point
@@ -451,7 +492,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
       setShowPointModal(true);
     },
-    [loadSavedPoint]
+    []
   );
 
   // Map large coordinate values to screen percentage (0-100)
@@ -467,10 +508,10 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   const generatorY = generatorPoint.isInfinity ? 50 : mapToScreenCoordinate(generatorPoint.y, true);
 
   const getVisiblePoints = () => {
-    const points = [];
+    const allPoints = [];
 
-    // Always show generator point G (using actual coordinates)
-    points.push({
+    // Always add generator point G
+    const generatorEntry = {
       id: 'generator',
       x: generatorX,
       y: generatorY,
@@ -478,14 +519,16 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       color: '#3b82f6', // blue
       description: 'Generator point',
       point: generatorPoint,
-    });
+      type: 'generator' as const,
+    };
+    allPoints.push(generatorEntry);
 
-    // Always show original challenge point
+    // Always add original challenge point
     const originalPoint = publicKeyToPoint(challenge.public_key);
     const originalX = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.x);
     const originalY = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.y, true);
 
-    points.push({
+    const originalEntry = {
       id: 'original',
       x: originalX,
       y: originalY,
@@ -493,42 +536,36 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       color: '#f59e0b', // amber
       description: 'Original challenge point',
       point: originalPoint,
-    });
+      type: 'challenge' as const,
+    };
+    allPoints.push(originalEntry);
 
-    // Show saved points
-    savedPoints.forEach((savedPoint, index) => {
+    // Add saved points
+    savedPoints.forEach(savedPoint => {
       if (!savedPoint.point.isInfinity) {
         const savedX = mapToScreenCoordinate(savedPoint.point.x);
         const savedY = mapToScreenCoordinate(savedPoint.point.y, true);
 
-        points.push({
+        allPoints.push({
           id: savedPoint.id,
           x: savedX,
           y: savedY,
-          label: savedPoint.label.split(' ')[0], // Use first word of label
+          label: savedPoint.label, // Use full label name
           color: '#8b5cf6', // purple for saved points
           description: `Saved point: ${savedPoint.label}`,
           point: savedPoint.point,
           savedPoint,
+          type: 'saved' as const,
         });
       }
     });
 
-    // Current point (only if different from original and not a saved point)
-    const isCurrentPointSaved = savedPoints.some(
-      sp =>
-        sp.point.x === currentPoint.x && sp.point.y === currentPoint.y && !currentPoint.isInfinity
-    );
-
-    if (
-      !currentPoint.isInfinity &&
-      (currentPoint.x !== originalPoint.x || currentPoint.y !== originalPoint.y) &&
-      !isCurrentPointSaved
-    ) {
+    // Add current point if it's unique
+    if (!currentPoint.isInfinity) {
       const currentX = mapToScreenCoordinate(currentPoint.x);
       const currentY = mapToScreenCoordinate(currentPoint.y, true);
 
-      points.push({
+      allPoints.push({
         id: 'current',
         x: currentX,
         y: currentY,
@@ -536,10 +573,52 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         color: isAtGenerator ? '#22c55e' : '#ef4444', // green if at generator, red otherwise
         description: 'Current point',
         point: currentPoint,
+        type: 'current' as const,
       });
     }
 
-    return points;
+    // Group points by their coordinates to detect overlaps
+    const groupedPoints = new Map<string, typeof allPoints>();
+
+    allPoints.forEach(point => {
+      const key = `${point.point.x}_${point.point.y}_${point.point.isInfinity}`;
+      if (!groupedPoints.has(key)) {
+        groupedPoints.set(key, []);
+      }
+      groupedPoints.get(key)!.push(point);
+    });
+
+    // Convert groups back to visible points, combining overlapping ones
+    const visiblePoints = [];
+
+    for (const [key, group] of groupedPoints) {
+      if (group.length === 1) {
+        // Single point - show as normal
+        visiblePoints.push(group[0]);
+      } else {
+        // Multiple overlapping points - combine them
+        const combinedLabels = group.map(p => p.label).join('/');
+        const combinedDescriptions = group.map(p => p.description).join(' + ');
+
+        // Create gradient color for overlapping points
+        const colors = group.map(p => p.color);
+        const gradientColor = `linear-gradient(45deg, ${colors.join(', ')})`;
+
+        // Use the first point's position
+        const basePoint = group[0];
+
+        visiblePoints.push({
+          ...basePoint,
+          label: combinedLabels,
+          color: gradientColor,
+          description: combinedDescriptions,
+          isOverlapping: true,
+          overlappingPoints: group,
+        });
+      }
+    }
+
+    return visiblePoints;
   };
 
   const graphPoints = getVisiblePoints();
@@ -577,12 +656,12 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
               {graphPoints.map(point => (
                 <div
                   key={point.id}
-                  className={`ecc-point ${point.id}`}
+                  className={`ecc-point ${point.id}${point.isOverlapping ? ' overlapping' : ''}`}
                   style={
                     {
                       left: `${point.x}%`,
                       top: `${point.y}%`,
-                      '--point-color': point.color,
+                      '--point-color': point.isOverlapping ? 'transparent' : point.color,
                     } as React.CSSProperties
                   }
                   title={point.description}
@@ -590,7 +669,17 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
                     handlePointClick(point.id, point.point, point.label, point.savedPoint)
                   }
                 >
-                  <div className="point-dot"></div>
+                  <div
+                    className="point-dot"
+                    style={
+                      point.isOverlapping
+                        ? {
+                            background: point.color,
+                            border: '2px solid var(--card-background)',
+                          }
+                        : {}
+                    }
+                  ></div>
                   <div className="point-label">{point.label}</div>
                 </div>
               ))}
@@ -633,6 +722,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             operations={operations}
             savedPoints={savedPoints}
             currentSavedPoint={currentSavedPoint}
+            challengePoint={publicKeyToPoint(challenge.public_key)}
             onPointChange={(point, operation) => {
               setCurrentPoint(point);
               setOperations(prev => [...prev, operation]);
@@ -654,6 +744,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         title={selectedPoint ? `${selectedPoint.label} Point Information` : ''}
         isPracticeMode={isPracticeMode}
         practicePrivateKey={practicePrivateKey}
+        pointId={selectedPoint?.id}
+        point={selectedPoint?.point}
+        savedPoint={graphPoints.find(p => p.id === selectedPoint?.id)?.savedPoint}
+        onLoadPoint={loadPoint}
+        onRenamePoint={renameSavedPoint}
         pointData={
           selectedPoint
             ? {
@@ -673,7 +768,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
                 yCoordinate: selectedPoint.point.isInfinity
                   ? '0000000000000000000000000000000000000000000000000000000000000000'
                   : bigintToHex(selectedPoint.point.y),
-                privateKey: bigintToHex(calculatePrivateKeyForPointWrapper(selectedPoint.id)),
+                privateKey: calculatePrivateKeyForPointWrapper(selectedPoint.id),
                 distanceToTarget:
                   selectedPoint.id === 'current' && isPracticeMode && practicePrivateKey
                     ? (() => {
@@ -685,7 +780,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
                             value: op.value
                               ? BigInt(op.value)
                               : op.point || { x: 0n, y: 0n, isInfinity: true },
-                            direction: op.direction,
                           }));
                           const estimatedPrivateKey = estimatePrivateKeyFromOperations(
                             convertedOperations,
