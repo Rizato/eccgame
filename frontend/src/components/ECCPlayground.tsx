@@ -125,7 +125,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Reset current point when challenge changes
   useEffect(() => {
-    setCurrentPoint(publicKeyToPoint(challenge.public_key));
+    if (startingMode === 'challenge') {
+      setCurrentPoint(publicKeyToPoint(challenge.public_key));
+    } else {
+      setCurrentPoint(generatorPoint);
+    }
     setOperations([]);
     setError(null);
     clearCalculator();
@@ -269,18 +273,21 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   // Reset to specified starting point
   const resetToStartingPoint = useCallback(
     (mode: 'challenge' | 'generator') => {
-      if (mode === 'challenge') {
-        setCurrentPoint(publicKeyToPoint(challenge.public_key));
-      } else {
-        setCurrentPoint(generatorPoint);
-      }
-      setStartingMode(mode);
+      // Force immediate state clearing to avoid stale state issues
       setOperations([]);
+      setStartingMode(mode);
       setError(null);
       clearCalculator();
       setLastOperationValue(null);
       setHasWon(false);
       setShowVictoryModal(false);
+
+      // Set the starting point after clearing state
+      if (mode === 'challenge') {
+        setCurrentPoint(publicKeyToPoint(challenge.public_key));
+      } else {
+        setCurrentPoint(generatorPoint);
+      }
     },
     [challenge.public_key, generatorPoint, clearCalculator]
   );
@@ -603,6 +610,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           {/* Calculator Section */}
           <ECCCalculator
             currentPoint={currentPoint}
+            operations={operations}
             onPointChange={(point, operation) => {
               setCurrentPoint(point);
               setOperations(prev => [...prev, operation]);

@@ -94,6 +94,8 @@ export function calculatePrivateKeyForPoint(
         return currentPrivateKey.toString(16).padStart(64, '0');
       } else {
         // Challenge -> G: start from 1 and apply operations in reverse
+        // TODO This should only be used for the final private key calculation at the end, once we have found victory
+        // Also it needs to account for matching the generator point and infinity
         let currentPrivateKey = 1n;
         currentPrivateKey = calculatePrivateKeyFromOperations(
           operations.slice().reverse(),
@@ -134,23 +136,15 @@ export function calculateCurrentPrivateKey(
     // Case 2: Practice mode - we can always calculate from known challenge private key
     if (isPracticeMode && practicePrivateKey) {
       const challengePrivateKey = BigInt('0x' + practicePrivateKey);
-      let currentPrivateKey = startingMode === 'generator' ? 1n : challengePrivateKey;
-      return calculatePrivateKeyFromOperations(operations, currentPrivateKey);
+      let startingPrivateKey = startingMode === 'generator' ? 1n : challengePrivateKey;
+      return calculatePrivateKeyFromOperations(operations, startingPrivateKey);
     }
 
-    // Case 3: Not practice mode, but we can still calculate if only scalar operations
-    if (operations.length > 0) {
-      const hasOnlyScalarOps = operations.every(
-        op => op.type === 'multiply' || op.type === 'divide'
-      );
-
-      if (hasOnlyScalarOps) {
-        if (startingMode === 'generator') {
-          // G -> current: start from 1
-          return calculatePrivateKeyFromOperations(operations, 1n);
-        }
-        // For challenge->G without practice mode, we can't know the starting private key
-      }
+    // Case 3: Not practice mode, but we can still calculate if starting mode is generator
+    if (startingMode === 'generator') {
+      // For challenge->G without practice mode, we can't know the starting private key
+      // G -> current: start from 1
+      return calculatePrivateKeyFromOperations(operations, 1n);
     }
 
     return null;

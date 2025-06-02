@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import type { ECPoint } from '../utils/ecc';
 import {
   pointAdd,
@@ -21,6 +21,7 @@ import './ECCCalculator.css';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
+  operations: Operation[]; // Operations passed from parent
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
   onResetPoint: (startingMode: 'challenge' | 'generator') => void;
@@ -34,6 +35,7 @@ export type Operation = SharedOperation;
 
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   currentPoint,
+  operations,
   onPointChange,
   onError,
   onResetPoint,
@@ -51,18 +53,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const [currentAddress, setCurrentAddress] = useState<string>('');
   const [showResetDropdown, setShowResetDropdown] = useState(false);
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
-  const [operations, setOperations] = useState<Operation[]>([]);
 
   const generatorPoint = getGeneratorPoint();
-
-  // Track operations for private key calculation
-  const handlePointChange = useCallback(
-    (point: ECPoint, operation: Operation) => {
-      setOperations(prev => [...prev, operation]);
-      onPointChange(point, operation);
-    },
-    [onPointChange]
-  );
 
   // Calculate the actual private key for the current point using shared utility
   const currentPrivateKey = calculateCurrentPrivateKey(
@@ -211,11 +203,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '1',
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
-      handlePointChange(newPoint, operation);
+      onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, handlePointChange, onError, startingMode, isLocked]);
+  }, [currentPoint, generatorPoint, onPointChange, onError, startingMode, isLocked]);
 
   const quickSubtractG = useCallback(() => {
     if (isLocked) return;
@@ -234,11 +226,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '1',
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
-      handlePointChange(newPoint, operation);
+      onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, handlePointChange, onError, startingMode, isLocked]);
+  }, [currentPoint, generatorPoint, onPointChange, onError, startingMode, isLocked]);
 
   const quickDouble = useCallback(() => {
     if (isLocked) return;
@@ -256,11 +248,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '2',
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
-      handlePointChange(newPoint, operation);
+      onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, handlePointChange, onError, startingMode, isLocked]);
+  }, [currentPoint, onPointChange, onError, startingMode, isLocked]);
 
   const quickHalve = useCallback(() => {
     if (isLocked) return;
@@ -278,11 +270,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '2',
         direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
-      handlePointChange(newPoint, operation);
+      onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, handlePointChange, onError, startingMode, isLocked]);
+  }, [currentPoint, onPointChange, onError, startingMode, isLocked]);
 
   const executeCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
@@ -350,7 +342,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           value,
           direction: startingMode === 'challenge' ? 'forward' : 'reverse',
         };
-        handlePointChange(newPoint, operationObj);
+        onPointChange(newPoint, operationObj);
 
         // Store the value for potential chaining
         setLastOperationValue(value);
@@ -361,7 +353,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [currentPoint, handlePointChange, onError, quickAddG, quickSubtractG, startingMode, isLocked]
+    [currentPoint, onPointChange, onError, quickAddG, quickSubtractG, startingMode, isLocked]
   );
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
