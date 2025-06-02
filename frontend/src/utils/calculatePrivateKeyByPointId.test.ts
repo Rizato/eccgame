@@ -1,11 +1,23 @@
 import { describe, expect, it } from 'vitest';
-import { calculatePrivateKeyByPointId, type Operation } from './calculatePrivateKeyByPointId';
+import { calculatePrivateKeyByPointId } from './calculatePrivateKeyByPointId';
+import { getGeneratorPoint, pointMultiply, pointAdd } from './ecc';
+import type { Operation } from './privateKeyCalculation';
 
 describe('calculatePrivateKeyByPointId', () => {
+  const mockChallengePublicKey =
+    '02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5';
+  const generatorPoint = getGeneratorPoint();
+
   describe('Generator point', () => {
     it('should return 1n for generator point', () => {
       const operations: Operation[] = [];
-      const result = calculatePrivateKeyByPointId('generator', operations, 'generator');
+      const result = calculatePrivateKeyByPointId(
+        'generator',
+        operations,
+        generatorPoint,
+        mockChallengePublicKey,
+        'generator'
+      );
       expect(result).toBe(1n);
     });
   });
@@ -18,10 +30,16 @@ describe('calculatePrivateKeyByPointId', () => {
           type: 'multiply',
           description: '* 5',
           value: '5',
-          direction: 'forward',
         },
       ];
-      const result = calculatePrivateKeyByPointId('current', operations, 'generator');
+      const currentPoint = pointMultiply(5n, generatorPoint);
+      const result = calculatePrivateKeyByPointId(
+        'current',
+        operations,
+        currentPoint,
+        mockChallengePublicKey,
+        'generator'
+      );
       expect(result).toBe(5n); // 1 * 5 = 5
     });
 
@@ -32,10 +50,16 @@ describe('calculatePrivateKeyByPointId', () => {
           type: 'add',
           description: '+ 10',
           value: '10',
-          direction: 'forward',
         },
       ];
-      const result = calculatePrivateKeyByPointId('current', operations, 'generator');
+      const currentPoint = pointAdd(generatorPoint, pointMultiply(10n, generatorPoint));
+      const result = calculatePrivateKeyByPointId(
+        'current',
+        operations,
+        currentPoint,
+        mockChallengePublicKey,
+        'generator'
+      );
       expect(result).toBe(11n); // 1 + 10 = 11
     });
   });

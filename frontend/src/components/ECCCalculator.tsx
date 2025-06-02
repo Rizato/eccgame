@@ -13,6 +13,7 @@ import {
   pointNegate,
   pointSubtract,
   pointToPublicKey,
+  publicKeyToPoint,
 } from '../utils/ecc';
 import {
   calculateKeyFromOperations,
@@ -28,11 +29,11 @@ interface ECCCalculatorProps {
   operations: Operation[]; // Operations passed from parent
   savedPoints: SavedPoint[];
   currentSavedPoint: SavedPoint | null; // Currently active saved point, if any
-  challengePoint: ECPoint; // Challenge point for comparison
+  challengePublicKey: string; // Challenge public key for private key calculations
+  startingPrivateKey: bigint | undefined; // Private key of the starting point (if known)
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
   onSavePoint: (label?: string) => void;
-  startingMode: 'challenge' | 'generator'; // challenge: start from challenge point, generator: start from G
   isPracticeMode?: boolean;
   practicePrivateKey?: string;
   isLocked?: boolean;
@@ -45,11 +46,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   operations,
   savedPoints,
   currentSavedPoint,
-  challengePoint,
+  challengePublicKey,
+  startingPrivateKey,
   onPointChange,
   onError,
   onSavePoint,
-  startingMode,
   isPracticeMode = false,
   practicePrivateKey,
   isLocked = false,
@@ -75,11 +76,16 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
     const isAtGenerator =
       currentPoint.x === generatorPoint.x && currentPoint.y === generatorPoint.y;
-    const isAtChallenge =
-      currentPoint.x === challengePoint.x && currentPoint.y === challengePoint.y;
 
-    return isAtGenerator || isAtChallenge;
-  }, [currentPoint, generatorPoint, challengePoint]);
+    try {
+      const challengePoint = publicKeyToPoint(challengePublicKey);
+      const isAtChallenge =
+        currentPoint.x === challengePoint.x && currentPoint.y === challengePoint.y;
+      return isAtGenerator || isAtChallenge;
+    } catch {
+      return isAtGenerator;
+    }
+  }, [currentPoint, generatorPoint, challengePublicKey]);
 
   // Calculate the actual private key for the current point using shared utility
   const currentPrivateKey = useMemo(() => {
@@ -93,25 +99,17 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     }
 
     // We can only calculate private keys if we know the starting point's private key
-    if (startingMode === 'generator') {
-      // Starting from generator point - we know private key is 1
+    if (startingPrivateKey !== undefined) {
       try {
-        return calculateKeyFromOperations(operations, 1n);
-      } catch {
-        return null;
-      }
-    } else if (startingMode === 'challenge' && isPracticeMode && practicePrivateKey) {
-      // Starting from challenge point in practice mode - we know the private key
-      try {
-        return calculateKeyFromOperations(operations, BigInt('0x' + practicePrivateKey));
+        return calculateKeyFromOperations(operations, startingPrivateKey);
       } catch {
         return null;
       }
     }
 
-    // If starting from challenge in daily mode, we can't calculate the private key
+    // If we don't know the starting private key, we can't calculate the current private key
     return null;
-  }, [currentSavedPoint, operations, isPracticeMode, practicePrivateKey, startingMode]);
+  }, [currentSavedPoint, operations, isPracticeMode, practicePrivateKey, startingPrivateKey]);
 
   // Calculate current address asynchronously
   useEffect(() => {

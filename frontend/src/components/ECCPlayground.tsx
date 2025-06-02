@@ -80,17 +80,44 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         return result ? bigintToHex(result) : undefined;
       }
 
+      // Determine the starting private key based on current context
+      let startingPrivateKey: bigint | undefined = undefined;
+
+      if (currentSavedPoint) {
+        // We're building from a saved point - use its private key if known
+        startingPrivateKey = currentSavedPoint.privateKey;
+      } else {
+        // We're starting from a base point
+        if (startingMode === 'generator') {
+          // Started from generator point - we know private key is 1
+          startingPrivateKey = 1n;
+        } else if (startingMode === 'challenge' && isPracticeMode && practicePrivateKey) {
+          // Started from challenge point in practice mode - we know the private key
+          startingPrivateKey = BigInt('0x' + practicePrivateKey);
+        }
+        // If starting from challenge in daily mode, startingPrivateKey remains undefined
+      }
+
       // For other points, use the existing logic
       const result = calculatePrivateKeyByPointId(
         pointId,
         operations,
         currentPoint,
+        startingPrivateKey,
         isPracticeMode,
         practicePrivateKey
       );
       return result ? bigintToHex(result) : undefined;
     },
-    [operations, currentPoint, isPracticeMode, practicePrivateKey, savedPoints]
+    [
+      operations,
+      currentPoint,
+      startingMode,
+      currentSavedPoint,
+      isPracticeMode,
+      practicePrivateKey,
+      savedPoints,
+    ]
   );
 
   // Calculator functions
@@ -785,15 +812,24 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             operations={operations}
             savedPoints={savedPoints}
             currentSavedPoint={currentSavedPoint}
-            challengePoint={publicKeyToPoint(challenge.public_key)}
+            challengePublicKey={challenge.public_key}
+            startingPrivateKey={(() => {
+              // Determine starting private key
+              if (currentSavedPoint) {
+                return currentSavedPoint.privateKey;
+              } else if (startingMode === 'generator') {
+                return 1n;
+              } else if (startingMode === 'challenge' && isPracticeMode && practicePrivateKey) {
+                return BigInt('0x' + practicePrivateKey);
+              }
+              return undefined;
+            })()}
             onPointChange={(point, operation) => {
               setCurrentPoint(point);
               setOperations(prev => [...prev, operation]);
             }}
             onError={setError}
             onSavePoint={saveCurrentPoint}
-            onLoadSavedPoint={loadSavedPoint}
-            startingMode={startingMode}
             isPracticeMode={isPracticeMode}
             practicePrivateKey={practicePrivateKey}
             isLocked={hasWon && !isPracticeMode}
