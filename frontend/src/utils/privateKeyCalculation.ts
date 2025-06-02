@@ -122,31 +122,16 @@ export function calculateCurrentPrivateKey(
   practicePrivateKey?: string
 ): bigint | null {
   try {
-    const generatorPoint = getGeneratorPoint();
-
-    // Case 1: Current point is G (generator)
-    if (
-      currentPoint.x === generatorPoint.x &&
-      currentPoint.y === generatorPoint.y &&
-      !currentPoint.isInfinity
-    ) {
-      return 1n;
-    }
-
-    // Case 2: Practice mode - we can always calculate from known challenge private key
-    if (isPracticeMode && practicePrivateKey) {
-      const challengePrivateKey = BigInt('0x' + practicePrivateKey);
-      let startingPrivateKey = startingMode === 'generator' ? 1n : challengePrivateKey;
-      return calculatePrivateKeyFromOperations(operations, startingPrivateKey);
-    }
-
-    // Case 3: Not practice mode, but we can still calculate if starting mode is generator
+    // Case 1: We can always calculate if starting mode is generator
     if (startingMode === 'generator') {
-      // For challenge->G without practice mode, we can't know the starting private key
       // G -> current: start from 1
       return calculatePrivateKeyFromOperations(operations, 1n);
+    } else if (isPracticeMode && practicePrivateKey) {
+      // Case 2: challenge->G with practice mode, we can always calculate from known challenge private key
+      const challengePrivateKey = BigInt('0x' + practicePrivateKey);
+      return calculatePrivateKeyFromOperations(operations, challengePrivateKey);
     }
-
+    // Case 3: For challenge->G without practice mode, we can't know the starting private key
     return null;
   } catch {
     return null;
