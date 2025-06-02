@@ -912,7 +912,9 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         startingMode={startingMode}
         targetPoint={currentPoint}
         operations={operations}
+        currentSavedPoint={currentSavedPoint}
         isPracticeMode={isPracticeMode}
+        practicePrivateKey={practicePrivateKey}
       />
     </div>
   );

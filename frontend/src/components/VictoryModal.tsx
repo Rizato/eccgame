@@ -2,7 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { type ECPoint } from '../utils/ecc';
 import { calculateVictoryPrivateKey } from '../utils/victoryPrivateKeyCalculation';
-import type { Operation } from '../utils/privateKeyCalculation.ts';
+import type { Operation, SavedPoint } from '../utils/privateKeyCalculation.ts';
 import './VictoryModal.css';
 
 interface VictoryModalProps {
@@ -13,7 +13,9 @@ interface VictoryModalProps {
   startingMode: 'challenge' | 'generator';
   targetPoint: ECPoint;
   operations: Operation[];
+  currentSavedPoint?: SavedPoint | null;
   isPracticeMode?: boolean;
+  practicePrivateKey?: string;
 }
 
 export const VictoryModal: React.FC<VictoryModalProps> = ({
@@ -24,14 +26,23 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   startingMode,
   targetPoint,
   operations,
+  currentSavedPoint = null,
   isPracticeMode = false,
+  practicePrivateKey,
 }) => {
   if (!isOpen) return null;
 
-  // Calculate the private key for the victory screen
+  // Calculate the private key for the victory screen using enhanced reconstruction
   const victoryPrivateKey =
     '0x' +
-    calculateVictoryPrivateKey(operations, startingMode, targetPoint.isInfinity).toString(16);
+    calculateVictoryPrivateKey(
+      operations,
+      startingMode,
+      targetPoint.isInfinity,
+      currentSavedPoint,
+      isPracticeMode,
+      practicePrivateKey
+    ).toString(16);
 
   const getVictoryTitle = () => {
     if (isPracticeMode) {
