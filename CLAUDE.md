@@ -149,6 +149,7 @@ Access Django admin at `http://localhost:8000/admin/` after creating a superuser
 - Break down large features into smaller, specific tasks
 - Use descriptive task names that clearly indicate the work to be done
 - When leaving a mock or fake implementation, leave a `TODO` so that it is obvious the implementation is incomplete
+- Write DRY (Don't repeat yourself) code
 - Follow the Zen of Python
 
 ```
@@ -172,5 +173,3 @@ If the implementation is hard to explain, it's a bad idea.
 If the implementation is easy to explain, it may be a good idea.
 Namespaces are one honking great idea -- let's do more of those!
 ```
-
-2. Write DRY code
