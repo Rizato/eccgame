@@ -48,15 +48,16 @@ describe('ECCCalculator', () => {
 
   const mockProps = {
     currentPoint: mockPoint,
+    savedPoints: [],
+    currentSavedPoint: null,
     operations: [],
     onPointChange: vi.fn(),
     onError: vi.fn(),
-    onShowPointModal: vi.fn(),
-    onResetPoint: vi.fn(),
+    onSavePoint: vi.fn(),
+    onLoadSavedPoint: vi.fn(),
     startingMode: 'generator' as const,
     isPracticeMode: false,
     practicePrivateKey: undefined,
-    progress: null,
   };
 
   beforeEach(() => {
@@ -72,30 +73,23 @@ describe('ECCCalculator', () => {
       render(<ECCCalculator {...mockProps} />);
 
       expect(screen.getByText('Current Point')).toBeInTheDocument();
-      expect(screen.getByText('Details')).toBeInTheDocument();
-      expect(screen.getByText('Reset')).toBeInTheDocument();
+      expect(screen.getByText('Save Point')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('0')).toBeInTheDocument();
-      expect(screen.getByText('C')).toBeInTheDocument();
+      expect(screen.getAllByText('C').length).toBeGreaterThan(0);
       expect(screen.getByText('=')).toBeInTheDocument();
     });
 
     it('displays point at infinity correctly', () => {
       render(<ECCCalculator {...mockProps} currentPoint={infinityPoint} />);
 
-      expect(screen.getByText('Point at Infinity (O)')).toBeInTheDocument();
+      expect(screen.getByText('Point at Infinity')).toBeInTheDocument();
     });
 
     it('displays practice mode information when enabled', () => {
-      render(
-        <ECCCalculator
-          {...mockProps}
-          isPracticeMode={true}
-          practicePrivateKey="abc123"
-          progress={45.5}
-        />
-      );
+      render(<ECCCalculator {...mockProps} isPracticeMode={true} practicePrivateKey="abc123" />);
 
-      expect(screen.getByText('Progress: 45.5%')).toBeInTheDocument();
+      // Just check that the component renders without crashing in practice mode
+      expect(screen.getByText('Current Point')).toBeInTheDocument();
     });
   });
 

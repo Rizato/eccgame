@@ -7,7 +7,16 @@ export interface Operation {
   description: string;
   value: string;
   point?: ECPoint;
-  direction: 'forward' | 'reverse'; // forward: challenge->G, reverse: G->challenge
+}
+
+export interface SavedPoint {
+  id: string;
+  point: ECPoint;
+  startingPoint: ECPoint;
+  startingMode: 'generator' | 'challenge';
+  operations: Operation[];
+  label: string;
+  timestamp: number;
 }
 
 /**
@@ -52,6 +61,35 @@ export function calculateKeyFromOperations(
   }
 
   return currentPrivateKey;
+}
+
+/**
+ * Calculate private key from saved point and additional operations
+ */
+export function calculatePrivateKeyFromSavedPoint(
+  savedPoint: SavedPoint,
+  additionalOperations: Operation[],
+  isPracticeMode: boolean = false,
+  practicePrivateKey?: string
+): bigint | null {
+  try {
+    // First calculate the private key for the saved point
+    const savedPointPrivateKey = calculatePrivateKey(
+      savedPoint.operations,
+      savedPoint.startingMode,
+      isPracticeMode,
+      practicePrivateKey
+    );
+
+    if (savedPointPrivateKey === null) {
+      return null;
+    }
+
+    // Then apply additional operations from the saved point
+    return calculateKeyFromOperations(additionalOperations, savedPointPrivateKey);
+  } catch {
+    return null;
+  }
 }
 
 /**

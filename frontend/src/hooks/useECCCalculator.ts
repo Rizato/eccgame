@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { ECPoint } from '../utils/ecc';
 import type { Operation } from '../components/ECCCalculator';
+import { type SavedPoint } from '../utils/privateKeyCalculation';
 import { getGeneratorPoint, publicKeyToPoint, pointToPublicKey } from '../utils/ecc';
 import { getP2PKHAddress } from '../utils/crypto';
 
@@ -18,6 +19,8 @@ interface ECCCalculatorState {
   startingMode: StartingMode;
   hasWon: boolean;
   showVictoryModal: boolean;
+  savedPoints: SavedPoint[];
+  currentSavedPoint: SavedPoint | null;
 }
 
 interface ECCCalculatorActions {
@@ -32,6 +35,8 @@ interface ECCCalculatorActions {
   backspaceCalculator: () => void;
   resetToChallenge: (challengePublicKey: string) => void;
   resetToGenerator: () => void;
+  savePoint: (label?: string) => void;
+  loadSavedPoint: (savedPoint: SavedPoint) => void;
 }
 
 export function useECCCalculator(
@@ -53,6 +58,8 @@ export function useECCCalculator(
   const [startingMode, setStartingMode] = useState<StartingMode>('challenge');
   const [hasWon, setHasWon] = useState(false);
   const [showVictoryModal, setShowVictoryModal] = useState(false);
+  const [savedPoints, setSavedPoints] = useState<SavedPoint[]>([]);
+  const [currentSavedPoint, setCurrentSavedPoint] = useState<SavedPoint | null>(null);
 
   const generatorPoint = getGeneratorPoint();
   const challengePoint = publicKeyToPoint(challengePublicKey);
@@ -106,6 +113,8 @@ export function useECCCalculator(
     (challengePublicKey: string) => {
       setCurrentPoint(publicKeyToPoint(challengePublicKey));
       setOperations([]);
+      setSavedPoints([]);
+      setCurrentSavedPoint(null);
       setError(null);
       clearCalculator();
       setLastOperationValue(null);
@@ -119,6 +128,8 @@ export function useECCCalculator(
   const resetToGenerator = useCallback(() => {
     setCurrentPoint(generatorPoint);
     setOperations([]);
+    setSavedPoints([]);
+    setCurrentSavedPoint(null);
     setError(null);
     clearCalculator();
     setLastOperationValue(null);
@@ -126,6 +137,56 @@ export function useECCCalculator(
     setShowVictoryModal(false);
     setStartingMode('generator');
   }, [generatorPoint, clearCalculator]);
+
+  const savePoint = useCallback(
+    (label?: string) => {
+      const startingPoint = currentSavedPoint
+        ? currentSavedPoint.point
+        : startingMode === 'challenge'
+          ? challengePoint
+          : generatorPoint;
+
+      const allOperations = currentSavedPoint
+        ? [...currentSavedPoint.operations, ...operations]
+        : operations;
+
+      const savedPoint: SavedPoint = {
+        id: `saved_${Date.now()}`,
+        point: currentPoint,
+        startingPoint,
+        startingMode: currentSavedPoint ? currentSavedPoint.startingMode : startingMode,
+        operations: allOperations,
+        label: label || `Point ${savedPoints.length + 1}`,
+        timestamp: Date.now(),
+      };
+
+      setSavedPoints(prev => [...prev, savedPoint]);
+    },
+    [
+      currentPoint,
+      operations,
+      savedPoints,
+      startingMode,
+      challengePoint,
+      generatorPoint,
+      currentSavedPoint,
+    ]
+  );
+
+  const loadSavedPoint = useCallback(
+    (savedPoint: SavedPoint) => {
+      setCurrentPoint(savedPoint.point);
+      setOperations([]);
+      setCurrentSavedPoint(savedPoint);
+      setStartingMode(savedPoint.startingMode);
+      setError(null);
+      clearCalculator();
+      setLastOperationValue(null);
+      setHasWon(false);
+      setShowVictoryModal(false);
+    },
+    [clearCalculator]
+  );
 
   // Win condition detection
   useEffect(() => {
@@ -195,6 +256,8 @@ export function useECCCalculator(
     startingMode,
     hasWon,
     showVictoryModal,
+    savedPoints,
+    currentSavedPoint,
     // Actions
     setCurrentPoint,
     setOperations,
@@ -207,5 +270,7 @@ export function useECCCalculator(
     backspaceCalculator,
     resetToChallenge,
     resetToGenerator,
+    savePoint,
+    loadSavedPoint,
   };
 }

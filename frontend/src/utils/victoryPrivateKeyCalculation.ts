@@ -34,7 +34,6 @@ export function calculateVictoryPrivateKey(
         type: negateType(op.type),
         description: op.description,
         value: op.value,
-        direction: op.direction,
       });
     }
 
@@ -45,7 +44,6 @@ export function calculateVictoryPrivateKey(
         type: 'subtract',
         description: '-1',
         value: '1',
-        direction: 'forward',
       });
     }
 

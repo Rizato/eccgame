@@ -14,7 +14,9 @@ import {
 } from '../utils/ecc';
 import {
   calculatePrivateKey,
+  calculatePrivateKeyFromSavedPoint,
   type Operation as SharedOperation,
+  type SavedPoint,
 } from '../utils/privateKeyCalculation';
 import { getP2PKHAddress } from '../utils/crypto';
 import './ECCCalculator.css';
@@ -22,9 +24,12 @@ import './ECCCalculator.css';
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
   operations: Operation[]; // Operations passed from parent
+  savedPoints: SavedPoint[];
+  currentSavedPoint: SavedPoint | null; // Currently active saved point, if any
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
-  onResetPoint: (startingMode: 'challenge' | 'generator') => void;
+  onSavePoint: (label?: string) => void;
+  onLoadSavedPoint: (savedPoint: SavedPoint) => void;
   startingMode: 'challenge' | 'generator'; // challenge: start from challenge point, generator: start from G
   isPracticeMode?: boolean;
   practicePrivateKey?: string;
@@ -36,9 +41,12 @@ export type Operation = SharedOperation;
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   currentPoint,
   operations,
+  savedPoints,
+  currentSavedPoint,
   onPointChange,
   onError,
-  onResetPoint,
+  onSavePoint,
+  onLoadSavedPoint,
   startingMode,
   isPracticeMode = false,
   practicePrivateKey,
@@ -51,18 +59,19 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const [lastOperationValue, setLastOperationValue] = useState<string | null>(null);
   const [hexMode, setHexMode] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<string>('');
-  const [showResetDropdown, setShowResetDropdown] = useState(false);
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
 
   const generatorPoint = getGeneratorPoint();
 
   // Calculate the actual private key for the current point using shared utility
-  const currentPrivateKey = calculatePrivateKey(
-    operations,
-    startingMode,
-    isPracticeMode,
-    practicePrivateKey
-  );
+  const currentPrivateKey = currentSavedPoint
+    ? calculatePrivateKeyFromSavedPoint(
+        currentSavedPoint,
+        operations,
+        isPracticeMode,
+        practicePrivateKey
+      )
+    : calculatePrivateKey(operations, startingMode, isPracticeMode, practicePrivateKey);
 
   // Calculate current address asynchronously
   useEffect(() => {
@@ -200,7 +209,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         description: '+1',
         point: generatorPoint,
         value: '1',
-        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       onPointChange(newPoint, operation);
     } catch (error) {
@@ -223,7 +231,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         description: '-1',
         point: generatorPoint,
         value: '1',
-        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       onPointChange(newPoint, operation);
     } catch (error) {
@@ -245,7 +252,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         type: 'multiply',
         description: '×2',
         value: '2',
-        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       onPointChange(newPoint, operation);
     } catch (error) {
@@ -267,7 +273,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         type: 'divide',
         description: '÷2',
         value: '2',
-        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
       onPointChange(newPoint, operation);
     } catch (error) {
@@ -339,7 +344,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           type: operation,
           description,
           value,
-          direction: startingMode === 'challenge' ? 'forward' : 'reverse',
         };
         onPointChange(newPoint, operationObj);
         // TODO Clear this on calc clear
@@ -357,21 +361,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
   executeCalculatorOperationRef.current = executeCalculatorOperation;
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showResetDropdown && event.target instanceof Element) {
-        const dropdown = event.target.closest('.reset-dropdown');
-        if (!dropdown) {
-          setShowResetDropdown(false);
-        }
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showResetDropdown]);
 
   // Keyboard event handler
   useEffect(() => {
@@ -462,36 +451,9 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         <div className="point-display-header">
           <h5>Current Point</h5>
           <div className="point-display-actions">
-            <div className="reset-dropdown">
-              <button
-                onClick={() => setShowResetDropdown(!showResetDropdown)}
-                className="reset-point-button"
-              >
-                {startingMode === 'challenge' ? 'Challenge → G' : 'G → Challenge'} ▼
-              </button>
-              {showResetDropdown && (
-                <div className="reset-dropdown-menu">
-                  <button
-                    onClick={() => {
-                      onResetPoint('challenge');
-                      setShowResetDropdown(false);
-                    }}
-                    className="reset-dropdown-item"
-                  >
-                    Challenge → G
-                  </button>
-                  <button
-                    onClick={() => {
-                      onResetPoint('generator');
-                      setShowResetDropdown(false);
-                    }}
-                    className="reset-dropdown-item"
-                  >
-                    G → Challenge
-                  </button>
-                </div>
-              )}
-            </div>
+            <button onClick={() => onSavePoint()} className="save-point-button" disabled={isLocked}>
+              Save Point
+            </button>
           </div>
         </div>
         <div className="point-display-content">

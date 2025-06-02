@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import type { Challenge } from '../types/api';
 import type { ECPoint } from '../utils/ecc';
 import ECCCalculator, { type Operation } from './ECCCalculator';
+import { type SavedPoint } from '../utils/privateKeyCalculation';
 import { Modal } from './Modal';
 import { VictoryModal } from './VictoryModal';
 import {
@@ -56,6 +57,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   } | null>(null);
   const [selectedPointAddress, setSelectedPointAddress] = useState<string>('');
   const [startingMode, setStartingMode] = useState<'challenge' | 'generator'>('challenge');
+  const [savedPoints, setSavedPoints] = useState<SavedPoint[]>([]);
+  const [currentSavedPoint, setCurrentSavedPoint] = useState<SavedPoint | null>(null);
 
   const generatorPoint = getGeneratorPoint();
   const targetPoint = isPracticeMode ? generatorPoint : generatorPoint;
@@ -122,12 +125,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Reset current point when challenge changes
   useEffect(() => {
-    if (startingMode === 'challenge') {
-      setCurrentPoint(publicKeyToPoint(challenge.public_key));
-    } else {
-      setCurrentPoint(generatorPoint);
-    }
+    setCurrentPoint(publicKeyToPoint(challenge.public_key));
     setOperations([]);
+    setSavedPoints([]);
+    setCurrentSavedPoint(null);
+    setStartingMode('challenge');
     setError(null);
     clearCalculator();
     setLastOperationValue(null);
@@ -267,26 +269,56 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     [calculatorDisplay, pendingOperation, lastOperationValue]
   );
 
-  // Reset to specified starting point
-  const resetToStartingPoint = useCallback(
-    (mode: 'challenge' | 'generator') => {
-      // Force immediate state clearing to avoid stale state issues
+  // Save current point
+  const saveCurrentPoint = useCallback(
+    (label?: string) => {
+      const startingPoint = currentSavedPoint
+        ? currentSavedPoint.point
+        : startingMode === 'challenge'
+          ? publicKeyToPoint(challenge.public_key)
+          : generatorPoint;
+
+      const allOperations = currentSavedPoint
+        ? [...currentSavedPoint.operations, ...operations]
+        : operations;
+
+      const savedPoint: SavedPoint = {
+        id: `saved_${Date.now()}`,
+        point: currentPoint,
+        startingPoint,
+        startingMode: currentSavedPoint ? currentSavedPoint.startingMode : startingMode,
+        operations: allOperations,
+        label: label || `Point ${savedPoints.length + 1}`,
+        timestamp: Date.now(),
+      };
+
+      setSavedPoints(prev => [...prev, savedPoint]);
+    },
+    [
+      currentPoint,
+      operations,
+      savedPoints,
+      startingMode,
+      challenge.public_key,
+      generatorPoint,
+      currentSavedPoint,
+    ]
+  );
+
+  // Load saved point
+  const loadSavedPoint = useCallback(
+    (savedPoint: SavedPoint) => {
+      setCurrentPoint(savedPoint.point);
       setOperations([]);
-      setStartingMode(mode);
+      setCurrentSavedPoint(savedPoint);
+      setStartingMode(savedPoint.startingMode);
       setError(null);
       clearCalculator();
       setLastOperationValue(null);
       setHasWon(false);
       setShowVictoryModal(false);
-
-      // Set the starting point after clearing state
-      if (mode === 'challenge') {
-        setCurrentPoint(publicKeyToPoint(challenge.public_key));
-      } else {
-        setCurrentPoint(generatorPoint);
-      }
     },
-    [challenge.public_key, generatorPoint, clearCalculator]
+    [clearCalculator]
   );
 
   // Submit solution attempt (keeping for backward compatibility, but victory modal is primary)
@@ -394,24 +426,33 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     lastOperationValue,
   ]);
 
-  const handlePointClick = useCallback(async (pointId: string, point: ECPoint, label: string) => {
-    setSelectedPoint({ point, id: pointId, label });
-
-    // Calculate address for the selected point
-    if (point.isInfinity) {
-      setSelectedPointAddress('Point at Infinity');
-    } else {
-      try {
-        const pubKey = pointToPublicKey(point);
-        const address = await getP2PKHAddress(pubKey);
-        setSelectedPointAddress(address);
-      } catch {
-        setSelectedPointAddress('Invalid');
+  const handlePointClick = useCallback(
+    async (pointId: string, point: ECPoint, label: string, savedPoint?: SavedPoint) => {
+      // If clicking on a saved point, load it
+      if (savedPoint) {
+        loadSavedPoint(savedPoint);
+        return;
       }
-    }
 
-    setShowPointModal(true);
-  }, []);
+      setSelectedPoint({ point, id: pointId, label });
+
+      // Calculate address for the selected point
+      if (point.isInfinity) {
+        setSelectedPointAddress('Point at Infinity');
+      } else {
+        try {
+          const pubKey = pointToPublicKey(point);
+          const address = await getP2PKHAddress(pubKey);
+          setSelectedPointAddress(address);
+        } catch {
+          setSelectedPointAddress('Invalid');
+        }
+      }
+
+      setShowPointModal(true);
+    },
+    [loadSavedPoint]
+  );
 
   // Map large coordinate values to screen percentage (0-100)
   const mapToScreenCoordinate = (coord: bigint, isY: boolean = false) => {
@@ -454,55 +495,35 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       point: originalPoint,
     });
 
-    // Calculate and show previous point (before most recent operation)
-    let previousPoint: ECPoint | null = null;
-    if (operations.length > 0) {
-      // Reconstruct the point before the last operation
-      const lastOperation = operations[operations.length - 1];
+    // Show saved points
+    savedPoints.forEach((savedPoint, index) => {
+      if (!savedPoint.point.isInfinity) {
+        const savedX = mapToScreenCoordinate(savedPoint.point.x);
+        const savedY = mapToScreenCoordinate(savedPoint.point.y, true);
 
-      try {
-        if (lastOperation.type === 'multiply' && lastOperation.value) {
-          const scalar = BigInt(lastOperation.value);
-          previousPoint = pointDivide(scalar, currentPoint);
-        } else if (lastOperation.type === 'divide' && lastOperation.value) {
-          const scalar = BigInt(lastOperation.value);
-          previousPoint = pointMultiply(scalar, currentPoint);
-        } else if (lastOperation.type === 'add' && lastOperation.point) {
-          previousPoint = pointSubtract(currentPoint, lastOperation.point);
-        } else if (lastOperation.type === 'subtract' && lastOperation.point) {
-          previousPoint = pointAdd(currentPoint, lastOperation.point);
-        }
-      } catch {
-        // If we can't calculate previous point, don't show it
-        previousPoint = null;
+        points.push({
+          id: savedPoint.id,
+          x: savedX,
+          y: savedY,
+          label: savedPoint.label.split(' ')[0], // Use first word of label
+          color: '#8b5cf6', // purple for saved points
+          description: `Saved point: ${savedPoint.label}`,
+          point: savedPoint.point,
+          savedPoint,
+        });
       }
-    }
+    });
 
-    // Show previous point if it exists and is different from original and current
-    if (
-      previousPoint &&
-      !previousPoint.isInfinity &&
-      (previousPoint.x !== originalPoint.x || previousPoint.y !== originalPoint.y) &&
-      (previousPoint.x !== currentPoint.x || previousPoint.y !== currentPoint.y)
-    ) {
-      const prevX = mapToScreenCoordinate(previousPoint.x);
-      const prevY = mapToScreenCoordinate(previousPoint.y, true);
+    // Current point (only if different from original and not a saved point)
+    const isCurrentPointSaved = savedPoints.some(
+      sp =>
+        sp.point.x === currentPoint.x && sp.point.y === currentPoint.y && !currentPoint.isInfinity
+    );
 
-      points.push({
-        id: 'previous',
-        x: prevX,
-        y: prevY,
-        label: 'Prev',
-        color: '#9ca3af', // gray
-        description: 'Previous point (before last operation)',
-        point: previousPoint,
-      });
-    }
-
-    // Current point (only if different from original)
     if (
       !currentPoint.isInfinity &&
-      (currentPoint.x !== originalPoint.x || currentPoint.y !== originalPoint.y)
+      (currentPoint.x !== originalPoint.x || currentPoint.y !== originalPoint.y) &&
+      !isCurrentPointSaved
     ) {
       const currentX = mapToScreenCoordinate(currentPoint.x);
       const currentY = mapToScreenCoordinate(currentPoint.y, true);
@@ -565,7 +586,9 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
                     } as React.CSSProperties
                   }
                   title={point.description}
-                  onClick={() => handlePointClick(point.id, point.point, point.label)}
+                  onClick={() =>
+                    handlePointClick(point.id, point.point, point.label, point.savedPoint)
+                  }
                 >
                   <div className="point-dot"></div>
                   <div className="point-label">{point.label}</div>
@@ -588,10 +611,10 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
                 <div className="legend-dot" style={{ backgroundColor: '#f59e0b' }}></div>
                 <span>Wallet</span>
               </div>
-              {graphPoints.some(p => p.id === 'previous') && (
+              {savedPoints.length > 0 && (
                 <div className="legend-item">
-                  <div className="legend-dot" style={{ backgroundColor: '#9ca3af' }}></div>
-                  <span>Prev</span>
+                  <div className="legend-dot" style={{ backgroundColor: '#8b5cf6' }}></div>
+                  <span>Saved</span>
                 </div>
               )}
               <div className="legend-item">
@@ -608,12 +631,15 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           <ECCCalculator
             currentPoint={currentPoint}
             operations={operations}
+            savedPoints={savedPoints}
+            currentSavedPoint={currentSavedPoint}
             onPointChange={(point, operation) => {
               setCurrentPoint(point);
               setOperations(prev => [...prev, operation]);
             }}
             onError={setError}
-            onResetPoint={resetToStartingPoint}
+            onSavePoint={saveCurrentPoint}
+            onLoadSavedPoint={loadSavedPoint}
             startingMode={startingMode}
             isPracticeMode={isPracticeMode}
             practicePrivateKey={practicePrivateKey}
