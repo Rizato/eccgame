@@ -1,24 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import type { Challenge } from '../types/api';
+import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
+import { useAppSelector } from '../store/hooks';
 import './ChallengeInfo.css';
 
-interface ChallengeInfoProps {
-  challenge: Challenge;
-  isPracticeMode?: boolean;
-  difficulty?: 'easy' | 'medium' | 'hard';
-  onDifficultyChange?: (difficulty: 'easy' | 'medium' | 'hard') => void;
-  onNewChallenge?: () => void;
-  practicePrivateKey?: string;
-}
+const ChallengeInfo: React.FC = () => {
+  const gameMode = useAppSelector(state => state.game.gameMode);
+  const challenge = useAppSelector(state => state.game.challenge);
+  const practiceChallenge = useAppSelector(state => state.practiceMode.practiceChallenge);
 
-const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
-  challenge,
-  isPracticeMode,
-  difficulty,
-  onDifficultyChange,
-  onNewChallenge,
-  practicePrivateKey,
-}) => {
+  const { difficulty, practicePrivateKey, setDifficulty, generatePracticeChallenge } =
+    usePracticeModeRedux();
+
+  const isPracticeMode = gameMode === 'practice';
+  const currentChallenge = isPracticeMode ? practiceChallenge : challenge;
   const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -39,6 +33,18 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
     }
   }, [showDifficultyDropdown]);
 
+  if (!currentChallenge) {
+    return (
+      <div className="challenge-info-container">
+        <div className="challenge-info-content">
+          <div className="info-section">
+            <p>Loading challenge...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="challenge-info-container">
@@ -50,7 +56,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
               {isPracticeMode ? 'Practice Wallet' : 'Daily Wallet'}
             </h4>
             <div className="address-row">
-              <code className="address-code">{challenge.p2pkh_address}</code>
+              <code className="address-code">{currentChallenge.p2pkh_address}</code>
               {isPracticeMode && (
                 <div className="combined-control" ref={dropdownRef}>
                   <button
@@ -65,8 +71,8 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
                     <div className="difficulty-dropdown">
                       <button
                         onClick={() => {
-                          onDifficultyChange?.('easy');
-                          onNewChallenge?.();
+                          setDifficulty('easy');
+                          generatePracticeChallenge();
                           setShowDifficultyDropdown(false);
                         }}
                         className="difficulty-option"
@@ -75,8 +81,8 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
                       </button>
                       <button
                         onClick={() => {
-                          onDifficultyChange?.('medium');
-                          onNewChallenge?.();
+                          setDifficulty('medium');
+                          generatePracticeChallenge();
                           setShowDifficultyDropdown(false);
                         }}
                         className="difficulty-option"
@@ -85,8 +91,8 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
                       </button>
                       <button
                         onClick={() => {
-                          onDifficultyChange?.('hard');
-                          onNewChallenge?.();
+                          setDifficulty('hard');
+                          generatePracticeChallenge();
                           setShowDifficultyDropdown(false);
                         }}
                         className="difficulty-option"
@@ -97,9 +103,9 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
                   )}
                 </div>
               )}
-              {!isPracticeMode && challenge.explorer_link && (
+              {!isPracticeMode && currentChallenge.explorer_link && (
                 <a
-                  href={challenge.explorer_link}
+                  href={currentChallenge.explorer_link}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="explorer-link"
@@ -129,11 +135,11 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
             </div>
           )}
 
-          {!isPracticeMode && challenge.metadata && challenge.metadata.length > 0 && (
+          {!isPracticeMode && currentChallenge.metadata && currentChallenge.metadata.length > 0 && (
             <div className="info-section">
               <label>Tags:</label>
               <div className="metadata-tags">
-                {challenge.metadata.map(meta => (
+                {currentChallenge.metadata.map(meta => (
                   <span key={meta.id} className="tag">
                     {meta.name}
                   </span>

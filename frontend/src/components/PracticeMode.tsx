@@ -10,7 +10,6 @@ const PracticeMode: React.FC = () => {
     practiceChallenge,
     difficulty,
     isGenerating,
-    setDifficulty,
     generatePracticeChallenge,
   } = usePracticeModeRedux();
 
@@ -39,14 +38,7 @@ const PracticeMode: React.FC = () => {
     <>
       <div className="challenge-info-row">
         <div className="challenge-info-card">
-          <ChallengeInfo
-            challenge={practiceChallenge}
-            isPracticeMode={true}
-            difficulty={difficulty}
-            onDifficultyChange={setDifficulty}
-            onNewChallenge={generatePracticeChallenge}
-            practicePrivateKey={practicePrivateKey}
-          />
+          <ChallengeInfo />
         </div>
       </div>
 

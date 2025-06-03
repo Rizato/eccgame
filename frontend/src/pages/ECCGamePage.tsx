@@ -114,7 +114,7 @@ const ECCGamePage: React.FC = () => {
       <main className="game-main">
         <div className="challenge-info-row">
           <div className="challenge-info-card">
-            <ChallengeInfo challenge={challenge} />
+            <ChallengeInfo />
           </div>
         </div>
 
