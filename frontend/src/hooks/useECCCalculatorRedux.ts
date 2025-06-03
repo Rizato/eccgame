@@ -18,9 +18,13 @@ import {
   checkWinCondition,
   calculateCurrentAddress,
   setChallengePublicKey,
+  executeCalculatorOperation,
+  setCalculatorOperationThunk,
+  executeEqualsOperation,
   type StartingMode,
 } from '../store/slices/eccCalculatorSlice';
 import type { Operation } from '../components/ECCCalculator';
+import type { SimpleOperation } from '../store/slices/eccCalculatorSlice';
 import type { ECPoint } from '../utils/ecc';
 import type { SavedPoint } from '../utils/privateKeyCalculation';
 
@@ -77,5 +81,13 @@ export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode
     resetToGenerator: () => dispatch(resetToGenerator()),
     savePoint: (label?: string) => dispatch(savePoint({ label })),
     loadSavedPoint: (savedPoint: SavedPoint) => dispatch(loadSavedPoint(savedPoint)),
+    // New Redux-centralized operations
+    executeCalculatorOperation: (
+      operation: 'multiply' | 'divide' | 'add' | 'subtract',
+      value: string
+    ) => dispatch(executeCalculatorOperation({ operation, value })),
+    setCalculatorOperation: (operation: 'multiply' | 'divide' | 'add' | 'subtract') =>
+      dispatch(setCalculatorOperationThunk(operation)),
+    executeEquals: () => dispatch(executeEqualsOperation()),
   };
 }

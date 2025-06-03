@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import type { Challenge } from '../types/api';
 import { useECCCalculatorRedux } from '../hooks/useECCCalculatorRedux';
 import { calculatePrivateKeyByPointId } from '../utils/calculatePrivateKeyByPointId';
@@ -41,7 +41,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     setOperations,
     setError,
     setShowVictoryModal,
-    setPendingOperation,
     clearCalculator,
     addToCalculator,
     backspaceCalculator,
@@ -49,6 +48,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     resetToGenerator,
     savePoint,
     loadSavedPoint,
+    setCalculatorOperation,
+    executeEquals,
   } = useECCCalculatorRedux(challenge.public_key, isPracticeMode);
 
   const [challengeAddress, setChallengeAddress] = useState<string>('');
@@ -141,33 +142,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     calculateChallengeAddress();
   }, [challenge.public_key]);
 
-  // Forward declare the executeCalculatorOperation function reference
-  const executeCalculatorOperationRef = useRef<
-    ((operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => void) | null
-  >(null);
-
-  const setCalculatorOperation = useCallback(
-    (operation: 'multiply' | 'divide' | 'add' | 'subtract') => {
-      // If there's a value in the display and we haven't set a pending operation yet
-      if (calculatorDisplay.trim() && !pendingOperation) {
-        // Set pending operation and highlight the operator, wait for equals
-        setPendingOperation(operation);
-      } else if (calculatorDisplay.trim() && pendingOperation) {
-        // If there's already a pending operation, execute it with current display value
-        executeCalculatorOperationRef.current?.(pendingOperation, calculatorDisplay.trim());
-        // Then set the new operation as pending
-        setPendingOperation(operation);
-      } else if (lastOperationValue) {
-        // If no value but we have a last operation value, reuse it
-        executeCalculatorOperationRef.current?.(operation, lastOperationValue);
-      } else {
-        // Just set the pending operation and highlight
-        setPendingOperation(operation);
-      }
-    },
-    [calculatorDisplay, pendingOperation, lastOperationValue, setPendingOperation]
-  );
-
   // Save current point (wrapper around Redux action)
   const saveCurrentPoint = useCallback(
     (label?: string) => {
@@ -251,11 +225,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         case 'Enter':
         case '=':
           event.preventDefault();
-          if (pendingOperation && calculatorDisplay.trim()) {
-            executeCalculatorOperationRef.current?.(pendingOperation, calculatorDisplay.trim());
-          } else if (lastOperationValue && pendingOperation) {
-            executeCalculatorOperationRef.current?.(pendingOperation, lastOperationValue);
-          }
+          executeEquals();
           break;
         case 'Backspace':
           event.preventDefault();

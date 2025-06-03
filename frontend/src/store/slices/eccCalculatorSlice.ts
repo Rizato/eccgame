@@ -1,15 +1,30 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getP2PKHAddress } from '../../utils/crypto';
-import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
+import {
+  getGeneratorPoint,
+  pointToPublicKey,
+  publicKeyToPoint,
+  pointMultiply,
+  pointDivide,
+  pointAdd,
+  pointSubtract,
+  hexToBigint,
+  CURVE_N,
+  type ECPoint,
+} from '../../utils/ecc';
 import { type SavedPoint } from '../../utils/privateKeyCalculation';
-import type { Operation } from '../../components/ECCCalculator';
-import type { ECPoint } from '../../utils/ecc';
+
+// Simplified operation type for Redux
+export interface SimpleOperation {
+  type: 'multiply' | 'divide' | 'add' | 'subtract';
+  value: bigint;
+}
 
 export type StartingMode = 'challenge' | 'generator';
 
 interface ECCCalculatorState {
   selectedPoint: ECPoint;
-  operations: Operation[];
+  operations: SimpleOperation[];
   error: string | null;
   currentAddress: string;
   calculatorDisplay: string;
@@ -60,6 +75,61 @@ export const calculateCurrentAddress = createAsyncThunk(
   }
 );
 
+export const executeCalculatorOperation = createAsyncThunk(
+  'eccCalculator/executeCalculatorOperation',
+  async (
+    { operation, value }: { operation: 'multiply' | 'divide' | 'add' | 'subtract'; value: string },
+    { getState, dispatch }
+  ) => {
+    const state = getState() as any;
+    const { selectedPoint, operations } = state.eccCalculator;
+
+    try {
+      let operationValue: bigint;
+      if (value.startsWith('0x')) {
+        operationValue = hexToBigint(value);
+      } else {
+        operationValue = BigInt(value);
+      }
+
+      if (operationValue <= 0n || operationValue >= CURVE_N) {
+        throw new Error('Value must be between 1 and curve order');
+      }
+
+      let newPoint: ECPoint;
+      let operationRecord: SimpleOperation;
+
+      switch (operation) {
+        case 'multiply':
+          newPoint = pointMultiply(selectedPoint, operationValue);
+          operationRecord = { type: 'multiply', value: operationValue };
+          break;
+        case 'divide':
+          newPoint = pointDivide(selectedPoint, operationValue);
+          operationRecord = { type: 'divide', value: operationValue };
+          break;
+        case 'add':
+          const addPoint = publicKeyToPoint('02' + operationValue.toString(16).padStart(64, '0'));
+          newPoint = pointAdd(selectedPoint, addPoint);
+          operationRecord = { type: 'add', value: operationValue };
+          break;
+        case 'subtract':
+          const subPoint = publicKeyToPoint('02' + operationValue.toString(16).padStart(64, '0'));
+          newPoint = pointSubtract(selectedPoint, subPoint);
+          operationRecord = { type: 'subtract', value: operationValue };
+          break;
+        default:
+          throw new Error('Invalid operation');
+      }
+
+      // Return data for reducer to handle
+      return { point: newPoint, operation: operationRecord, value };
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : 'Operation failed');
+    }
+  }
+);
+
 const eccCalculatorSlice = createSlice({
   name: 'eccCalculator',
   initialState,
@@ -67,7 +137,7 @@ const eccCalculatorSlice = createSlice({
     setSelectedPoint: (state, action: PayloadAction<ECPoint>) => {
       state.selectedPoint = action.payload;
     },
-    setOperations: (state, action: PayloadAction<Operation[]>) => {
+    setOperations: (state, action: PayloadAction<SimpleOperation[]>) => {
       state.operations = action.payload;
     },
     setError: (state, action: PayloadAction<string | null>) => {
@@ -257,6 +327,18 @@ const eccCalculatorSlice = createSlice({
       })
       .addCase(calculateCurrentAddress.rejected, state => {
         state.currentAddress = 'Invalid';
+      })
+      .addCase(executeCalculatorOperation.fulfilled, (state, action) => {
+        const { point, operation, value } = action.payload;
+        state.selectedPoint = point;
+        state.operations = [...state.operations, operation];
+        state.lastOperationValue = value;
+        state.calculatorDisplay = '';
+        state.pendingOperation = null;
+        state.error = null;
+      })
+      .addCase(executeCalculatorOperation.rejected, (state, action) => {
+        state.error = action.error.message || 'Operation failed';
       });
   },
 });
@@ -284,5 +366,62 @@ export const {
   loadSavedPoint,
   checkWinCondition,
 } = eccCalculatorSlice.actions;
+
+// Define thunks that use slice actions after slice definition
+export const setCalculatorOperationThunk = createAsyncThunk(
+  'eccCalculator/setCalculatorOperationThunk',
+  async (operation: 'multiply' | 'divide' | 'add' | 'subtract', { getState, dispatch }) => {
+    const state = getState() as any;
+    const { calculatorDisplay, pendingOperation, lastOperationValue } = state.eccCalculator;
+
+    // If there's a value in the display and we haven't set a pending operation yet
+    if (calculatorDisplay.trim() && !pendingOperation) {
+      dispatch(setPendingOperation(operation));
+    } else if (calculatorDisplay.trim() && pendingOperation) {
+      // Execute the pending operation first
+      await dispatch(
+        executeCalculatorOperation({
+          operation: pendingOperation,
+          value: calculatorDisplay.trim(),
+        })
+      );
+      dispatch(setPendingOperation(operation));
+    } else if (lastOperationValue) {
+      // Reuse last operation value
+      await dispatch(
+        executeCalculatorOperation({
+          operation,
+          value: lastOperationValue,
+        })
+      );
+    } else {
+      dispatch(setPendingOperation(operation));
+    }
+  }
+);
+
+export const executeEqualsOperation = createAsyncThunk(
+  'eccCalculator/executeEqualsOperation',
+  async (_, { getState, dispatch }) => {
+    const state = getState() as any;
+    const { pendingOperation, calculatorDisplay, lastOperationValue } = state.eccCalculator;
+
+    if (pendingOperation && calculatorDisplay.trim()) {
+      return dispatch(
+        executeCalculatorOperation({
+          operation: pendingOperation,
+          value: calculatorDisplay.trim(),
+        })
+      );
+    } else if (lastOperationValue && pendingOperation) {
+      return dispatch(
+        executeCalculatorOperation({
+          operation: pendingOperation,
+          value: lastOperationValue,
+        })
+      );
+    }
+  }
+);
 
 export default eccCalculatorSlice.reducer;

@@ -13,6 +13,7 @@ export interface SavedPoint {
   id: string;
   point: ECPoint;
   startingPoint: ECPoint;
+  startingMode: 'challenge' | 'generator';
   operations: Operation[];
   label: string;
   timestamp: number;
