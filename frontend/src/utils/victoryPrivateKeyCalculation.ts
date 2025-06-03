@@ -38,6 +38,7 @@ function reverseOperations(operations: Operation[]): Operation[] {
       point: op.point,
     });
   }
+  // @ts-ignore
   return reversed.reverse();
 }
 

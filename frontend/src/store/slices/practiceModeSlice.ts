@@ -60,12 +60,12 @@ export const generatePracticeChallenge = createAsyncThunk(
       created_at: new Date().toISOString(),
       metadata: [
         {
-          tag: 'difficulty',
-          description: difficulty,
+          id: 0,
+          name: `Difficulty: ${difficulty}`,
         },
         {
-          tag: 'range',
-          description: difficulty === 'easy' ? '1-100' : difficulty === 'medium' ? '1-1M' : 'full',
+          id: 1,
+          name: `Range: ${difficulty === 'easy' ? '1-100' : difficulty === 'medium' ? '1-1M' : 'full'}`,
         },
       ],
       explorer_link: '',

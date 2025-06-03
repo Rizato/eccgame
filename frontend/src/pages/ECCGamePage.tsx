@@ -12,7 +12,6 @@ const ECCGamePage: React.FC = () => {
     challenge,
     loading,
     error,
-    hasWon,
     setGameMode,
     loadDailyChallenge,
     handleSolve,
@@ -27,16 +26,10 @@ const ECCGamePage: React.FC = () => {
             <h1>ECC Crypto Playground</h1>
             <div className="mode-controls">
               <div className="mode-selector">
-                <button
-                  className={`mode-button ${gameMode === 'daily' ? 'active' : ''}`}
-                  onClick={() => setGameMode('daily')}
-                >
+                <button className="mode-button" onClick={() => setGameMode('daily')}>
                   Daily Challenge
                 </button>
-                <button
-                  className={`mode-button ${gameMode === 'practice' ? 'active' : ''}`}
-                  onClick={() => setGameMode('practice')}
-                >
+                <button className="mode-button active" onClick={() => setGameMode('practice')}>
                   Practice Mode
                 </button>
               </div>
@@ -100,16 +93,10 @@ const ECCGamePage: React.FC = () => {
           <h1>ECC Crypto Playground</h1>
           <div className="mode-controls">
             <div className="mode-selector">
-              <button
-                className={`mode-button ${gameMode === 'daily' ? 'active' : ''}`}
-                onClick={() => setGameMode('daily')}
-              >
+              <button className="mode-button active" onClick={() => setGameMode('daily')}>
                 Daily Challenge
               </button>
-              <button
-                className={`mode-button ${gameMode === 'practice' ? 'active' : ''}`}
-                onClick={() => setGameMode('practice')}
-              >
+              <button className="mode-button" onClick={() => setGameMode('practice')}>
                 Practice Mode
               </button>
             </div>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CURVE_N, hexToBigint, modInverse } from './ecc';
-import { calculateVictoryPrivateKey, type Operation } from './victoryPrivateKeyCalculation';
+import { type Operation } from './privateKeyCalculation';
+import { calculateVictoryPrivateKey } from './victoryPrivateKeyCalculation';
 
 describe('calculateVictoryPrivateKey', () => {
   describe('Generator mode starting point', () => {
@@ -17,7 +18,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'multiply',
           description: '* 5',
           value: '5',
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -31,7 +31,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'add',
           description: '+ 10',
           value: '10',
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -45,7 +44,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'subtract',
           description: '- 3',
           value: '3',
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -60,7 +58,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'divide',
           description: '/ 2',
           value: '2',
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -76,14 +73,12 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'multiply',
           description: '* 2',
           value: '2',
-          direction: 'forward',
         },
         {
           id: 'op2',
           type: 'add',
           description: '+ 5',
           value: '5',
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -98,7 +93,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'multiply',
           description: '* 0xFF',
           value: '0xFF',
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -112,7 +106,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'add',
           description: '+ CURVE_N',
           value: CURVE_N.toString(),
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -135,7 +128,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'multiply',
           description: '* 7',
           value: '7',
-          direction: 'reverse',
         },
       ];
 
@@ -152,7 +144,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'add',
           description: '+ 15',
           value: '15',
-          direction: 'reverse',
         },
       ];
       const actualKey = CURVE_N - 14n;
@@ -168,7 +159,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'subtract',
           description: '- 8',
           value: '8',
-          direction: 'reverse',
         },
       ];
       const actualKey = 9n;
@@ -184,7 +174,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'divide',
           description: '/ 4',
           value: '4',
-          direction: 'reverse',
         },
       ];
       const actualKey = 4n;
@@ -200,7 +189,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'subtract',
           description: '-2',
           value: '2',
-          direction: 'reverse',
         },
       ];
       const actualKey = 2n;
@@ -216,7 +204,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'add',
           description: '+ 5',
           value: '5',
-          direction: 'reverse',
         },
       ];
 
@@ -234,7 +221,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'multiply',
           description: '* 0x10',
           value: '0x10',
-          direction: 'reverse',
         },
       ];
       const actualKey = modInverse(16n, CURVE_N);
@@ -252,7 +238,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'multiply',
           description: '* (empty)',
           value: '',
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -267,21 +252,18 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'multiply',
           description: '* 3',
           value: '3',
-          direction: 'forward',
         },
         {
           id: 'op2',
           type: 'add',
           description: '+ 7',
           value: '7',
-          direction: 'forward',
         },
         {
           id: 'op3',
           type: 'divide',
           description: '/ 2',
           value: '2',
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -299,7 +281,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'add',
           description: '+ 0xFFFFFFFFFFFFFFFF',
           value: '0xFFFFFFFFFFFFFFFF',
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
@@ -314,7 +295,6 @@ describe('calculateVictoryPrivateKey', () => {
           type: 'multiply',
           description: '* large',
           value: (CURVE_N - 1n).toString(),
-          direction: 'forward',
         },
       ];
       const result = calculateVictoryPrivateKey(operations, 'generator');
