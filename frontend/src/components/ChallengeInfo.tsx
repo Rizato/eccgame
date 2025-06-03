@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { Challenge } from '../types/api';
 import './ChallengeInfo.css';
-import { Modal } from './Modal';
 
 interface ChallengeInfoProps {
   challenge: Challenge;
@@ -20,7 +19,6 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
   onNewChallenge,
   practicePrivateKey,
 }) => {
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -53,9 +51,6 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
             </h4>
             <div className="address-row">
               <code className="address-code">{challenge.p2pkh_address}</code>
-              <button onClick={() => setShowDetailsModal(true)} className="details-button">
-                Details
-              </button>
               {isPracticeMode && (
                 <div className="combined-control" ref={dropdownRef}>
                   <button
@@ -148,15 +143,6 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({
           )}
         </div>
       </div>
-
-      <Modal
-        isOpen={showDetailsModal}
-        onClose={() => setShowDetailsModal(false)}
-        title={isPracticeMode ? 'Practice Challenge Details' : 'Challenge Details'}
-        challenge={challenge}
-        isPracticeMode={isPracticeMode}
-        practicePrivateKey={practicePrivateKey}
-      />
     </>
   );
 };
