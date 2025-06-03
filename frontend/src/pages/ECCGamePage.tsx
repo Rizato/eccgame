@@ -3,7 +3,7 @@ import ChallengeInfo from '../components/ChallengeInfo';
 import ECCPlayground from '../components/ECCPlayground';
 import PracticeMode from '../components/PracticeMode';
 import ThemeToggle from '../components/ThemeToggle';
-import { useGameState } from '../hooks/useGameState';
+import { useGameStateRedux } from '../hooks/useGameStateRedux';
 import './ECCGamePage.css';
 
 const ECCGamePage: React.FC = () => {
@@ -17,7 +17,7 @@ const ECCGamePage: React.FC = () => {
     loadDailyChallenge,
     handleSolve,
     clearError,
-  } = useGameState();
+  } = useGameStateRedux();
 
   if (gameMode === 'practice') {
     return (

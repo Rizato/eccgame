@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { Challenge } from '../types/api';
+import { useECCCalculatorRedux } from '../hooks/useECCCalculatorRedux';
 import { calculatePrivateKeyByPointId } from '../utils/calculatePrivateKeyByPointId';
 import { getP2PKHAddress } from '../utils/crypto';
 import {
@@ -10,12 +11,8 @@ import {
   pointToPublicKey,
   publicKeyToPoint,
 } from '../utils/ecc';
-import {
-  calculateKeyFromOperations,
-  calculatePrivateKeyFromSavedPoint,
-  type SavedPoint,
-} from '../utils/privateKeyCalculation';
-import ECCCalculator, { type Operation } from './ECCCalculator';
+import { calculatePrivateKeyFromSavedPoint, type SavedPoint } from '../utils/privateKeyCalculation';
+import ECCCalculator from './ECCCalculator';
 import './ECCPlayground.css';
 import { Modal } from './Modal';
 import { VictoryModal } from './VictoryModal';
@@ -34,21 +31,36 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   isPracticeMode = false,
   practicePrivateKey,
 }) => {
-  const [currentPoint, setCurrentPoint] = useState<ECPoint>(() =>
-    publicKeyToPoint(challenge.public_key)
-  );
-  const [operations, setOperations] = useState<Operation[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [showVictoryModal, setShowVictoryModal] = useState(false);
-  const [hasWon, setHasWon] = useState(false);
-  const [currentAddress, setCurrentAddress] = useState<string>('');
+  const {
+    currentPoint,
+    operations,
+    error,
+    currentAddress,
+    calculatorDisplay,
+    pendingOperation,
+    lastOperationValue,
+    hexMode,
+    startingMode,
+    hasWon,
+    showVictoryModal,
+    savedPoints,
+    currentSavedPoint,
+    setCurrentPoint,
+    setOperations,
+    setError,
+    setStartingMode,
+    setHasWon,
+    setShowVictoryModal,
+    clearCalculator,
+    addToCalculator,
+    backspaceCalculator,
+    resetToChallenge,
+    resetToGenerator,
+    savePoint,
+    loadSavedPoint,
+  } = useECCCalculatorRedux(challenge.public_key, isPracticeMode);
+
   const [challengeAddress, setChallengeAddress] = useState<string>('');
-  const [calculatorDisplay, setCalculatorDisplay] = useState('');
-  const [pendingOperation, setPendingOperation] = useState<
-    'multiply' | 'divide' | 'add' | 'subtract' | null
-  >(null);
-  const [lastOperationValue, setLastOperationValue] = useState<string | null>(null);
-  const [hexMode, setHexMode] = useState(false);
   const [showPointModal, setShowPointModal] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState<{
     point: ECPoint;
@@ -56,9 +68,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     label: string;
   } | null>(null);
   const [selectedPointAddress, setSelectedPointAddress] = useState<string>('');
-  const [startingMode, setStartingMode] = useState<'challenge' | 'generator'>('challenge');
-  const [savedPoints, setSavedPoints] = useState<SavedPoint[]>([]);
-  const [currentSavedPoint, setCurrentSavedPoint] = useState<SavedPoint | null>(null);
 
   const generatorPoint = getGeneratorPoint();
   const targetPoint = isPracticeMode ? generatorPoint : generatorPoint;
@@ -120,66 +129,12 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     ]
   );
 
-  // Calculator functions
-  const clearCalculator = useCallback(() => {
-    setCalculatorDisplay('');
-    setPendingOperation(null);
-    setHexMode(false);
-  }, []);
-
-  const addToCalculator = useCallback((value: string) => {
-    // Check if this is a hex digit (A-F)
-    const isHexDigit = /^[A-F]$/i.test(value);
-
-    setCalculatorDisplay(prev => {
-      const newValue = prev + value;
-
-      // Auto-enable hex mode if we're adding hex digits
-      if (isHexDigit && !prev.startsWith('0x')) {
-        setHexMode(true);
-        return '0x' + newValue;
-      }
-
-      return newValue;
-    });
-  }, []);
-
-  const backspaceCalculator = useCallback(() => {
-    setCalculatorDisplay(prev => {
-      const newValue = prev.slice(0, -1);
-
-      // If we removed the last character after 0x, remove the 0x too
-      if (newValue === '0x') {
-        setHexMode(false);
-        return '';
-      }
-
-      // Update hex mode state based on current value
-      if (!newValue.startsWith('0x') && hexMode) {
-        setHexMode(false);
-      } else if (newValue.startsWith('0x') && !hexMode) {
-        setHexMode(true);
-      }
-
-      return newValue;
-    });
-  }, [hexMode]);
-
   // Reset current point when challenge changes
   useEffect(() => {
-    setCurrentPoint(publicKeyToPoint(challenge.public_key));
-    setOperations([]);
-    setSavedPoints([]);
-    setCurrentSavedPoint(null);
-    setStartingMode('challenge');
-    setError(null);
-    clearCalculator();
-    setLastOperationValue(null);
-    setHasWon(false);
-    setShowVictoryModal(false);
-  }, [challenge.public_key, clearCalculator]);
+    resetToChallenge(challenge.public_key);
+  }, [challenge.public_key, resetToChallenge]);
 
-  // Directional win detection (must come before useEffect that uses hasWonRound)
+  // Directional win detection
   const challengePoint = publicKeyToPoint(challenge.public_key);
 
   const isAtGenerator =
@@ -204,38 +159,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       return isAtChallengePoint || isAtInfinity;
     }
   })();
-
-  // Check for win condition
-  useEffect(() => {
-    if (hasWonRound && !hasWon) {
-      setHasWon(true);
-      setShowVictoryModal(true);
-      // For practice mode, allow continued play. For daily challenges, lock calculator
-      if (!isPracticeMode) {
-        // Calculator will be locked via hasWon state
-      }
-    }
-  }, [hasWonRound, hasWon, isPracticeMode]);
-
-  // Calculate current address asynchronously
-  useEffect(() => {
-    const calculateAddress = async () => {
-      if (currentPoint.isInfinity) {
-        setCurrentAddress('Point at Infinity');
-        return;
-      }
-
-      try {
-        const pubKey = pointToPublicKey(currentPoint);
-        const address = await getP2PKHAddress(pubKey);
-        setCurrentAddress(address);
-      } catch {
-        setCurrentAddress('Invalid');
-      }
-    };
-
-    calculateAddress();
-  }, [currentPoint]);
 
   // Calculate challenge address (this doesn't change during the session)
   useEffect(() => {
@@ -310,120 +233,12 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     [calculatorDisplay, pendingOperation, lastOperationValue]
   );
 
-  // Save current point
+  // Save current point (wrapper around Redux action)
   const saveCurrentPoint = useCallback(
     (label?: string) => {
-      const startingPoint = currentSavedPoint
-        ? currentSavedPoint.point
-        : startingMode === 'challenge'
-          ? publicKeyToPoint(challenge.public_key)
-          : generatorPoint;
-
-      const allOperations = currentSavedPoint
-        ? [...currentSavedPoint.operations, ...operations]
-        : operations;
-
-      // Calculate private key when possible
-      let privateKey: bigint | undefined = undefined;
-
-      // Create known points array for private key calculation
-      const knownPoints = [];
-
-      // Add generator point
-      knownPoints.push({
-        point: generatorPoint,
-        privateKey: 1n,
-        label: 'Generator',
-      });
-
-      // Add challenge point if in practice mode
-      if (isPracticeMode && practicePrivateKey) {
-        const challengePoint = publicKeyToPoint(challenge.public_key);
-        knownPoints.push({
-          point: challengePoint,
-          privateKey: BigInt('0x' + practicePrivateKey),
-          label: 'Challenge',
-        });
-      }
-
-      // If we're building from a saved point, add its private key if known
-      if (currentSavedPoint && currentSavedPoint.privateKey !== undefined) {
-        knownPoints.push({
-          point: currentSavedPoint.point,
-          privateKey: currentSavedPoint.privateKey,
-          label: currentSavedPoint.label,
-        });
-      }
-
-      // Try to calculate the private key
-      // We can only calculate if we know the starting point's private key
-      let calculatedPrivateKey: bigint | null = null;
-
-      if (currentSavedPoint && currentSavedPoint.privateKey !== undefined) {
-        // We're building from a saved point with known private key
-        calculatedPrivateKey = calculateKeyFromOperations(operations, currentSavedPoint.privateKey);
-      } else {
-        // We're starting from scratch - check what we're starting from
-        if (startingMode === 'generator') {
-          // Starting from generator point - we know private key is 1
-          calculatedPrivateKey = calculateKeyFromOperations(allOperations, 1n);
-        } else if (startingMode === 'challenge' && isPracticeMode && practicePrivateKey) {
-          // Starting from challenge point in practice mode - we know the private key
-          calculatedPrivateKey = calculateKeyFromOperations(
-            allOperations,
-            BigInt('0x' + practicePrivateKey)
-          );
-        }
-        // If starting from challenge in daily mode, we can't calculate the private key
-      }
-
-      if (calculatedPrivateKey !== null) {
-        privateKey = calculatedPrivateKey;
-      }
-
-      const savedPoint: SavedPoint = {
-        id: `saved_${Date.now()}`,
-        point: currentPoint,
-        startingPoint,
-        operations: allOperations,
-        label: label || `Point ${savedPoints.length + 1}`,
-        timestamp: Date.now(),
-        privateKey,
-      };
-
-      setSavedPoints(prev => [...prev, savedPoint]);
+      savePoint(label);
     },
-    [
-      currentPoint,
-      operations,
-      savedPoints,
-      startingMode,
-      challenge.public_key,
-      generatorPoint,
-      currentSavedPoint,
-      isPracticeMode,
-      practicePrivateKey,
-    ]
-  );
-
-  // Load saved point
-  const loadSavedPoint = useCallback(
-    (savedPoint: SavedPoint) => {
-      setCurrentPoint(savedPoint.point);
-      setOperations([]);
-      setCurrentSavedPoint(savedPoint);
-      // Determine starting mode based on the saved point's starting point
-      const isGenerator =
-        savedPoint.startingPoint.x === generatorPoint.x &&
-        savedPoint.startingPoint.y === generatorPoint.y;
-      setStartingMode(isGenerator ? 'generator' : 'challenge');
-      setError(null);
-      clearCalculator();
-      setLastOperationValue(null);
-      setHasWon(false);
-      setShowVictoryModal(false);
-    },
-    [clearCalculator, generatorPoint]
+    [savePoint]
   );
 
   // Load any point (for modal actions)
@@ -433,29 +248,21 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         loadSavedPoint(savedPoint);
       } else {
         // Loading a base point (generator or challenge)
-        setCurrentPoint(point);
-        setOperations([]);
-        setCurrentSavedPoint(null);
-
-        // Determine starting mode based on the point
         const isGenerator = point.x === generatorPoint.x && point.y === generatorPoint.y;
-        setStartingMode(isGenerator ? 'generator' : 'challenge');
-
-        setError(null);
-        clearCalculator();
-        setLastOperationValue(null);
-        setHasWon(false);
-        setShowVictoryModal(false);
+        if (isGenerator) {
+          resetToGenerator();
+        } else {
+          resetToChallenge(challenge.public_key);
+        }
       }
     },
-    [loadSavedPoint, generatorPoint, clearCalculator]
+    [loadSavedPoint, generatorPoint, resetToGenerator, resetToChallenge, challenge.public_key]
   );
 
-  // Rename saved point
+  // Rename saved point (TODO: Add to Redux)
   const renameSavedPoint = useCallback((savedPoint: SavedPoint, newLabel: string) => {
-    setSavedPoints(prev =>
-      prev.map(sp => (sp.id === savedPoint.id ? { ...sp, label: newLabel } : sp))
-    );
+    // TODO: Implement this in Redux
+    console.warn('Rename saved point not yet implemented in Redux');
   }, []);
 
   // Submit solution attempt (keeping for backward compatibility, but victory modal is primary)

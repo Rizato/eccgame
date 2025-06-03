@@ -731,7 +731,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         isOpen={showSaveModal}
         onClose={() => setShowSaveModal(false)}
         onSave={label => onSavePoint(label)}
-        defaultLabel={`Point ${savedPoints.length + 1}`}
+        defaultLabel={`Point ${(savedPoints || []).length + 1}`}
       />
     </div>
   );

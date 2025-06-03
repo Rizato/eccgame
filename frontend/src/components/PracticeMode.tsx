@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { usePracticeMode } from '../hooks/usePracticeMode';
+import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import ChallengeInfo from './ChallengeInfo';
 import ECCPlayground from './ECCPlayground';
 import './PracticeMode.css';
@@ -12,7 +12,7 @@ const PracticeMode: React.FC = () => {
     isGenerating,
     setDifficulty,
     generatePracticeChallenge,
-  } = usePracticeMode();
+  } = usePracticeModeRedux();
 
   // Initialize with first challenge
   useEffect(() => {
