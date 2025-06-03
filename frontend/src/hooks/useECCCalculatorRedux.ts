@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
-  setCurrentPoint,
+  setSelectedPoint,
   setOperations,
   setError,
   setStartingMode,
@@ -37,17 +37,17 @@ export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode
 
   // Calculate current address when point changes
   useEffect(() => {
-    dispatch(calculateCurrentAddress(eccState.currentPoint));
-  }, [eccState.currentPoint, dispatch]);
+    dispatch(calculateCurrentAddress(eccState.selectedPoint));
+  }, [eccState.selectedPoint, dispatch]);
 
   // Check win condition when relevant state changes
   useEffect(() => {
     dispatch(checkWinCondition());
-  }, [eccState.currentPoint, eccState.startingMode, dispatch]);
+  }, [eccState.selectedPoint, eccState.startingMode, dispatch]);
 
   return {
     // State
-    currentPoint: eccState.currentPoint,
+    currentPoint: eccState.selectedPoint,
     operations: eccState.operations,
     error: eccState.error,
     currentAddress: eccState.currentAddress,
@@ -59,9 +59,9 @@ export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode
     hasWon: eccState.hasWon,
     showVictoryModal: eccState.showVictoryModal,
     savedPoints: eccState.savedPoints,
-    currentSavedPoint: eccState.currentSavedPoint,
+    currentSavedPoint: eccState.startingPoint,
     // Actions
-    setCurrentPoint: (point: ECPoint) => dispatch(setCurrentPoint(point)),
+    setCurrentPoint: (point: ECPoint) => dispatch(setSelectedPoint(point)),
     setOperations: (operations: Operation[]) => dispatch(setOperations(operations)),
     setError: (error: string | null) => dispatch(setError(error)),
     setStartingMode: (mode: StartingMode) => dispatch(setStartingMode(mode)),

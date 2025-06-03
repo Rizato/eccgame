@@ -25,7 +25,7 @@ interface GraphPoint {
 }
 
 const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick }) => {
-  const { currentPoint, savedPoints } = useAppSelector(state => state.eccCalculator);
+  const { selectedPoint, savedPoints } = useAppSelector(state => state.eccCalculator);
 
   const generatorPoint = getGeneratorPoint();
 
@@ -94,10 +94,10 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
       }
     });
 
-    // Add current point if it's unique
-    if (!currentPoint.isInfinity) {
-      const currentX = mapToScreenCoordinate(currentPoint.x);
-      const currentY = mapToScreenCoordinate(currentPoint.y, true);
+    // Add selected point if it's unique
+    if (!selectedPoint.isInfinity) {
+      const currentX = mapToScreenCoordinate(selectedPoint.x);
+      const currentY = mapToScreenCoordinate(selectedPoint.y, true);
 
       allPoints.push({
         id: 'current',
@@ -106,7 +106,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
         label: 'Current',
         color: '#ef4444', // red
         description: 'Current point',
-        point: currentPoint,
+        point: selectedPoint,
         type: 'current',
       });
     }
@@ -159,17 +159,17 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
     generatorPoint,
     challengePublicKey,
     savedPoints,
-    currentPoint,
+    selectedPoint,
     mapToScreenCoordinate,
   ]);
 
   const graphPoints = getVisiblePoints();
 
-  // Check if current point is at generator for legend coloring
+  // Check if selected point is at generator for legend coloring
   const isAtGenerator =
-    currentPoint.x === generatorPoint.x &&
-    currentPoint.y === generatorPoint.y &&
-    !currentPoint.isInfinity;
+    selectedPoint.x === generatorPoint.x &&
+    selectedPoint.y === generatorPoint.y &&
+    !selectedPoint.isInfinity;
 
   return (
     <div className="graph-section graph-display">

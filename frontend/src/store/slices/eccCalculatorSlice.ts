@@ -8,7 +8,7 @@ import type { ECPoint } from '../../utils/ecc';
 export type StartingMode = 'challenge' | 'generator';
 
 interface ECCCalculatorState {
-  currentPoint: ECPoint;
+  selectedPoint: ECPoint;
   operations: Operation[];
   error: string | null;
   currentAddress: string;
@@ -20,14 +20,14 @@ interface ECCCalculatorState {
   hasWon: boolean;
   showVictoryModal: boolean;
   savedPoints: SavedPoint[];
-  currentSavedPoint: SavedPoint | null;
+  startingPoint: SavedPoint | null;
   challengePublicKey: string;
 }
 
 const generatorPoint = getGeneratorPoint();
 
 const initialState: ECCCalculatorState = {
-  currentPoint: generatorPoint,
+  selectedPoint: generatorPoint,
   operations: [],
   error: null,
   currentAddress: '',
@@ -39,7 +39,7 @@ const initialState: ECCCalculatorState = {
   hasWon: false,
   showVictoryModal: false,
   savedPoints: [],
-  currentSavedPoint: null,
+  startingPoint: null,
   challengePublicKey: '',
 };
 
@@ -64,8 +64,8 @@ const eccCalculatorSlice = createSlice({
   name: 'eccCalculator',
   initialState,
   reducers: {
-    setCurrentPoint: (state, action: PayloadAction<ECPoint>) => {
-      state.currentPoint = action.payload;
+    setSelectedPoint: (state, action: PayloadAction<ECPoint>) => {
+      state.selectedPoint = action.payload;
     },
     setOperations: (state, action: PayloadAction<Operation[]>) => {
       state.operations = action.payload;
@@ -100,12 +100,12 @@ const eccCalculatorSlice = createSlice({
     setSavedPoints: (state, action: PayloadAction<SavedPoint[]>) => {
       state.savedPoints = action.payload;
     },
-    setCurrentSavedPoint: (state, action: PayloadAction<SavedPoint | null>) => {
-      state.currentSavedPoint = action.payload;
+    setStartingPoint: (state, action: PayloadAction<SavedPoint | null>) => {
+      state.startingPoint = action.payload;
     },
     setChallengePublicKey: (state, action: PayloadAction<string>) => {
       state.challengePublicKey = action.payload;
-      state.currentPoint = publicKeyToPoint(action.payload);
+      state.selectedPoint = publicKeyToPoint(action.payload);
     },
     clearCalculator: state => {
       state.calculatorDisplay = '';
@@ -146,10 +146,10 @@ const eccCalculatorSlice = createSlice({
     },
     resetToChallenge: (state, action: PayloadAction<string>) => {
       const challengePublicKey = action.payload;
-      state.currentPoint = publicKeyToPoint(challengePublicKey);
+      state.selectedPoint = publicKeyToPoint(challengePublicKey);
       state.operations = [];
       state.savedPoints = [];
-      state.currentSavedPoint = null;
+      state.startingPoint = null;
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -161,10 +161,10 @@ const eccCalculatorSlice = createSlice({
       state.challengePublicKey = challengePublicKey;
     },
     resetToGenerator: state => {
-      state.currentPoint = generatorPoint;
+      state.selectedPoint = generatorPoint;
       state.operations = [];
       state.savedPoints = [];
-      state.currentSavedPoint = null;
+      state.startingPoint = null;
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -180,23 +180,21 @@ const eccCalculatorSlice = createSlice({
         ? publicKeyToPoint(state.challengePublicKey)
         : generatorPoint;
 
-      const startingPoint = state.currentSavedPoint
-        ? state.currentSavedPoint.point
+      const startingPoint = state.startingPoint
+        ? state.startingPoint.point
         : state.startingMode === 'challenge'
           ? challengePoint
           : generatorPoint;
 
-      const allOperations = state.currentSavedPoint
-        ? [...state.currentSavedPoint.operations, ...state.operations]
+      const allOperations = state.startingPoint
+        ? [...state.startingPoint.operations, ...state.operations]
         : state.operations;
 
       const savedPoint: SavedPoint = {
         id: `saved_${Date.now()}`,
-        point: state.currentPoint,
+        point: state.selectedPoint,
         startingPoint,
-        startingMode: state.currentSavedPoint
-          ? state.currentSavedPoint.startingMode
-          : state.startingMode,
+        startingMode: state.startingPoint ? state.startingPoint.startingMode : state.startingMode,
         operations: allOperations,
         label: label || `Point ${state.savedPoints.length + 1}`,
         timestamp: Date.now(),
@@ -206,9 +204,9 @@ const eccCalculatorSlice = createSlice({
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
       const savedPoint = action.payload;
-      state.currentPoint = savedPoint.point;
+      state.selectedPoint = savedPoint.point;
       state.operations = [];
-      state.currentSavedPoint = savedPoint;
+      state.startingPoint = savedPoint;
       state.startingMode = savedPoint.startingMode;
       state.error = null;
       state.calculatorDisplay = '';
@@ -224,17 +222,17 @@ const eccCalculatorSlice = createSlice({
         : null;
 
       const isAtGenerator =
-        state.currentPoint.x === generatorPoint.x &&
-        state.currentPoint.y === generatorPoint.y &&
-        !state.currentPoint.isInfinity;
+        state.selectedPoint.x === generatorPoint.x &&
+        state.selectedPoint.y === generatorPoint.y &&
+        !state.selectedPoint.isInfinity;
 
       const isAtChallengePoint =
         challengePoint &&
-        state.currentPoint.x === challengePoint.x &&
-        state.currentPoint.y === challengePoint.y &&
-        !state.currentPoint.isInfinity;
+        state.selectedPoint.x === challengePoint.x &&
+        state.selectedPoint.y === challengePoint.y &&
+        !state.selectedPoint.isInfinity;
 
-      const isAtInfinity = state.currentPoint.isInfinity;
+      const isAtInfinity = state.selectedPoint.isInfinity;
 
       const hasWonRound = (() => {
         if (state.startingMode === 'challenge') {
@@ -264,7 +262,7 @@ const eccCalculatorSlice = createSlice({
 });
 
 export const {
-  setCurrentPoint,
+  setSelectedPoint,
   setOperations,
   setError,
   setStartingMode,
@@ -275,7 +273,7 @@ export const {
   setLastOperationValue,
   setHexMode,
   setSavedPoints,
-  setCurrentSavedPoint,
+  setStartingPoint,
   setChallengePublicKey,
   clearCalculator,
   addToCalculator,
