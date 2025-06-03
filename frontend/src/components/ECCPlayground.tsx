@@ -29,9 +29,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   const {
     currentPoint,
     error,
-    calculatorDisplay,
-    pendingOperation,
-    lastOperationValue,
     hasWon,
     showVictoryModal,
     savedPoints,
@@ -39,16 +36,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     setCurrentPoint,
     setError,
     setShowVictoryModal,
-    clearCalculator,
-    addToCalculator,
-    backspaceCalculator,
     resetToChallenge,
     resetToGenerator,
     savePoint,
     loadSavedPoint,
-    setCalculatorOperation,
-    executeEquals,
-  } = useECCCalculatorRedux(challenge.public_key, isPracticeMode);
+  } = useECCCalculatorRedux(challenge.public_key);
 
   const [challengeAddress, setChallengeAddress] = useState<string>('');
   const [showPointModal, setShowPointModal] = useState(false);
@@ -134,86 +126,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       challenge.public_key,
     ]
   );
-
-  // Keyboard event handler
-  // TODO deduplicate, but I need to handle taps while the graph is in focus or whatever
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      // Don't handle if user is typing in an input field (except our calculator)
-      if (
-        event.target instanceof HTMLInputElement &&
-        !event.target.classList.contains('calculator-input')
-      ) {
-        return;
-      }
-
-      // Prevent default for keys we handle
-      const key = event.key;
-
-      // Numbers 0-9
-      if (/^[0-9]$/.test(key)) {
-        event.preventDefault();
-        addToCalculator(key);
-        return;
-      }
-
-      // Hex letters A-F
-      if (/^[A-Fa-f]$/.test(key)) {
-        event.preventDefault();
-        addToCalculator(key.toUpperCase());
-        return;
-      }
-
-      // Operators
-      switch (key) {
-        case '*':
-        case 'x':
-        case 'X':
-          event.preventDefault();
-          setCalculatorOperation('multiply');
-          break;
-        case '/':
-          event.preventDefault();
-          setCalculatorOperation('divide');
-          break;
-        case '+':
-          event.preventDefault();
-          setCalculatorOperation('add');
-          break;
-        case '-':
-          event.preventDefault();
-          setCalculatorOperation('subtract');
-          break;
-        case 'Enter':
-        case '=':
-          event.preventDefault();
-          executeEquals();
-          break;
-        case 'Backspace':
-          event.preventDefault();
-          backspaceCalculator();
-          break;
-        case 'Escape':
-        case 'c':
-        case 'C':
-          event.preventDefault();
-          clearCalculator();
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [
-    addToCalculator,
-    setCalculatorOperation,
-    backspaceCalculator,
-    clearCalculator,
-    executeEquals,
-    pendingOperation,
-    calculatorDisplay,
-    lastOperationValue,
-  ]);
 
   const handlePointClick = useCallback((point: ECPoint) => {
     setModalPoint(point);

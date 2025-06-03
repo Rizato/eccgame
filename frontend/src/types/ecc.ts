@@ -1,6 +1,6 @@
 export interface Operation {
   id: string;
-  type: 'multiply' | 'divide' | 'add' | 'subtract' | 'negate' | 'nop';
+  type: 'multiply' | 'divide' | 'add' | 'subtract' | 'negate';
   description: string;
   value: string;
   point?: ECPoint;

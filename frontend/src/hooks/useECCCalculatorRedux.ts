@@ -16,13 +16,10 @@ import {
   checkWinCondition,
   calculateCurrentAddress,
   setChallengePublicKey,
-  executeCalculatorOperation,
-  setCalculatorOperationThunk,
-  executeEqualsOperation,
 } from '../store/slices/eccCalculatorSlice';
 import type { ECPoint, SavedPoint } from '../types/ecc';
 
-export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode: boolean = false) {
+export function useECCCalculatorRedux(challengePublicKey: string) {
   const dispatch = useAppDispatch();
   const eccState = useAppSelector(state => state.eccCalculator);
 
@@ -71,13 +68,5 @@ export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode
     resetToGenerator: () => dispatch(resetToGenerator()),
     savePoint: (label?: string) => dispatch(savePoint({ label })),
     loadSavedPoint: (savedPoint: SavedPoint) => dispatch(loadSavedPoint(savedPoint)),
-    // New Redux-centralized operations
-    executeCalculatorOperation: (
-      operation: 'multiply' | 'divide' | 'add' | 'subtract',
-      value: string
-    ) => dispatch(executeCalculatorOperation({ operation, value })),
-    setCalculatorOperation: (operation: 'multiply' | 'divide' | 'add' | 'subtract') =>
-      dispatch(setCalculatorOperationThunk(operation)),
-    executeEquals: () => dispatch(executeEqualsOperation()),
   };
 }
