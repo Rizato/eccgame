@@ -70,6 +70,7 @@ export function getSolutionPath(challenge: Challenge, graph: PointGraph): string
 
 /**
  * Update all node private keys in the graph based on known connections
+ * This function is now more defensive against race conditions and incomplete graph states
  */
 export function updateAllPrivateKeys(graph: PointGraph): void {
   // Find all nodes with known private keys
@@ -79,9 +80,14 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
     return;
   }
 
+  // Create a snapshot of the current graph state to avoid race conditions
+  const edgeSnapshot = Object.values(graph.edges);
+  const nodeIds = new Set(Object.keys(graph.nodes));
+
   // Use BFS to propagate private keys through the graph
   const visited = new Set<string>();
   const queue: GraphNode[] = [...knownNodes];
+  const updates = new Map<string, bigint>(); // Batch updates
 
   for (const node of knownNodes) {
     visited.add(node.id);
@@ -90,22 +96,35 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
   while (queue.length > 0) {
     const currentNode = queue.shift()!;
 
-    // Find all edges connected to this node
-    const outgoingEdges = Object.values(graph.edges).filter(
-      edge => edge.fromNodeId === currentNode.id
+    // Verify node still exists (defensive programming)
+    if (!nodeIds.has(currentNode.id) || !graph.nodes[currentNode.id]) {
+      continue;
+    }
+
+    // Find all edges connected to this node from our snapshot
+    const outgoingEdges = edgeSnapshot.filter(
+      edge => edge.fromNodeId === currentNode.id && nodeIds.has(edge.toNodeId)
     );
-    const incomingEdges = Object.values(graph.edges).filter(
-      edge => edge.toNodeId === currentNode.id
+    const incomingEdges = edgeSnapshot.filter(
+      edge => edge.toNodeId === currentNode.id && nodeIds.has(edge.fromNodeId)
     );
 
     // Calculate private keys for nodes reachable via outgoing edges
     for (const edge of outgoingEdges) {
       const targetNode = graph.nodes[edge.toNodeId];
       if (targetNode && targetNode.privateKey === undefined && !visited.has(targetNode.id)) {
-        const calculatedKey = calculateKeyFromOperations([edge.operation], currentNode.privateKey!);
-        targetNode.privateKey = calculatedKey;
-        visited.add(targetNode.id);
-        queue.push(targetNode);
+        try {
+          const calculatedKey = calculateKeyFromOperations(
+            [edge.operation],
+            currentNode.privateKey!
+          );
+          updates.set(targetNode.id, calculatedKey);
+          visited.add(targetNode.id);
+          queue.push(targetNode);
+        } catch (error) {
+          // Skip this calculation if it fails
+          console.warn('Failed to calculate private key for outgoing edge:', error);
+        }
       }
     }
 
@@ -113,16 +132,29 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
     for (const edge of incomingEdges) {
       const sourceNode = graph.nodes[edge.fromNodeId];
       if (sourceNode && sourceNode.privateKey === undefined && !visited.has(sourceNode.id)) {
-        // We need to reverse the operation to go backwards
-        const reversedOperation = reverseOperation(edge.operation);
-        const calculatedKey = calculateKeyFromOperations(
-          [reversedOperation],
-          currentNode.privateKey!
-        );
-        sourceNode.privateKey = calculatedKey;
-        visited.add(sourceNode.id);
-        queue.push(sourceNode);
+        try {
+          // We need to reverse the operation to go backwards
+          const reversedOperation = reverseOperation(edge.operation);
+          const calculatedKey = calculateKeyFromOperations(
+            [reversedOperation],
+            currentNode.privateKey!
+          );
+          updates.set(sourceNode.id, calculatedKey);
+          visited.add(sourceNode.id);
+          queue.push(sourceNode);
+        } catch (error) {
+          // Skip this calculation if it fails
+          console.warn('Failed to calculate private key for incoming edge:', error);
+        }
       }
+    }
+  }
+
+  // Apply all updates atomically at the end
+  for (const [nodeId, privateKey] of updates) {
+    const node = graph.nodes[nodeId];
+    if (node && node.privateKey === undefined) {
+      node.privateKey = privateKey;
     }
   }
 }
