@@ -1,4 +1,4 @@
-import type { SavedPoint } from './ecc';
+import type { SavedPoint } from '../types/ecc';
 import type { GuessResponse } from '../types/api';
 
 const STORAGE_PREFIX = 'cryptoguesser_';

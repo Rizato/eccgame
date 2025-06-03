@@ -3,8 +3,8 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   setSelectedPoint,
   setOperations,
+  setStartingPoint,
   setError,
-  setStartingMode,
   setHasWon,
   setShowVictoryModal,
   setPendingOperation,
@@ -21,12 +21,8 @@ import {
   executeCalculatorOperation,
   setCalculatorOperationThunk,
   executeEqualsOperation,
-  type StartingMode,
 } from '../store/slices/eccCalculatorSlice';
-import type { Operation } from '../components/ECCCalculator';
-import type { SimpleOperation } from '../store/slices/eccCalculatorSlice';
-import type { ECPoint } from '../utils/ecc';
-import type { SavedPoint } from '../utils/privateKeyCalculation';
+import type { ECPoint, Operation, SavedPoint, KnownPoint } from '../types/ecc';
 
 export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode: boolean = false) {
   const dispatch = useAppDispatch();
@@ -47,28 +43,27 @@ export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode
   // Check win condition when relevant state changes
   useEffect(() => {
     dispatch(checkWinCondition());
-  }, [eccState.selectedPoint, eccState.startingMode, dispatch]);
+  }, [eccState.selectedPoint, dispatch]);
 
   return {
     // State
     currentPoint: eccState.selectedPoint,
     operations: eccState.operations,
+    startingPoint: eccState.startingPoint,
     error: eccState.error,
     currentAddress: eccState.currentAddress,
     calculatorDisplay: eccState.calculatorDisplay,
     pendingOperation: eccState.pendingOperation,
     lastOperationValue: eccState.lastOperationValue,
     hexMode: eccState.hexMode,
-    startingMode: eccState.startingMode,
     hasWon: eccState.hasWon,
     showVictoryModal: eccState.showVictoryModal,
     savedPoints: eccState.savedPoints,
-    currentSavedPoint: eccState.startingPoint,
     // Actions
     setCurrentPoint: (point: ECPoint) => dispatch(setSelectedPoint(point)),
     setOperations: (operations: Operation[]) => dispatch(setOperations(operations)),
+    setStartingPoint: (knownPoint: KnownPoint) => dispatch(setStartingPoint(knownPoint)),
     setError: (error: string | null) => dispatch(setError(error)),
-    setStartingMode: (mode: StartingMode) => dispatch(setStartingMode(mode)),
     setHasWon: (hasWon: boolean) => dispatch(setHasWon(hasWon)),
     setShowVictoryModal: (show: boolean) => dispatch(setShowVictoryModal(show)),
     setPendingOperation: (op: 'multiply' | 'divide' | 'add' | 'subtract' | null) =>

@@ -9,12 +9,15 @@ import {
   pointMultiply,
   pointSubtract,
 } from '../utils/ecc';
-import ECCCalculator, { type Operation } from './ECCCalculator';
+import ECCCalculator from './ECCCalculator';
+import type Operation from '../types/ecc';
 
 // Mock the crypto module to avoid async issues in tests
 vi.mock('../utils/crypto', () => ({
   getP2PKHAddress: vi.fn().mockResolvedValue('mock-address'),
 }));
+
+// TODO Basically redo this whole file
 
 describe('ECCCalculator Private Key Calculations', () => {
   const generatorPoint = getGeneratorPoint();

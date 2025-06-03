@@ -1,21 +1,16 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { type ECPoint } from '../utils/ecc';
-import { calculateVictoryPrivateKey } from '../utils/victoryPrivateKeyCalculation';
-import type { Operation, SavedPoint } from '../utils/privateKeyCalculation.ts';
 import './VictoryModal.css';
+import type { SavedPoint } from '../types/ecc.ts';
 
 interface VictoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   operationCount: number;
   challengeAddress: string;
-  startingMode: 'challenge' | 'generator';
-  targetPoint: ECPoint;
-  operations: Operation[];
-  currentSavedPoint?: SavedPoint | null;
+  savedPoints: SavedPoint[];
   isPracticeMode?: boolean;
-  practicePrivateKey?: string;
+  victoryPrivateKey: string;
 }
 
 export const VictoryModal: React.FC<VictoryModalProps> = ({
@@ -23,37 +18,16 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   onClose,
   operationCount,
   challengeAddress,
-  startingMode,
-  targetPoint,
-  operations,
-  currentSavedPoint = null,
-  isPracticeMode = false,
-  practicePrivateKey,
+  victoryPrivateKey,
+  isPracticeMode,
 }) => {
   if (!isOpen) return null;
-
-  // Calculate the private key for the victory screen using enhanced reconstruction
-  const victoryPrivateKey =
-    '0x' +
-    calculateVictoryPrivateKey(
-      operations,
-      startingMode,
-      targetPoint.isInfinity,
-      currentSavedPoint,
-      isPracticeMode,
-      practicePrivateKey
-    ).toString(16);
 
   const getVictoryTitle = () => {
     if (isPracticeMode) {
       return 'Practice Complete! 🎉';
     }
-
-    if (targetPoint.isInfinity) {
-      return 'Point at Infinity Reached! ♾️';
-    }
-
-    return startingMode === 'challenge' ? 'Generator Point Found! 🎯' : 'Challenge Point Found! 🎯';
+    return 'Private Key Found!  🎉';
   };
 
   const getVictoryMessage = () => {
@@ -61,13 +35,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
       return 'Great work! You successfully solved the practice challenge.';
     }
 
-    if (targetPoint.isInfinity) {
-      return 'Incredible! You reached the point at infinity through your calculations.';
-    }
-
-    return startingMode === 'challenge'
-      ? 'Congratulations! You successfully found the generator point from the challenge address.'
-      : 'Amazing! You found the challenge address starting from the generator point.';
+    return 'Incredible! You successfully found the private key from the public key.';
   };
 
   return createPortal(
@@ -91,13 +59,6 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
             </div>
             <div className="stat-value address-value" title={challengeAddress}>
               {challengeAddress}
-            </div>
-          </div>
-
-          <div className="stat-item">
-            <div className="stat-label">Direction</div>
-            <div className="stat-value">
-              {startingMode === 'challenge' ? 'Challenge → Generator' : 'Generator → Challenge'}
             </div>
           </div>
 

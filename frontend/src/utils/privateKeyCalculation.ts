@@ -1,24 +1,5 @@
-import { CURVE_N, getGeneratorPoint, hexToBigint, modInverse } from './ecc';
-import type { ECPoint } from './ecc';
-
-export interface Operation {
-  id: string;
-  type: 'multiply' | 'divide' | 'add' | 'subtract' | 'negate' | 'nop';
-  description: string;
-  value: string;
-  point?: ECPoint;
-}
-
-export interface SavedPoint {
-  id: string;
-  point: ECPoint;
-  startingPoint: ECPoint;
-  startingMode: 'challenge' | 'generator';
-  operations: Operation[];
-  label: string;
-  timestamp: number;
-  privateKey?: bigint; // Stored private key when known
-}
+import { CURVE_N, hexToBigint, modInverse } from './ecc';
+import type { KnownPoint, Operation } from '../types/ecc.ts';
 
 /**
  * Calculate private key from a series of operations starting from a given private key
@@ -69,170 +50,27 @@ export function calculateKeyFromOperations(
 }
 
 /**
- * Helper function to check if two points are equal
+ * Calculate private key from a KnownPoint
+ *
+ * Recursively search point.startingPoint until a key is found
  */
-function pointsEqual(p1: ECPoint, p2: ECPoint): boolean {
-  if (p1.isInfinity && p2.isInfinity) return true;
-  if (p1.isInfinity || p2.isInfinity) return false;
-  return p1.x === p2.x && p1.y === p2.y;
-}
-
-/**
- * Enhanced private key calculation that determines the starting point from context
- */
-export function calculatePrivateKeyEnhanced(
-  operations: Operation[],
-  currentPoint: ECPoint,
-  knownPoints: Array<{
-    point: ECPoint;
-    privateKey: bigint;
-    label: string;
-  }> = [],
-  isPracticeMode: boolean = false,
-  practicePrivateKey?: string
-): bigint | null {
-  try {
-    const generatorPoint = getGeneratorPoint();
-
-    // First priority: Check if we're at a known point (direct match)
-    for (const knownPoint of knownPoints) {
-      if (pointsEqual(currentPoint, knownPoint.point)) {
-        return knownPoint.privateKey;
-      }
-    }
-
-    // If we have no operations, we can only identify base points
-    if (operations.length === 0) {
-      // Check if it's the generator point
-      if (pointsEqual(currentPoint, generatorPoint)) {
-        return 1n;
-      }
-
-      // Check if it's the challenge point in practice mode
-      if (isPracticeMode && practicePrivateKey) {
-        return BigInt('0x' + practicePrivateKey);
-      }
-
-      // Unknown point with no operations - can't calculate
-      return null;
-    }
-
-    // We can only calculate private keys if we know where the operations started from
-    // We need to be very careful here - we can't just try random starting points
-
-    // For operations that we know started from the generator point
-    if (operations.length > 0) {
-      // We need to know the actual starting point to calculate correctly
-      // This is complex without full point verification, so we'll be conservative
-
-      // Only calculate if we're in practice mode and know all the private keys
-      if (isPracticeMode && practicePrivateKey) {
-        // Try challenge point as starting point
-        try {
-          const challengePrivateKey = BigInt('0x' + practicePrivateKey);
-          const fromChallenge = calculateKeyFromOperations(operations, challengePrivateKey);
-          if (fromChallenge !== null) {
-            return fromChallenge;
-          }
-        } catch {
-          // Continue
-        }
-
-        // Try generator as starting point
-        try {
-          const fromGenerator = calculateKeyFromOperations(operations, 1n);
-          if (fromGenerator !== null) {
-            return fromGenerator;
-          }
-        } catch {
-          // Continue
-        }
-      }
-
-      // Try known saved points as starting points only if we have their private keys
-      for (const knownPoint of knownPoints) {
-        try {
-          const result = calculateKeyFromOperations(operations, knownPoint.privateKey);
-          if (result !== null) {
-            return result;
-          }
-        } catch {
-          // Continue to next known point
-          continue;
-        }
-      }
-    }
-
-    // No valid starting point found
-    return null;
-  } catch {
-    return null;
+export function calculatePrivateKey(point: KnownPoint): bigint | undefined {
+  if (point.privateKey !== undefined) {
+    return point.privateKey;
   }
-}
-
-/**
- * Calculate private key from saved point and additional operations
- */
-export function calculatePrivateKeyFromSavedPoint(
-  savedPoint: SavedPoint,
-  additionalOperations: Operation[],
-  isPracticeMode: boolean = false,
-  practicePrivateKey?: string
-): bigint | null {
+  const startingPoint = point.startingPoint;
+  if (startingPoint === undefined) {
+    return undefined; // Probably throw an exception
+  }
   try {
     // If we have the private key stored, use it directly
-    if (savedPoint.privateKey !== undefined) {
-      return calculateKeyFromOperations(additionalOperations, savedPoint.privateKey);
+    const startingPrivateKey =
+      startingPoint.privateKey === undefined
+        ? startingPoint.privateKey
+        : calculatePrivateKey(startingPoint);
+    if (startingPrivateKey !== undefined) {
+      return calculateKeyFromOperations(point.operations, startingPrivateKey);
     }
-
-    // Fallback to the old method if private key not stored
-    const generatorPoint = getGeneratorPoint();
-    let startingPrivateKey: bigint;
-
-    if (pointsEqual(savedPoint.startingPoint, generatorPoint)) {
-      startingPrivateKey = 1n;
-    } else if (isPracticeMode && practicePrivateKey) {
-      startingPrivateKey = BigInt('0x' + practicePrivateKey);
-    } else {
-      return null; // Can't determine starting private key
-    }
-
-    // Calculate the private key for the saved point
-    const savedPointPrivateKey = calculateKeyFromOperations(
-      savedPoint.operations,
-      startingPrivateKey
-    );
-
-    if (savedPointPrivateKey === null) {
-      return null;
-    }
-
-    // Then apply additional operations from the saved point
-    return calculateKeyFromOperations(additionalOperations, savedPointPrivateKey);
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Calculate the actual private key for the current point in ECCCalculator context
- */
-export function calculatePrivateKey(
-  operations: Operation[],
-  currentPoint: ECPoint,
-  knownPoints: Array<{
-    point: ECPoint;
-    privateKey: bigint;
-    label: string;
-  }> = [],
-  isPracticeMode: boolean = false,
-  practicePrivateKey?: string
-): bigint | null {
-  return calculatePrivateKeyEnhanced(
-    operations,
-    currentPoint,
-    knownPoints,
-    isPracticeMode,
-    practicePrivateKey
-  );
+  } catch {} // TODO Explicitly catch errors here
+  return undefined;
 }

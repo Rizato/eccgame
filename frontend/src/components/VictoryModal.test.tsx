@@ -12,15 +12,11 @@ vi.mock('../utils/crypto', () => ({
 describe('VictoryModal Private Key Display', () => {
   const generatorPoint = getGeneratorPoint();
 
-  const createDefaultProps = (
-    operations: Operation[] = [],
-    startingMode: 'challenge' | 'generator' = 'generator'
-  ) => ({
+  const createDefaultProps = (operations: Operation[] = []) => ({
     isOpen: true,
     onClose: vi.fn(),
     operationCount: operations.length,
     challengeAddress: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
-    startingMode,
     targetPoint: generatorPoint,
     operations,
     isPracticeMode: false,

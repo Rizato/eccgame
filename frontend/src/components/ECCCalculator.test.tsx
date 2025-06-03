@@ -55,7 +55,6 @@ describe('ECCCalculator', () => {
     onError: vi.fn(),
     onSavePoint: vi.fn(),
     onLoadSavedPoint: vi.fn(),
-    startingMode: 'generator' as const,
     isPracticeMode: false,
     practicePrivateKey: undefined,
   };

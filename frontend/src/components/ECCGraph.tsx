@@ -1,8 +1,7 @@
 import React, { useCallback } from 'react';
 import { useAppSelector } from '../store/hooks';
 import { getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
-import type { ECPoint } from '../utils/ecc';
-import type { SavedPoint } from '../utils/privateKeyCalculation';
+import type { ECPoint, SavedPoint } from '../types/ecc';
 import './ECCGraph.css';
 
 interface ECCGraphProps {

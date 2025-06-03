@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getP2PKHAddress } from '../utils/crypto';
-import type { ECPoint } from '../utils/ecc';
 import {
   bigintToHex,
   CURVE_N,
@@ -15,44 +14,32 @@ import {
   pointToPublicKey,
   publicKeyToPoint,
 } from '../utils/ecc';
-import {
-  calculateKeyFromOperations,
-  calculatePrivateKeyFromSavedPoint,
-  type SavedPoint,
-  type Operation as SharedOperation,
-} from '../utils/privateKeyCalculation';
+import { calculatePrivateKey } from '../utils/privateKeyCalculation';
 import './ECCCalculator.css';
 import { SavePointModal } from './SavePointModal';
+import type { SavedPoint, ECPoint, Operation, KnownPoint } from '../types/ecc.ts';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
   operations: Operation[]; // Operations passed from parent
   savedPoints: SavedPoint[];
-  currentSavedPoint: SavedPoint | null; // Currently active saved point, if any
+  startingPoint: KnownPoint; // Currently active saved point, if any
   challengePublicKey: string; // Challenge public key for private key calculations
-  startingPrivateKey: bigint | undefined; // Private key of the starting point (if known)
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
   onSavePoint: (label?: string) => void;
-  isPracticeMode?: boolean;
-  practicePrivateKey?: string;
   isLocked?: boolean;
 }
-
-export type Operation = SharedOperation;
 
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   currentPoint,
   operations,
   savedPoints,
-  currentSavedPoint,
+  startingPoint,
   challengePublicKey,
-  startingPrivateKey,
   onPointChange,
   onError,
   onSavePoint,
-  isPracticeMode = false,
-  practicePrivateKey,
   isLocked = false,
 }) => {
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
@@ -89,27 +76,14 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
   // Calculate the actual private key for the current point using shared utility
   const currentPrivateKey = useMemo(() => {
-    if (currentSavedPoint) {
-      return calculatePrivateKeyFromSavedPoint(
-        currentSavedPoint,
-        operations,
-        isPracticeMode,
-        practicePrivateKey
-      );
-    }
-
-    // We can only calculate private keys if we know the starting point's private key
-    if (startingPrivateKey !== undefined) {
-      try {
-        return calculateKeyFromOperations(operations, startingPrivateKey);
-      } catch {
-        return null;
-      }
-    }
-
-    // If we don't know the starting private key, we can't calculate the current private key
-    return null;
-  }, [currentSavedPoint, operations, isPracticeMode, practicePrivateKey, startingPrivateKey]);
+    return calculatePrivateKey({
+      id: 'current',
+      point: currentPoint,
+      startingPoint: startingPoint,
+      operations: operations,
+      label: 'current',
+    });
+  }, [startingPoint, operations, currentPoint]);
 
   // Calculate current address asynchronously
   useEffect(() => {
@@ -549,7 +523,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             </div>
             {/* Private Key Display - show when we can calculate the actual private key */}
             {(() => {
-              if (currentPrivateKey === null || currentPoint.isInfinity) return null;
+              if (
+                currentPrivateKey === null ||
+                currentPrivateKey === undefined ||
+                currentPoint.isInfinity
+              )
+                return null;
 
               return (
                 <div className="point-private-key">

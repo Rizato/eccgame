@@ -10,32 +10,22 @@ import {
   pointSubtract,
   hexToBigint,
   CURVE_N,
-  type ECPoint,
 } from '../../utils/ecc';
-import { type SavedPoint } from '../../utils/privateKeyCalculation';
-
-// Simplified operation type for Redux
-export interface SimpleOperation {
-  type: 'multiply' | 'divide' | 'add' | 'subtract';
-  value: bigint;
-}
-
-export type StartingMode = 'challenge' | 'generator';
+import type { ECPoint, KnownPoint, Operation, SavedPoint } from '../../types/ecc';
 
 interface ECCCalculatorState {
   selectedPoint: ECPoint;
-  operations: SimpleOperation[];
+  operations: Operation[];
+  startingPoint: KnownPoint;
   error: string | null;
   currentAddress: string;
   calculatorDisplay: string;
   pendingOperation: 'multiply' | 'divide' | 'add' | 'subtract' | null;
   lastOperationValue: string | null;
   hexMode: boolean;
-  startingMode: StartingMode;
   hasWon: boolean;
   showVictoryModal: boolean;
   savedPoints: SavedPoint[];
-  startingPoint: SavedPoint | null;
   challengePublicKey: string;
 }
 
@@ -44,17 +34,22 @@ const generatorPoint = getGeneratorPoint();
 const initialState: ECCCalculatorState = {
   selectedPoint: generatorPoint,
   operations: [],
+  startingPoint: {
+    id: 'generator',
+    point: generatorPoint,
+    operations: [],
+    label: 'generator',
+    privateKey: 1n, // Stored private key when known
+  },
   error: null,
   currentAddress: '',
   calculatorDisplay: '',
   pendingOperation: null,
   lastOperationValue: null,
   hexMode: false,
-  startingMode: 'challenge',
   hasWon: false,
   showVictoryModal: false,
   savedPoints: [],
-  startingPoint: null,
   challengePublicKey: '',
 };
 
@@ -97,7 +92,7 @@ export const executeCalculatorOperation = createAsyncThunk(
       }
 
       let newPoint: ECPoint;
-      let operationRecord: SimpleOperation;
+      let operationRecord: Operation;
 
       switch (operation) {
         case 'multiply':
@@ -137,14 +132,11 @@ const eccCalculatorSlice = createSlice({
     setSelectedPoint: (state, action: PayloadAction<ECPoint>) => {
       state.selectedPoint = action.payload;
     },
-    setOperations: (state, action: PayloadAction<SimpleOperation[]>) => {
+    setOperations: (state, action: PayloadAction<Operation[]>) => {
       state.operations = action.payload;
     },
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
-    },
-    setStartingMode: (state, action: PayloadAction<StartingMode>) => {
-      state.startingMode = action.payload;
     },
     setHasWon: (state, action: PayloadAction<boolean>) => {
       state.hasWon = action.payload;
@@ -170,7 +162,7 @@ const eccCalculatorSlice = createSlice({
     setSavedPoints: (state, action: PayloadAction<SavedPoint[]>) => {
       state.savedPoints = action.payload;
     },
-    setStartingPoint: (state, action: PayloadAction<SavedPoint | null>) => {
+    setStartingPoint: (state, action: PayloadAction<KnownPoint>) => {
       state.startingPoint = action.payload;
     },
     setChallengePublicKey: (state, action: PayloadAction<string>) => {
@@ -219,7 +211,17 @@ const eccCalculatorSlice = createSlice({
       state.selectedPoint = publicKeyToPoint(challengePublicKey);
       state.operations = [];
       state.savedPoints = [];
-      state.startingPoint = null;
+      // id: string;
+      // point: ECPoint;
+      // startingPoint: ECPoint;
+      // operations: Operation[];
+      // label: string;
+      // timestamp: number;
+      // privateKey?: bigint; // Stored private key when known
+      state.startingPoint = {
+        // TODO Populate this value, or the key somehow. I think this can be itself, because no operations means they are the same
+        // TODO Do I know the challenge key???
+      };
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -227,14 +229,14 @@ const eccCalculatorSlice = createSlice({
       state.lastOperationValue = null;
       state.hasWon = false;
       state.showVictoryModal = false;
-      state.startingMode = 'challenge';
       state.challengePublicKey = challengePublicKey;
     },
     resetToGenerator: state => {
+      // TODO Track down when this is used...
       state.selectedPoint = generatorPoint;
       state.operations = [];
       state.savedPoints = [];
-      state.startingPoint = null;
+      state.startingPoint = initialState.startingPoint;
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -242,7 +244,6 @@ const eccCalculatorSlice = createSlice({
       state.lastOperationValue = null;
       state.hasWon = false;
       state.showVictoryModal = false;
-      state.startingMode = 'generator';
     },
     savePoint: (state, action: PayloadAction<{ label?: string }>) => {
       const { label } = action.payload;
@@ -250,6 +251,7 @@ const eccCalculatorSlice = createSlice({
         ? publicKeyToPoint(state.challengePublicKey)
         : generatorPoint;
 
+      // TODO
       const startingPoint = state.startingPoint
         ? state.startingPoint.point
         : state.startingMode === 'challenge'
@@ -264,7 +266,6 @@ const eccCalculatorSlice = createSlice({
         id: `saved_${Date.now()}`,
         point: state.selectedPoint,
         startingPoint,
-        startingMode: state.startingPoint ? state.startingPoint.startingMode : state.startingMode,
         operations: allOperations,
         label: label || `Point ${state.savedPoints.length + 1}`,
         timestamp: Date.now(),
@@ -276,8 +277,7 @@ const eccCalculatorSlice = createSlice({
       const savedPoint = action.payload;
       state.selectedPoint = savedPoint.point;
       state.operations = [];
-      state.startingPoint = savedPoint;
-      state.startingMode = savedPoint.startingMode;
+      state.startingPoint = savedPoint.startingPoint;
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -287,6 +287,7 @@ const eccCalculatorSlice = createSlice({
       state.showVictoryModal = false;
     },
     checkWinCondition: state => {
+      // TODO If the challenge key has a known private key
       const challengePoint = state.challengePublicKey
         ? publicKeyToPoint(state.challengePublicKey)
         : null;
@@ -305,6 +306,7 @@ const eccCalculatorSlice = createSlice({
       const isAtInfinity = state.selectedPoint.isInfinity;
 
       const hasWonRound = (() => {
+        // TODO Redo this
         if (state.startingMode === 'challenge') {
           // Challenge -> G: win on generator point or infinity
           return isAtGenerator || isAtInfinity;
@@ -347,7 +349,6 @@ export const {
   setSelectedPoint,
   setOperations,
   setError,
-  setStartingMode,
   setHasWon,
   setShowVictoryModal,
   setCalculatorDisplay,

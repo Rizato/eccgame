@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { Challenge } from '../types/api';
 import { useECCCalculatorRedux } from '../hooks/useECCCalculatorRedux';
-import { calculatePrivateKeyByPointId } from '../utils/calculatePrivateKeyByPointId';
 import { getP2PKHAddress } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
-import { calculatePrivateKeyFromSavedPoint, type SavedPoint } from '../utils/privateKeyCalculation';
+import { calculatePrivateKey } from '../utils/privateKeyCalculation';
 import ECCCalculator from './ECCCalculator';
 import ECCGraph from './ECCGraph';
 import './ECCPlayground.css';
 import { Modal } from './Modal';
 import { VictoryModal } from './VictoryModal';
-import type { ECPoint } from '../utils/ecc';
+import type { ECPoint, KnownPoint, SavedPoint } from '../types/ecc';
+import { calculateChallengePrivateKey } from '../utils/victoryPrivateKeyCalculation.ts';
 
 interface ECCPlaygroundProps {
   challenge: Challenge;
@@ -32,11 +32,10 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     calculatorDisplay,
     pendingOperation,
     lastOperationValue,
-    startingMode,
     hasWon,
     showVictoryModal,
     savedPoints,
-    currentSavedPoint,
+    startingPoint,
     setCurrentPoint,
     setOperations,
     setError,
@@ -54,71 +53,72 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   const [challengeAddress, setChallengeAddress] = useState<string>('');
   const [showPointModal, setShowPointModal] = useState(false);
-  const [selectedPoint, setSelectedPoint] = useState<{
-    point: ECPoint;
-    id: string;
-    label: string;
-    savedPoint?: SavedPoint;
-  } | null>(null);
-  const [selectedPointAddress, setSelectedPointAddress] = useState<string>('');
+  const [selectedPoint, setSelectedPoint] = useState<KnownPoint | null>(null);
 
   const generatorPoint = getGeneratorPoint();
+
+  const victoryPrivateKey = calculateChallengePrivateKey(challenge, [
+    ...savedPoints,
+    {
+      id: 'current',
+      point: currentPoint,
+      startingPoint: startingPoint,
+      operations: operations,
+      label: 'current',
+    },
+    {
+      id: 'generator',
+      point: generatorPoint,
+      operations: [],
+      privateKey: 1n,
+      label: 'generator',
+    },
+    {
+      id: 'original',
+      point: publicKeyToPoint(challenge.public_key),
+      startingPoint: startingPoint,
+      operations: [],
+      privateKey:
+        isPracticeMode && practicePrivateKey !== undefined
+          ? BigInt('0x' + practicePrivateKey)
+          : undefined,
+      label: 'original',
+    },
+  ]);
 
   // Calculate the actual private key for a given point using shared utility
   const calculatePrivateKeyForPointWrapper = useCallback(
     (pointId: string): string | undefined => {
       // Check if this is a saved point
       const savedPoint = savedPoints.find(sp => sp.id === pointId);
-
       if (savedPoint) {
         // For saved points, use the full operation chain from the saved point
-        const result = calculatePrivateKeyFromSavedPoint(
-          savedPoint,
-          [], // No additional operations since we want the saved point's exact private key
-          isPracticeMode,
-          practicePrivateKey
-        );
+        const result = calculatePrivateKey(savedPoint);
         return result ? bigintToHex(result) : undefined;
       }
 
-      // Determine the starting private key based on current context
-      let startingPrivateKey: bigint | undefined = undefined;
-
-      if (currentSavedPoint) {
-        // We're building from a saved point - use its private key if known
-        startingPrivateKey = currentSavedPoint.privateKey;
-      } else {
-        // We're starting from a base point
-        if (startingMode === 'generator') {
-          // Started from generator point - we know private key is 1
-          startingPrivateKey = 1n;
-        } else if (startingMode === 'challenge' && isPracticeMode && practicePrivateKey) {
-          // Started from challenge point in practice mode - we know the private key
-          startingPrivateKey = BigInt('0x' + practicePrivateKey);
-        }
-        // If starting from challenge in daily mode, startingPrivateKey remains undefined
+      // If we know the point, we can populate
+      let privateKey = undefined;
+      if (pointId === 'generator') {
+        privateKey = 1n;
+      } else if (pointId === 'original') {
+        // TODO Should I calculate this somehow? What if we have already won, then we should know this
+        privateKey = practicePrivateKey != null ? BigInt('0x' + practicePrivateKey) : undefined;
+      } else if (pointId === 'current') {
+        // if we are looking for the current point, try to calculate it
+        // TODO Can we optimize how often we call this? Or cache the privateKey for the current point?
+        // TODO Make the current point a KnownPoint object
+        privateKey = calculatePrivateKey({
+          id: pointId,
+          point: currentPoint,
+          startingPoint: startingPoint,
+          operations: operations,
+          label: pointId,
+        });
       }
-
-      // For other points, use the existing logic
-      const result = calculatePrivateKeyByPointId(
-        pointId,
-        operations,
-        currentPoint,
-        startingPrivateKey,
-        isPracticeMode,
-        practicePrivateKey
-      );
-      return result ? bigintToHex(result) : undefined;
+      return privateKey ? bigintToHex(privateKey) : undefined;
     },
-    [
-      operations,
-      currentPoint,
-      startingMode,
-      currentSavedPoint,
-      isPracticeMode,
-      practicePrivateKey,
-      savedPoints,
-    ]
+    [operations, currentPoint, startingPoint, practicePrivateKey, savedPoints]
   );
 
   // Reset current point when challenge changes
@@ -175,6 +175,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   }, []);
 
   // Keyboard event handler
+  // TODO deduplicate, but I need to handle taps while the graph is in focus or whatever
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       // Don't handle if user is typing in an input field (except our calculator)
@@ -254,21 +255,37 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   const handlePointClick = useCallback(
     async (pointId: string, point: ECPoint, label: string, savedPoint?: SavedPoint) => {
-      setSelectedPoint({ point, id: pointId, label, savedPoint });
-
-      // Calculate address for the selected point
-      if (point.isInfinity) {
-        setSelectedPointAddress('Point at Infinity');
+      if (savedPoint) {
+        setSelectedPoint(savedPoint);
       } else {
-        try {
-          const pubKey = pointToPublicKey(point);
-          const address = await getP2PKHAddress(pubKey);
-          setSelectedPointAddress(address);
-        } catch {
-          setSelectedPointAddress('Invalid');
+        // Read ID to figure out which known point to use to populate the modal
+        if (pointId === 'generator') {
+          // TODO Don't create the generator KnownPoint over and over, read it
+          setSelectedPoint({
+            id: pointId,
+            point,
+            label,
+            privateKey: 1n,
+            operations: [],
+          });
+        } else if (pointId === 'original') {
+          // TODO Don't create the challenge KnownPoint over and over, read it
+          setSelectedPoint({
+            id: pointId,
+            point,
+            label,
+            operations: [],
+          });
+        } else if (pointId === 'current') {
+          setSelectedPoint({
+            id: pointId,
+            point: currentPoint,
+            startingPoint: startingPoint,
+            operations: operations,
+            label: pointId,
+          });
         }
       }
-
       setShowPointModal(true);
     },
     []
@@ -289,27 +306,14 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             currentPoint={currentPoint}
             operations={operations}
             savedPoints={savedPoints}
-            currentSavedPoint={currentSavedPoint}
+            startingPoint={startingPoint}
             challengePublicKey={challenge.public_key}
-            startingPrivateKey={(() => {
-              // Determine starting private key
-              if (currentSavedPoint) {
-                return currentSavedPoint.privateKey;
-              } else if (startingMode === 'generator') {
-                return 1n;
-              } else if (startingMode === 'challenge' && isPracticeMode && practicePrivateKey) {
-                return BigInt('0x' + practicePrivateKey);
-              }
-              return undefined;
-            })()}
             onPointChange={(point, operation) => {
               setCurrentPoint(point);
               setOperations([...operations, operation]);
             }}
             onError={setError}
             onSavePoint={saveCurrentPoint}
-            isPracticeMode={isPracticeMode}
-            practicePrivateKey={practicePrivateKey}
             isLocked={hasWon && !isPracticeMode}
           />
         </div>
@@ -322,13 +326,13 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         isPracticeMode={isPracticeMode}
         practicePrivateKey={practicePrivateKey}
         point={selectedPoint?.point}
-        savedPoint={selectedPoint?.savedPoint}
+        savedPoint={selectedPoint?.startingPoint}
         onLoadPoint={loadPoint}
         onRenamePoint={renameSavedPoint}
         pointData={
           selectedPoint
             ? {
-                address: selectedPointAddress,
+                address: pointToPublicKey(selectedPoint.point),
                 compressedKey: selectedPoint.point.isInfinity
                   ? '020000000000000000000000000000000000000000000000000000000000000000'
                   : (() => {
@@ -358,14 +362,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             // Allow continuing in practice mode
           }
         }}
+        savedPoints={savedPoints}
         operationCount={operations.length}
         challengeAddress={challengeAddress}
-        startingMode={startingMode}
-        targetPoint={currentPoint}
-        operations={operations}
-        currentSavedPoint={currentSavedPoint}
+        victoryPrivateKey={victoryPrivateKey ? '0x' + victoryPrivateKey.toString(16) : ''}
         isPracticeMode={isPracticeMode}
-        practicePrivateKey={practicePrivateKey}
       />
     </div>
   );
