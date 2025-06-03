@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   setGameMode,
@@ -15,13 +15,19 @@ import type { Challenge } from '../types/api';
 export function useGameStateRedux() {
   const dispatch = useAppDispatch();
   const gameState = useAppSelector(state => state.game);
+  const lastLoadRef = useRef<number>(0);
 
-  // Load daily challenge when mode changes to daily
+  // Load daily challenge when mode changes to daily (with debouncing)
   useEffect(() => {
-    if (gameState.gameMode === 'daily') {
-      dispatch(loadDailyChallenge());
+    if (gameState.gameMode === 'daily' && !gameState.challenge && !gameState.loading) {
+      const now = Date.now();
+      // Debounce: only load if it's been at least 2 seconds since last attempt
+      if (now - lastLoadRef.current > 2000) {
+        lastLoadRef.current = now;
+        dispatch(loadDailyChallenge());
+      }
     }
-  }, [gameState.gameMode, dispatch]);
+  }, [gameState.gameMode, gameState.challenge, gameState.loading, dispatch]);
 
   return {
     // State
