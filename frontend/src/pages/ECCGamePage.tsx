@@ -128,16 +128,6 @@ const ECCGamePage: React.FC = () => {
         <div className="challenge-info-row">
           <div className="challenge-info-card">
             <ChallengeInfo challenge={challenge} />
-
-            {hasWon && (
-              <div className="victory-banner">
-                <div className="victory-icon">🎉</div>
-                <div className="victory-text">
-                  <strong>Challenge Completed!</strong>
-                  <p>You've solved today's challenge. Come back tomorrow for a new one!</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
