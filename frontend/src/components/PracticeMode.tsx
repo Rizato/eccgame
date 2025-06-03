@@ -15,8 +15,17 @@ const PracticeMode: React.FC = () => {
 
   // Initialize with first challenge
   useEffect(() => {
-    generatePracticeChallenge();
-  }, [difficulty, generatePracticeChallenge]);
+    if (!practiceChallenge || isGenerating) {
+      generatePracticeChallenge();
+    }
+  }, [difficulty]);
+
+  // Generate initial challenge on mount
+  useEffect(() => {
+    if (!practiceChallenge && !isGenerating) {
+      generatePracticeChallenge();
+    }
+  }, []);
 
   const handleSolve = async (submittedPrivateKey: string) => {
     if (submittedPrivateKey === practicePrivateKey) {

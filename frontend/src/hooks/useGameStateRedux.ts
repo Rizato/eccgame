@@ -19,7 +19,7 @@ export function useGameStateRedux() {
 
   // Load daily challenge when mode changes to daily (with debouncing)
   useEffect(() => {
-    if (gameState.gameMode === 'daily' && !gameState.challenge && !gameState.loading) {
+    if (gameState.gameMode === 'daily' && !gameState.challenge) {
       const now = Date.now();
       // Debounce: only load if it's been at least 2 seconds since last attempt
       if (now - lastLoadRef.current > 2000) {
