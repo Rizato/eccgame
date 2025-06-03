@@ -528,8 +528,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           backspaceCalculator();
           break;
         case 'Escape':
-        case 'c':
-        case 'C':
           event.preventDefault();
           clearCalculator();
           break;
@@ -635,7 +633,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             <div className="number-section">
               <div className="button-row top-row">
                 <button onClick={clearCalculator} className="calc-button clear">
-                  C
+                  AC
                 </button>
                 <button onClick={quickAddG} className="calc-button quick-op add">
                   +1

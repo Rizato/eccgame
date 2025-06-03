@@ -30,18 +30,12 @@ const mockGuess: GuessResponse = {
   public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   signature:
     '304402207fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a002201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-  is_correct: false,
-  distance: '12345',
+  result: 'incorrect',
+  is_key_valid: true,
+  is_signature_valid: true,
+  validated_at: '2023-01-01T00:00:00Z',
   created_at: '2023-01-01T00:00:00Z',
-  keyData: {
-    privateKeyHex: '0000000000000000000000000000000000000000000000000000000000000001',
-    address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
-    compressedPublicKey: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
-    uncompressedPublicKey:
-      '0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
-    wif: 'KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn',
-    addressUncompressed: '1EHNa6Q4Jz2uvNExL497mE43ikXhwF6kZm',
-  },
+  challenge: 'challenge-123',
 };
 
 const challengeUuid = 'challenge-123';

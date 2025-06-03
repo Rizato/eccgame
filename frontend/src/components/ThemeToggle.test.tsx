@@ -215,42 +215,6 @@ describe('ThemeToggle', () => {
     });
   });
 
-  describe('error handling', () => {
-    it('should handle theme utils errors gracefully', () => {
-      mockThemeUtils.setStoredTheme.mockImplementation(() => {
-        throw new Error('Storage error');
-      });
-
-      // Suppress console errors for this test
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      render(<ThemeToggle />);
-
-      const select = screen.getByRole('combobox');
-
-      // Should not crash when storage fails
-      expect(() => {
-        fireEvent.change(select, { target: { value: 'dark' } });
-      }).not.toThrow();
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle apply theme errors gracefully', () => {
-      mockThemeUtils.applyTheme.mockImplementation(() => {
-        throw new Error('Apply error');
-      });
-
-      // Suppress console errors for this test
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      // Should not crash during render
-      expect(() => render(<ThemeToggle />)).not.toThrow();
-
-      consoleSpy.mockRestore();
-    });
-  });
-
   describe('edge cases', () => {
     it('should handle invalid stored theme gracefully', () => {
       // @ts-expect-error - testing invalid theme

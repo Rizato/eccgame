@@ -8,7 +8,8 @@ import {
   modInverse,
   CURVE_N,
 } from '../utils/ecc';
-import { calculateKeyFromOperations, type Operation } from '../utils/privateKeyCalculation';
+import { calculateKeyFromOperations } from '../utils/privateKeyCalculation';
+import type { Operation } from '../types/ecc';
 
 describe('ECCPlayground Private Key Calculations', () => {
   const generatorPoint = getGeneratorPoint();
