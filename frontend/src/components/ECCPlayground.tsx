@@ -176,36 +176,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     calculateChallengeAddress();
   }, [challenge.public_key]);
 
-  // Calculate progress based on private key distance in practice mode
-  const progress =
-    isPracticeMode && practicePrivateKey
-      ? (() => {
-          try {
-            const targetPrivateKey = BigInt('0x' + practicePrivateKey);
-            const startingPoint = publicKeyToPoint(challenge.public_key);
-
-            // Convert operations to expected format for estimation
-            const convertedOperations = operations.map(op => ({
-              type: op.type,
-              value: op.value ? BigInt(op.value) : op.point || { x: 0n, y: 0n, isInfinity: true },
-            }));
-
-            // Estimate current private key from operations
-            const estimatedPrivateKey = estimatePrivateKeyFromOperations(
-              convertedOperations,
-              startingPoint,
-              generatorPoint
-            );
-
-            // Calculate progress based on private key distance
-            return getPrivateKeyDistance(estimatedPrivateKey, targetPrivateKey);
-          } catch {
-            // Fallback: basic progress based on whether we've won
-            return hasWonRound ? 100 : 0;
-          }
-        })()
-      : null;
-
   // Forward declare the executeCalculatorOperation function reference
   const executeCalculatorOperationRef = useRef<
     ((operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => void) | null
@@ -264,29 +234,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     // TODO: Implement this in Redux
     console.warn('Rename saved point not yet implemented in Redux');
   }, []);
-
-  // Submit solution attempt (keeping for backward compatibility, but victory modal is primary)
-  const submitSolution = useCallback(async () => {
-    if (!hasWonRound) {
-      const targetName =
-        startingMode === 'challenge'
-          ? 'generator point (G) or point at infinity'
-          : 'challenge point or point at infinity';
-      setError(`You must reach the ${targetName} to submit a solution`);
-      return;
-    }
-
-    try {
-      // For now, we'll use a placeholder private key
-      // In a full implementation, we'd reconstruct it from operations
-      const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
-      await onSolve(privateKey);
-    } catch (error) {
-      setError(
-        `Solution submission failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
-  }, [hasWonRound, onSolve, startingMode]);
 
   // Keyboard event handler
   useEffect(() => {
@@ -674,33 +621,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
                   ? '0000000000000000000000000000000000000000000000000000000000000000'
                   : bigintToHex(selectedPoint.point.y),
                 privateKey: calculatePrivateKeyForPointWrapper(selectedPoint.id),
-                distanceToTarget:
-                  selectedPoint.id === 'current' && isPracticeMode && practicePrivateKey
-                    ? (() => {
-                        try {
-                          const targetPrivateKey = BigInt('0x' + practicePrivateKey);
-                          const startingPoint = publicKeyToPoint(challenge.public_key);
-                          const convertedOperations = operations.map(op => ({
-                            type: op.type,
-                            value: op.value
-                              ? BigInt(op.value)
-                              : op.point || { x: 0n, y: 0n, isInfinity: true },
-                          }));
-                          const estimatedPrivateKey = estimatePrivateKeyFromOperations(
-                            convertedOperations,
-                            startingPoint,
-                            targetPoint
-                          );
-                          const distance = getPrivateKeyDistance(
-                            estimatedPrivateKey,
-                            targetPrivateKey
-                          );
-                          return `${distance.toFixed(3)}% similarity`;
-                        } catch {
-                          return 'Unable to calculate';
-                        }
-                      })()
-                    : undefined,
               }
             : undefined
         }

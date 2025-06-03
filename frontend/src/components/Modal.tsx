@@ -23,7 +23,6 @@ interface ModalProps {
     xCoordinate: string;
     yCoordinate: string;
     privateKey?: string;
-    distanceToTarget?: string;
   };
   // Point loading and saved point operations
   pointId?: string;
@@ -144,15 +143,6 @@ export const Modal: React.FC<ModalProps> = ({
                 </button>
               </div>
             </div>
-          )}
-
-          {/* Distance to Target (Point data only) */}
-          {pointData?.distanceToTarget && (
-            <ModalItem
-              label="Distance to Target"
-              value={pointData.distanceToTarget}
-              onCopy={() => navigator.clipboard.writeText(pointData.distanceToTarget || '')}
-            />
           )}
 
           {/* Compressed Key */}
