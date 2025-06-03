@@ -28,13 +28,10 @@ export interface PointGraph {
   pointToNodeId: Map<string, string>; // point hash -> node id for quick lookup
 }
 
-export interface KnownPoint {
+export interface SavedPoint {
   id: string;
   point: ECPoint;
   label: string;
-}
-
-export interface SavedPoint extends KnownPoint {
   timestamp: number;
 }
 

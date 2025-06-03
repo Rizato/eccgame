@@ -10,7 +10,7 @@ import ECCGraph from './ECCGraph';
 import './ECCPlayground.css';
 import { Modal } from './Modal';
 import { VictoryModal } from './VictoryModal';
-import type { ECPoint, KnownPoint, SavedPoint } from '../types/ecc';
+import type { ECPoint } from '../types/ecc';
 import { calculateChallengePrivateKeyFromGraph } from '../utils/graphPrivateKeyCalculation';
 
 interface ECCPlaygroundProps {
@@ -52,7 +52,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   const [challengeAddress, setChallengeAddress] = useState<string>('');
   const [showPointModal, setShowPointModal] = useState(false);
-  const [selectedPoint, setSelectedPoint] = useState<KnownPoint | null>(null);
+  const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
 
   const generatorPoint = getGeneratorPoint();
 
@@ -72,40 +72,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     const path = findPath(graph, generatorNode.id, challengeNode.id);
     return path ? path.length : 0;
   }, [graph]);
-
-  // Calculate the actual private key for a given point using shared utility
-  const calculatePrivateKeyForPointWrapper = useCallback(
-    (pointId: string): string | undefined => {
-      let point: ECPoint | undefined;
-
-      // Check if this is a saved point
-      const savedPoint = savedPoints.find(sp => sp.id === pointId);
-      if (savedPoint) {
-        point = savedPoint.point;
-      } else if (pointId === 'generator') {
-        point = generatorPoint;
-      } else if (pointId === 'original') {
-        point = publicKeyToPoint(challenge.public_key);
-      } else if (pointId === 'current') {
-        point = currentPoint;
-      }
-
-      if (!point) return undefined;
-
-      // Calculate from graph
-      const privateKey = calculatePrivateKeyFromGraph(point, graph);
-      return privateKey ? bigintToHex(privateKey) : undefined;
-    },
-    [
-      currentPoint,
-      graph,
-      generatorPoint,
-      challenge.public_key,
-      practicePrivateKey,
-      isPracticeMode,
-      savedPoints,
-    ]
-  );
 
   // Reset current point when challenge changes
   useEffect(() => {
@@ -138,7 +104,15 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Load any point (for modal actions)
   const loadPoint = useCallback(
-    (point: ECPoint, savedPoint?: SavedPoint) => {
+    (point: ECPoint) => {
+      // Check if this is a saved point
+      const savedPoint = savedPoints.find(
+        sp =>
+          sp.point.x === point.x &&
+          sp.point.y === point.y &&
+          sp.point.isInfinity === point.isInfinity
+      );
+
       if (savedPoint) {
         loadSavedPoint(savedPoint);
       } else {
@@ -151,14 +125,15 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         }
       }
     },
-    [loadSavedPoint, generatorPoint, resetToGenerator, resetToChallenge, challenge.public_key]
+    [
+      loadSavedPoint,
+      savedPoints,
+      generatorPoint,
+      resetToGenerator,
+      resetToChallenge,
+      challenge.public_key,
+    ]
   );
-
-  // Rename saved point (TODO: Add to Redux)
-  const renameSavedPoint = useCallback((_savedPoint: SavedPoint, _newLabel: string) => {
-    // TODO: Implement this in Redux
-    console.warn('Rename saved point not yet implemented in Redux');
-  }, []);
 
   // Keyboard event handler
   // TODO deduplicate, but I need to handle taps while the graph is in focus or whatever
@@ -234,51 +209,16 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     setCalculatorOperation,
     backspaceCalculator,
     clearCalculator,
+    executeEquals,
     pendingOperation,
     calculatorDisplay,
     lastOperationValue,
   ]);
 
-  const handlePointClick = useCallback(
-    async (point: ECPoint, savedPoint?: SavedPoint) => {
-      if (savedPoint) {
-        setSelectedPoint(savedPoint);
-      } else {
-        // Look up point information from the graph
-        const node = findNodeByPoint(graph, point);
-        const generatorPoint = getGeneratorPoint();
-        const challengePoint = publicKeyToPoint(challenge.public_key);
-
-        let label = 'Unknown Point';
-        let id = 'unknown';
-
-        if (node) {
-          label = node.label;
-          id = node.id;
-        } else {
-          // Fallback for points not in graph
-          if (point.x === generatorPoint.x && point.y === generatorPoint.y) {
-            label = 'Generator (G)';
-            id = 'generator';
-          } else if (point.x === challengePoint.x && point.y === challengePoint.y) {
-            label = 'Challenge Point';
-            id = 'challenge';
-          } else if (point.x === currentPoint.x && point.y === currentPoint.y) {
-            label = 'Current Point';
-            id = 'current';
-          }
-        }
-
-        setSelectedPoint({
-          id,
-          point,
-          label,
-        });
-      }
-      setShowPointModal(true);
-    },
-    [graph, challenge.public_key, currentPoint]
-  );
+  const handlePointClick = useCallback((point: ECPoint) => {
+    setModalPoint(point);
+    setShowPointModal(true);
+  }, []);
 
   return (
     <div className="ecc-playground">
@@ -295,7 +235,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             currentPoint={currentPoint}
             savedPoints={savedPoints}
             challengePublicKey={challenge.public_key}
-            onPointChange={(point, operation) => {
+            onPointChange={(point, _operation) => {
               setCurrentPoint(point);
             }}
             onError={setError}
@@ -306,35 +246,66 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       </div>
 
       <Modal
-        isOpen={showPointModal && !!selectedPoint}
+        isOpen={showPointModal && !!modalPoint}
         onClose={() => setShowPointModal(false)}
-        title={selectedPoint ? `${selectedPoint.label} Point Information` : ''}
+        title={(() => {
+          if (!modalPoint) return '';
+
+          // Look up point information from the graph
+          const node = findNodeByPoint(graph, modalPoint);
+          if (node) {
+            return `${node.label} Point Information`;
+          }
+
+          // Fallback for points not in graph
+          const generatorPoint = getGeneratorPoint();
+          const challengePoint = publicKeyToPoint(challenge.public_key);
+
+          if (modalPoint.x === generatorPoint.x && modalPoint.y === generatorPoint.y) {
+            return 'Generator (G) Point Information';
+          } else if (modalPoint.x === challengePoint.x && modalPoint.y === challengePoint.y) {
+            return 'Challenge Point Information';
+          } else if (modalPoint.x === currentPoint.x && modalPoint.y === currentPoint.y) {
+            return 'Current Point Information';
+          }
+
+          return 'Point Information';
+        })()}
         isPracticeMode={isPracticeMode}
         practicePrivateKey={practicePrivateKey}
-        point={selectedPoint?.point}
-        savedPoint={selectedPoint?.startingPoint}
+        point={modalPoint}
         onLoadPoint={loadPoint}
-        onRenamePoint={renameSavedPoint}
         pointData={
-          selectedPoint
+          modalPoint
             ? {
-                address: pointToPublicKey(selectedPoint.point),
-                compressedKey: selectedPoint.point.isInfinity
+                address: modalPoint.isInfinity
+                  ? 'Point at Infinity'
+                  : (() => {
+                      try {
+                        return pointToPublicKey(modalPoint);
+                      } catch {
+                        return 'Invalid';
+                      }
+                    })(),
+                compressedKey: modalPoint.isInfinity
                   ? '020000000000000000000000000000000000000000000000000000000000000000'
                   : (() => {
                       try {
-                        return pointToPublicKey(selectedPoint.point);
+                        return pointToPublicKey(modalPoint);
                       } catch {
                         return 'Invalid point';
                       }
                     })(),
-                xCoordinate: selectedPoint.point.isInfinity
+                xCoordinate: modalPoint.isInfinity
                   ? '0000000000000000000000000000000000000000000000000000000000000000'
-                  : bigintToHex(selectedPoint.point.x),
-                yCoordinate: selectedPoint.point.isInfinity
+                  : bigintToHex(modalPoint.x),
+                yCoordinate: modalPoint.isInfinity
                   ? '0000000000000000000000000000000000000000000000000000000000000000'
-                  : bigintToHex(selectedPoint.point.y),
-                privateKey: calculatePrivateKeyForPointWrapper(selectedPoint.id),
+                  : bigintToHex(modalPoint.y),
+                privateKey: (() => {
+                  const privateKey = calculatePrivateKeyFromGraph(modalPoint, graph);
+                  return privateKey ? bigintToHex(privateKey) : undefined;
+                })(),
               }
             : undefined
         }

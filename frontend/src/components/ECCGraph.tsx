@@ -1,12 +1,12 @@
 import React, { useCallback } from 'react';
 import { useAppSelector } from '../store/hooks';
 import { getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
-import type { ECPoint, SavedPoint } from '../types/ecc';
+import type { ECPoint } from '../types/ecc';
 import './ECCGraph.css';
 
 interface ECCGraphProps {
   challengePublicKey: string;
-  onPointClick: (point: ECPoint, savedPoint?: SavedPoint) => void;
+  onPointClick: (point: ECPoint) => void;
 }
 
 interface GraphPoint {
@@ -17,7 +17,6 @@ interface GraphPoint {
   color: string;
   description: string;
   point: ECPoint;
-  savedPoint?: SavedPoint;
   type: 'generator' | 'challenge' | 'saved' | 'current';
   isOverlapping?: boolean;
   overlappingPoints?: GraphPoint[];
@@ -87,7 +86,6 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
           color: '#8b5cf6', // purple for saved points
           description: `Saved point: ${savedPoint.label}`,
           point: savedPoint.point,
-          savedPoint,
           type: 'saved',
         });
       }
@@ -205,7 +203,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
               } as React.CSSProperties
             }
             title={point.description}
-            onClick={() => onPointClick(point.point, point.savedPoint)}
+            onClick={() => onPointClick(point.point)}
           >
             <div
               className="point-dot"

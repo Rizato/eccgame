@@ -2,8 +2,7 @@ import React, { type ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { publicKeyToPoint } from '../utils/ecc';
 import type { Challenge } from '../types/api';
-import type { ECPoint } from '../utils/ecc';
-import type { SavedPoint } from '../types/ecc';
+import type { ECPoint } from '../types/ecc';
 import './Modal.css';
 
 interface ModalProps {
@@ -24,12 +23,9 @@ interface ModalProps {
     yCoordinate: string;
     privateKey?: string;
   };
-  // Point loading and saved point operations
-  pointId?: string;
-  point?: ECPoint;
-  savedPoint?: SavedPoint;
-  onLoadPoint?: (point: ECPoint, savedPoint?: SavedPoint) => void;
-  onRenamePoint?: (savedPoint: SavedPoint, newLabel: string) => void;
+  // Point loading operations
+  point: ECPoint | null;
+  onLoadPoint?: (point: ECPoint) => void;
 }
 
 interface ModalItemProps {
@@ -49,13 +45,9 @@ export const Modal: React.FC<ModalProps> = ({
   practicePrivateKey,
   pointData,
   point,
-  savedPoint,
   onLoadPoint,
-  onRenamePoint,
 }) => {
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [newLabel, setNewLabel] = useState('');
 
   if (!isOpen) return null;
 
@@ -285,71 +277,12 @@ export const Modal: React.FC<ModalProps> = ({
               <button
                 className="action-button primary"
                 onClick={() => {
-                  onLoadPoint(point, savedPoint);
+                  onLoadPoint(point);
                   onClose();
                 }}
               >
                 Set as Current Point
               </button>
-            )}
-
-            {/* Rename button for saved points */}
-            {savedPoint && onRenamePoint && (
-              <>
-                {!isRenaming ? (
-                  <button
-                    className="action-button secondary"
-                    onClick={() => {
-                      setIsRenaming(true);
-                      setNewLabel(savedPoint.label);
-                    }}
-                  >
-                    Rename
-                  </button>
-                ) : (
-                  <div className="rename-section">
-                    <input
-                      type="text"
-                      value={newLabel}
-                      onChange={e => setNewLabel(e.target.value)}
-                      placeholder="Enter new name"
-                      autoFocus
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && newLabel.trim()) {
-                          onRenamePoint(savedPoint, newLabel.trim());
-                          setIsRenaming(false);
-                          onClose();
-                        } else if (e.key === 'Escape') {
-                          setIsRenaming(false);
-                          setNewLabel('');
-                        }
-                      }}
-                    />
-                    <button
-                      className="action-button small primary"
-                      disabled={!newLabel.trim()}
-                      onClick={() => {
-                        if (newLabel.trim()) {
-                          onRenamePoint(savedPoint, newLabel.trim());
-                          setIsRenaming(false);
-                          onClose();
-                        }
-                      }}
-                    >
-                      Save
-                    </button>
-                    <button
-                      className="action-button small secondary"
-                      onClick={() => {
-                        setIsRenaming(false);
-                        setNewLabel('');
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
-              </>
             )}
           </div>
         </div>
