@@ -11,12 +11,33 @@ import {
   hexToBigint,
   CURVE_N,
 } from '../../utils/ecc';
-import type { ECPoint, KnownPoint, Operation, SavedPoint } from '../../types/ecc';
+import type {
+  ECPoint,
+  KnownPoint,
+  Operation,
+  SavedPoint,
+  PointGraph,
+  GraphNode,
+} from '../../types/ecc';
+import {
+  createEmptyGraph,
+  addNode,
+  addEdge,
+  findNodeByPoint,
+  hasPath,
+  calculateNodePrivateKey,
+  pointToHash,
+} from '../../utils/pointGraph';
+import { updateAllPrivateKeys } from '../../utils/graphPrivateKeyCalculation';
 
 interface ECCCalculatorState {
   selectedPoint: ECPoint;
+  selectedNodeId: string | null;
   operations: Operation[];
   startingPoint: KnownPoint;
+  graph: PointGraph;
+  generatorNodeId: string | null;
+  challengeNodeId: string | null;
   error: string | null;
   currentAddress: string;
   calculatorDisplay: string;
@@ -31,16 +52,34 @@ interface ECCCalculatorState {
 
 const generatorPoint = getGeneratorPoint();
 
+// Initialize graph with generator point
+const initializeGraph = (): { graph: PointGraph; generatorNodeId: string } => {
+  const graph = createEmptyGraph();
+  const generatorNode = addNode(graph, generatorPoint, {
+    id: 'generator',
+    label: 'Generator (G)',
+    privateKey: 1n,
+    isGenerator: true,
+  });
+  return { graph, generatorNodeId: generatorNode.id };
+};
+
+const { graph: initialGraph, generatorNodeId: initialGeneratorNodeId } = initializeGraph();
+
 const initialState: ECCCalculatorState = {
   selectedPoint: generatorPoint,
+  selectedNodeId: initialGeneratorNodeId,
   operations: [],
   startingPoint: {
     id: 'generator',
     point: generatorPoint,
     operations: [],
     label: 'generator',
-    privateKey: 1n, // Stored private key when known
+    privateKey: 1n,
   },
+  graph: initialGraph,
+  generatorNodeId: initialGeneratorNodeId,
+  challengeNodeId: null,
   error: null,
   currentAddress: '',
   calculatorDisplay: '',
@@ -77,7 +116,7 @@ export const executeCalculatorOperation = createAsyncThunk(
     { getState, dispatch }
   ) => {
     const state = getState() as any;
-    const { selectedPoint, operations } = state.eccCalculator;
+    const { selectedPoint, selectedNodeId, graph } = state.eccCalculator;
 
     try {
       let operationValue: bigint;
@@ -97,28 +136,53 @@ export const executeCalculatorOperation = createAsyncThunk(
       switch (operation) {
         case 'multiply':
           newPoint = pointMultiply(selectedPoint, operationValue);
-          operationRecord = { type: 'multiply', value: operationValue };
+          operationRecord = {
+            id: `op_${Date.now()}`,
+            type: 'multiply',
+            value: operationValue.toString(),
+            description: `× ${operationValue.toString()}`,
+          };
           break;
         case 'divide':
           newPoint = pointDivide(selectedPoint, operationValue);
-          operationRecord = { type: 'divide', value: operationValue };
+          operationRecord = {
+            id: `op_${Date.now()}`,
+            type: 'divide',
+            value: operationValue.toString(),
+            description: `÷ ${operationValue.toString()}`,
+          };
           break;
         case 'add':
           const addPoint = publicKeyToPoint('02' + operationValue.toString(16).padStart(64, '0'));
           newPoint = pointAdd(selectedPoint, addPoint);
-          operationRecord = { type: 'add', value: operationValue };
+          operationRecord = {
+            id: `op_${Date.now()}`,
+            type: 'add',
+            value: operationValue.toString(),
+            description: `+ ${operationValue.toString()}`,
+          };
           break;
         case 'subtract':
           const subPoint = publicKeyToPoint('02' + operationValue.toString(16).padStart(64, '0'));
           newPoint = pointSubtract(selectedPoint, subPoint);
-          operationRecord = { type: 'subtract', value: operationValue };
+          operationRecord = {
+            id: `op_${Date.now()}`,
+            type: 'subtract',
+            value: operationValue.toString(),
+            description: `- ${operationValue.toString()}`,
+          };
           break;
         default:
           throw new Error('Invalid operation');
       }
 
-      // Return data for reducer to handle
-      return { point: newPoint, operation: operationRecord, value };
+      // Return data for reducer to handle graph updates
+      return {
+        point: newPoint,
+        operation: operationRecord,
+        value,
+        fromNodeId: selectedNodeId,
+      };
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Operation failed');
     }
@@ -131,6 +195,9 @@ const eccCalculatorSlice = createSlice({
   reducers: {
     setSelectedPoint: (state, action: PayloadAction<ECPoint>) => {
       state.selectedPoint = action.payload;
+      // Update selected node ID based on the point
+      const node = findNodeByPoint(state.graph, action.payload);
+      state.selectedNodeId = node?.id || null;
     },
     setOperations: (state, action: PayloadAction<Operation[]>) => {
       state.operations = action.payload;
@@ -167,7 +234,17 @@ const eccCalculatorSlice = createSlice({
     },
     setChallengePublicKey: (state, action: PayloadAction<string>) => {
       state.challengePublicKey = action.payload;
-      state.selectedPoint = publicKeyToPoint(action.payload);
+      const challengePoint = publicKeyToPoint(action.payload);
+      state.selectedPoint = challengePoint;
+
+      // Add challenge node to graph
+      const challengeNode = addNode(state.graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge Point',
+        isChallenge: true,
+      });
+      state.challengeNodeId = challengeNode.id;
+      state.selectedNodeId = challengeNode.id;
     },
     clearCalculator: state => {
       state.calculatorDisplay = '';
@@ -287,38 +364,14 @@ const eccCalculatorSlice = createSlice({
       state.showVictoryModal = false;
     },
     checkWinCondition: state => {
-      // TODO If the challenge key has a known private key
-      const challengePoint = state.challengePublicKey
-        ? publicKeyToPoint(state.challengePublicKey)
-        : null;
+      // Win condition: there's a path from challenge to generator in the graph
+      if (state.challengeNodeId && state.generatorNodeId) {
+        const hasConnection = hasPath(state.graph, state.challengeNodeId, state.generatorNodeId);
 
-      const isAtGenerator =
-        state.selectedPoint.x === generatorPoint.x &&
-        state.selectedPoint.y === generatorPoint.y &&
-        !state.selectedPoint.isInfinity;
-
-      const isAtChallengePoint =
-        challengePoint &&
-        state.selectedPoint.x === challengePoint.x &&
-        state.selectedPoint.y === challengePoint.y &&
-        !state.selectedPoint.isInfinity;
-
-      const isAtInfinity = state.selectedPoint.isInfinity;
-
-      const hasWonRound = (() => {
-        // TODO Redo this
-        if (state.startingMode === 'challenge') {
-          // Challenge -> G: win on generator point or infinity
-          return isAtGenerator || isAtInfinity;
-        } else {
-          // G -> Challenge: win on challenge point or infinity
-          return isAtChallengePoint || isAtInfinity;
+        if (hasConnection && !state.hasWon) {
+          state.hasWon = true;
+          state.showVictoryModal = true;
         }
-      })();
-
-      if (hasWonRound && !state.hasWon) {
-        state.hasWon = true;
-        state.showVictoryModal = true;
       }
     },
   },
@@ -331,13 +384,39 @@ const eccCalculatorSlice = createSlice({
         state.currentAddress = 'Invalid';
       })
       .addCase(executeCalculatorOperation.fulfilled, (state, action) => {
-        const { point, operation, value } = action.payload;
+        const { point, operation, value, fromNodeId } = action.payload;
+
+        // Add new node for the resulting point (or get existing one)
+        const toNode = addNode(state.graph, point, {
+          label: `Point from ${operation.description}`,
+        });
+
+        // Add edge from current node to new node
+        if (fromNodeId) {
+          addEdge(state.graph, fromNodeId, toNode.id, operation);
+        }
+
+        // Update all private keys in the graph
+        updateAllPrivateKeys(state.graph);
+
+        // Update current state
         state.selectedPoint = point;
+        state.selectedNodeId = toNode.id;
         state.operations = [...state.operations, operation];
         state.lastOperationValue = value;
         state.calculatorDisplay = '';
         state.pendingOperation = null;
         state.error = null;
+
+        // Check win condition after each operation
+        if (state.challengeNodeId && state.generatorNodeId) {
+          const hasConnection = hasPath(state.graph, state.challengeNodeId, state.generatorNodeId);
+
+          if (hasConnection && !state.hasWon) {
+            state.hasWon = true;
+            state.showVictoryModal = true;
+          }
+        }
       })
       .addCase(executeCalculatorOperation.rejected, (state, action) => {
         state.error = action.error.message || 'Operation failed';

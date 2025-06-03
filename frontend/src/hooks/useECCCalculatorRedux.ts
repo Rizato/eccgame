@@ -50,6 +50,7 @@ export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode
     currentPoint: eccState.selectedPoint,
     operations: eccState.operations,
     startingPoint: eccState.startingPoint,
+    graph: eccState.graph,
     error: eccState.error,
     currentAddress: eccState.currentAddress,
     calculatorDisplay: eccState.calculatorDisplay,

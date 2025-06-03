@@ -10,7 +10,7 @@ import './ECCPlayground.css';
 import { Modal } from './Modal';
 import { VictoryModal } from './VictoryModal';
 import type { ECPoint, KnownPoint, SavedPoint } from '../types/ecc';
-import { calculateChallengePrivateKey } from '../utils/victoryPrivateKeyCalculation.ts';
+import { calculateChallengePrivateKeyFromGraph } from '../utils/graphPrivateKeyCalculation';
 
 interface ECCPlaygroundProps {
   challenge: Challenge;
@@ -36,6 +36,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     showVictoryModal,
     savedPoints,
     startingPoint,
+    graph,
     setCurrentPoint,
     setOperations,
     setError,
@@ -57,34 +58,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   const generatorPoint = getGeneratorPoint();
 
-  const victoryPrivateKey = calculateChallengePrivateKey(challenge, [
-    ...savedPoints,
-    {
-      id: 'current',
-      point: currentPoint,
-      startingPoint: startingPoint,
-      operations: operations,
-      label: 'current',
-    },
-    {
-      id: 'generator',
-      point: generatorPoint,
-      operations: [],
-      privateKey: 1n,
-      label: 'generator',
-    },
-    {
-      id: 'original',
-      point: publicKeyToPoint(challenge.public_key),
-      startingPoint: startingPoint,
-      operations: [],
-      privateKey:
-        isPracticeMode && practicePrivateKey !== undefined
-          ? BigInt('0x' + practicePrivateKey)
-          : undefined,
-      label: 'original',
-    },
-  ]);
+  const victoryPrivateKey = calculateChallengePrivateKeyFromGraph(challenge, graph);
 
   // Calculate the actual private key for a given point using shared utility
   const calculatePrivateKeyForPointWrapper = useCallback(
