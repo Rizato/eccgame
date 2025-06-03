@@ -56,7 +56,9 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   const generatorPoint = getGeneratorPoint();
 
-  const victoryPrivateKey = calculateChallengePrivateKeyFromGraph(challenge, graph);
+  const victoryPrivateKey = useMemo(() => {
+    return calculateChallengePrivateKeyFromGraph(challenge, graph);
+  }, [challenge, graph]);
 
   // Calculate shortest path length from generator to challenge
   const shortestPathLength = useMemo(() => {
