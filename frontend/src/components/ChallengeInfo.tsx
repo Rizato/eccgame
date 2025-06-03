@@ -139,8 +139,8 @@ const ChallengeInfo: React.FC = () => {
             <div className="info-section">
               <label>Tags:</label>
               <div className="metadata-tags">
-                {currentChallenge.metadata.map(meta => (
-                  <span key={meta.id} className="tag">
+                {currentChallenge.metadata.map((meta, index) => (
+                  <span key={meta.name || index} className="tag">
                     {meta.name}
                   </span>
                 ))}

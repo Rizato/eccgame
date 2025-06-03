@@ -68,7 +68,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   // Reset current point when challenge changes
   useEffect(() => {
     resetToChallenge(challenge.public_key);
-  }, [challenge.public_key, resetToChallenge]);
+  }, [challenge.public_key]);
 
   // Calculate challenge address (this doesn't change during the session)
   useEffect(() => {
@@ -117,14 +117,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         }
       }
     },
-    [
-      loadSavedPoint,
-      savedPoints,
-      generatorPoint,
-      resetToGenerator,
-      resetToChallenge,
-      challenge.public_key,
-    ]
+    [savedPoints, generatorPoint, challenge.public_key]
   );
 
   const handlePointClick = useCallback((point: ECPoint) => {

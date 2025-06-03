@@ -100,7 +100,7 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
 
     // Calculate private keys for nodes reachable via outgoing edges
     for (const edge of outgoingEdges) {
-      const targetNode = graph.nodes.get(edge.toNodeId);
+      const targetNode = graph.nodes[edge.toNodeId];
       if (targetNode && targetNode.privateKey === undefined && !visited.has(targetNode.id)) {
         const calculatedKey = calculateKeyFromOperations([edge.operation], currentNode.privateKey!);
         targetNode.privateKey = calculatedKey;
@@ -111,7 +111,7 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
 
     // Calculate private keys for nodes that reach this node via incoming edges
     for (const edge of incomingEdges) {
-      const sourceNode = graph.nodes.get(edge.fromNodeId);
+      const sourceNode = graph.nodes[edge.fromNodeId];
       if (sourceNode && sourceNode.privateKey === undefined && !visited.has(sourceNode.id)) {
         // We need to reverse the operation to go backwards
         const reversedOperation = reverseOperation(edge.operation);

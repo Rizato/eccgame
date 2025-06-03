@@ -27,7 +27,7 @@ export function useGameStateRedux() {
         dispatch(loadDailyChallenge());
       }
     }
-  }, [gameState.gameMode, gameState.challenge, gameState.loading, dispatch]);
+  }, [gameState.gameMode, gameState.challenge]);
 
   return {
     // State
