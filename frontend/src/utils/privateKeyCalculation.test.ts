@@ -8,11 +8,8 @@ import {
   pointMultiply,
   pointSubtract,
 } from './ecc';
-import {
-  calculateKeyFromOperations,
-  calculatePrivateKey,
-  type Operation,
-} from './privateKeyCalculation';
+import { calculateKeyFromOperations } from './privateKeyCalculation';
+import type { Operation } from '../types/ecc';
 
 describe('Private Key Calculation Tests', () => {
   const generatorPoint = getGeneratorPoint();
@@ -92,39 +89,6 @@ describe('Private Key Calculation Tests', () => {
       const result = calculateKeyFromOperations(operations, 10n);
       // (10 + CURVE_N + 5) % CURVE_N = 15
       expect(result).toBe(15n);
-    });
-  });
-
-  describe('calculateCurrentPrivateKey', () => {
-    it('should return 1n for generator point', () => {
-      const operations: Operation[] = [];
-      const result = calculatePrivateKey(operations, 'generator');
-      expect(result).toBe(1n);
-    });
-
-    it('should calculate private key for scalar operations from G', () => {
-      const doubledPoint = pointMultiply(2n, generatorPoint);
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2' },
-      ];
-
-      const result = calculatePrivateKey(operations, 'generator');
-      expect(result).toBe(2n);
-    });
-
-    it('should calculate private key in practice mode', () => {
-      const doubledPoint = pointMultiply(2n, generatorPoint);
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2' },
-      ];
-
-      const result = calculatePrivateKey(
-        operations,
-        'generator',
-        true,
-        '0000000000000000000000000000000000000000000000000000000000000001'
-      );
-      expect(result).toBe(2n);
     });
   });
 
