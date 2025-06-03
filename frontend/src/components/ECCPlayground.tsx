@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import type { Challenge } from '../types/api';
 import { useECCCalculatorRedux } from '../hooks/useECCCalculatorRedux';
 import { getP2PKHAddress } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
-import { calculatePrivateKey } from '../utils/privateKeyCalculation';
+import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
+import { findNodeByPoint, findPath } from '../utils/pointGraph';
 import ECCCalculator from './ECCCalculator';
 import ECCGraph from './ECCGraph';
 import './ECCPlayground.css';
@@ -27,7 +28,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 }) => {
   const {
     currentPoint,
-    operations,
     error,
     calculatorDisplay,
     pendingOperation,
@@ -35,10 +35,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     hasWon,
     showVictoryModal,
     savedPoints,
-    startingPoint,
     graph,
     setCurrentPoint,
-    setOperations,
     setError,
     setShowVictoryModal,
     clearCalculator,
@@ -60,39 +58,51 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   const victoryPrivateKey = calculateChallengePrivateKeyFromGraph(challenge, graph);
 
+  // Calculate shortest path length from generator to challenge
+  const shortestPathLength = useMemo(() => {
+    const generatorNode = Array.from(graph.nodes.values()).find(node => node.isGenerator);
+    const challengeNode = Array.from(graph.nodes.values()).find(node => node.isChallenge);
+
+    if (!generatorNode || !challengeNode) {
+      return 0;
+    }
+
+    const path = findPath(graph, generatorNode.id, challengeNode.id);
+    return path ? path.length : 0;
+  }, [graph]);
+
   // Calculate the actual private key for a given point using shared utility
   const calculatePrivateKeyForPointWrapper = useCallback(
     (pointId: string): string | undefined => {
+      let point: ECPoint | undefined;
+
       // Check if this is a saved point
       const savedPoint = savedPoints.find(sp => sp.id === pointId);
       if (savedPoint) {
-        // For saved points, use the full operation chain from the saved point
-        const result = calculatePrivateKey(savedPoint);
-        return result ? bigintToHex(result) : undefined;
+        point = savedPoint.point;
+      } else if (pointId === 'generator') {
+        point = generatorPoint;
+      } else if (pointId === 'original') {
+        point = publicKeyToPoint(challenge.public_key);
+      } else if (pointId === 'current') {
+        point = currentPoint;
       }
 
-      // If we know the point, we can populate
-      let privateKey = undefined;
-      if (pointId === 'generator') {
-        privateKey = 1n;
-      } else if (pointId === 'original') {
-        // TODO Should I calculate this somehow? What if we have already won, then we should know this
-        privateKey = practicePrivateKey != null ? BigInt('0x' + practicePrivateKey) : undefined;
-      } else if (pointId === 'current') {
-        // if we are looking for the current point, try to calculate it
-        // TODO Can we optimize how often we call this? Or cache the privateKey for the current point?
-        // TODO Make the current point a KnownPoint object
-        privateKey = calculatePrivateKey({
-          id: pointId,
-          point: currentPoint,
-          startingPoint: startingPoint,
-          operations: operations,
-          label: pointId,
-        });
-      }
+      if (!point) return undefined;
+
+      // Calculate from graph
+      const privateKey = calculatePrivateKeyFromGraph(point, graph);
       return privateKey ? bigintToHex(privateKey) : undefined;
     },
-    [operations, currentPoint, startingPoint, practicePrivateKey, savedPoints]
+    [
+      currentPoint,
+      graph,
+      generatorPoint,
+      challenge.public_key,
+      practicePrivateKey,
+      isPracticeMode,
+      savedPoints,
+    ]
   );
 
   // Reset current point when challenge changes
@@ -228,41 +238,44 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   ]);
 
   const handlePointClick = useCallback(
-    async (pointId: string, point: ECPoint, label: string, savedPoint?: SavedPoint) => {
+    async (point: ECPoint, savedPoint?: SavedPoint) => {
       if (savedPoint) {
         setSelectedPoint(savedPoint);
       } else {
-        // Read ID to figure out which known point to use to populate the modal
-        if (pointId === 'generator') {
-          // TODO Don't create the generator KnownPoint over and over, read it
-          setSelectedPoint({
-            id: pointId,
-            point,
-            label,
-            privateKey: 1n,
-            operations: [],
-          });
-        } else if (pointId === 'original') {
-          // TODO Don't create the challenge KnownPoint over and over, read it
-          setSelectedPoint({
-            id: pointId,
-            point,
-            label,
-            operations: [],
-          });
-        } else if (pointId === 'current') {
-          setSelectedPoint({
-            id: pointId,
-            point: currentPoint,
-            startingPoint: startingPoint,
-            operations: operations,
-            label: pointId,
-          });
+        // Look up point information from the graph
+        const node = findNodeByPoint(graph, point);
+        const generatorPoint = getGeneratorPoint();
+        const challengePoint = publicKeyToPoint(challenge.public_key);
+
+        let label = 'Unknown Point';
+        let id = 'unknown';
+
+        if (node) {
+          label = node.label;
+          id = node.id;
+        } else {
+          // Fallback for points not in graph
+          if (point.x === generatorPoint.x && point.y === generatorPoint.y) {
+            label = 'Generator (G)';
+            id = 'generator';
+          } else if (point.x === challengePoint.x && point.y === challengePoint.y) {
+            label = 'Challenge Point';
+            id = 'challenge';
+          } else if (point.x === currentPoint.x && point.y === currentPoint.y) {
+            label = 'Current Point';
+            id = 'current';
+          }
         }
+
+        setSelectedPoint({
+          id,
+          point,
+          label,
+        });
       }
       setShowPointModal(true);
     },
-    []
+    [graph, challenge.public_key, currentPoint]
   );
 
   return (
@@ -278,13 +291,10 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           {/* Calculator Section */}
           <ECCCalculator
             currentPoint={currentPoint}
-            operations={operations}
             savedPoints={savedPoints}
-            startingPoint={startingPoint}
             challengePublicKey={challenge.public_key}
             onPointChange={(point, operation) => {
               setCurrentPoint(point);
-              setOperations([...operations, operation]);
             }}
             onError={setError}
             onSavePoint={saveCurrentPoint}
@@ -337,7 +347,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           }
         }}
         savedPoints={savedPoints}
-        operationCount={operations.length}
+        operationCount={shortestPathLength}
         challengeAddress={challengeAddress}
         victoryPrivateKey={victoryPrivateKey ? '0x' + victoryPrivateKey.toString(16) : ''}
         isPracticeMode={isPracticeMode}

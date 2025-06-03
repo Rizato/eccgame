@@ -1,6 +1,6 @@
-import type { PointGraph, GraphNode, GraphEdge } from '../types/ecc';
+import type { PointGraph, GraphNode } from '../types/ecc';
 import type { Challenge } from '../types/api';
-import { publicKeyToPoint, pointToPublicKey } from './ecc';
+import { publicKeyToPoint } from './ecc';
 import { findNodeByPoint, hasPath, findPath, calculateNodePrivateKey } from './pointGraph';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
 

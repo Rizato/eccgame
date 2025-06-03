@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { publicKeyToPoint } from '../utils/ecc';
 import type { Challenge } from '../types/api';
 import type { ECPoint } from '../utils/ecc';
-import type { SavedPoint } from '../utils/privateKeyCalculation';
+import type { SavedPoint } from '../types/ecc';
 import './Modal.css';
 
 interface ModalProps {

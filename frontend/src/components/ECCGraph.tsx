@@ -6,7 +6,7 @@ import './ECCGraph.css';
 
 interface ECCGraphProps {
   challengePublicKey: string;
-  onPointClick: (pointId: string, point: ECPoint, label: string, savedPoint?: SavedPoint) => void;
+  onPointClick: (point: ECPoint, savedPoint?: SavedPoint) => void;
 }
 
 interface GraphPoint {
@@ -205,7 +205,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
               } as React.CSSProperties
             }
             title={point.description}
-            onClick={() => onPointClick(point.id, point.point, point.label, point.savedPoint)}
+            onClick={() => onPointClick(point.point, point.savedPoint)}
           >
             <div
               className="point-dot"

@@ -32,9 +32,6 @@ import { updateAllPrivateKeys } from '../../utils/graphPrivateKeyCalculation';
 
 interface ECCCalculatorState {
   selectedPoint: ECPoint;
-  selectedNodeId: string | null;
-  operations: Operation[];
-  startingPoint: KnownPoint;
   graph: PointGraph;
   generatorNodeId: string | null;
   challengeNodeId: string | null;
@@ -68,15 +65,6 @@ const { graph: initialGraph, generatorNodeId: initialGeneratorNodeId } = initial
 
 const initialState: ECCCalculatorState = {
   selectedPoint: generatorPoint,
-  selectedNodeId: initialGeneratorNodeId,
-  operations: [],
-  startingPoint: {
-    id: 'generator',
-    point: generatorPoint,
-    operations: [],
-    label: 'generator',
-    privateKey: 1n,
-  },
   graph: initialGraph,
   generatorNodeId: initialGeneratorNodeId,
   challengeNodeId: null,
@@ -116,7 +104,7 @@ export const executeCalculatorOperation = createAsyncThunk(
     { getState, dispatch }
   ) => {
     const state = getState() as any;
-    const { selectedPoint, selectedNodeId, graph } = state.eccCalculator;
+    const { selectedPoint } = state.eccCalculator;
 
     try {
       let operationValue: bigint;
@@ -181,7 +169,7 @@ export const executeCalculatorOperation = createAsyncThunk(
         point: newPoint,
         operation: operationRecord,
         value,
-        fromNodeId: selectedNodeId,
+        fromPoint: selectedPoint,
       };
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Operation failed');
@@ -195,12 +183,6 @@ const eccCalculatorSlice = createSlice({
   reducers: {
     setSelectedPoint: (state, action: PayloadAction<ECPoint>) => {
       state.selectedPoint = action.payload;
-      // Update selected node ID based on the point
-      const node = findNodeByPoint(state.graph, action.payload);
-      state.selectedNodeId = node?.id || null;
-    },
-    setOperations: (state, action: PayloadAction<Operation[]>) => {
-      state.operations = action.payload;
     },
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
@@ -229,9 +211,6 @@ const eccCalculatorSlice = createSlice({
     setSavedPoints: (state, action: PayloadAction<SavedPoint[]>) => {
       state.savedPoints = action.payload;
     },
-    setStartingPoint: (state, action: PayloadAction<KnownPoint>) => {
-      state.startingPoint = action.payload;
-    },
     setChallengePublicKey: (state, action: PayloadAction<string>) => {
       state.challengePublicKey = action.payload;
       const challengePoint = publicKeyToPoint(action.payload);
@@ -244,7 +223,6 @@ const eccCalculatorSlice = createSlice({
         isChallenge: true,
       });
       state.challengeNodeId = challengeNode.id;
-      state.selectedNodeId = challengeNode.id;
     },
     clearCalculator: state => {
       state.calculatorDisplay = '';
@@ -285,20 +263,9 @@ const eccCalculatorSlice = createSlice({
     },
     resetToChallenge: (state, action: PayloadAction<string>) => {
       const challengePublicKey = action.payload;
-      state.selectedPoint = publicKeyToPoint(challengePublicKey);
-      state.operations = [];
+      const challengePoint = publicKeyToPoint(challengePublicKey);
+      state.selectedPoint = challengePoint;
       state.savedPoints = [];
-      // id: string;
-      // point: ECPoint;
-      // startingPoint: ECPoint;
-      // operations: Operation[];
-      // label: string;
-      // timestamp: number;
-      // privateKey?: bigint; // Stored private key when known
-      state.startingPoint = {
-        // TODO Populate this value, or the key somehow. I think this can be itself, because no operations means they are the same
-        // TODO Do I know the challenge key???
-      };
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -309,11 +276,8 @@ const eccCalculatorSlice = createSlice({
       state.challengePublicKey = challengePublicKey;
     },
     resetToGenerator: state => {
-      // TODO Track down when this is used...
       state.selectedPoint = generatorPoint;
-      state.operations = [];
       state.savedPoints = [];
-      state.startingPoint = initialState.startingPoint;
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -324,26 +288,10 @@ const eccCalculatorSlice = createSlice({
     },
     savePoint: (state, action: PayloadAction<{ label?: string }>) => {
       const { label } = action.payload;
-      const challengePoint = state.challengePublicKey
-        ? publicKeyToPoint(state.challengePublicKey)
-        : generatorPoint;
-
-      // TODO
-      const startingPoint = state.startingPoint
-        ? state.startingPoint.point
-        : state.startingMode === 'challenge'
-          ? challengePoint
-          : generatorPoint;
-
-      const allOperations = state.startingPoint
-        ? [...state.startingPoint.operations, ...state.operations]
-        : state.operations;
 
       const savedPoint: SavedPoint = {
         id: `saved_${Date.now()}`,
         point: state.selectedPoint,
-        startingPoint,
-        operations: allOperations,
         label: label || `Point ${state.savedPoints.length + 1}`,
         timestamp: Date.now(),
       };
@@ -353,8 +301,13 @@ const eccCalculatorSlice = createSlice({
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
       const savedPoint = action.payload;
       state.selectedPoint = savedPoint.point;
-      state.operations = [];
-      state.startingPoint = savedPoint.startingPoint;
+
+      // Add the saved point to the graph if it doesn't exist
+      addNode(state.graph, savedPoint.point, {
+        id: savedPoint.id,
+        label: savedPoint.label,
+      });
+
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -384,16 +337,17 @@ const eccCalculatorSlice = createSlice({
         state.currentAddress = 'Invalid';
       })
       .addCase(executeCalculatorOperation.fulfilled, (state, action) => {
-        const { point, operation, value, fromNodeId } = action.payload;
+        const { point, operation, value, fromPoint } = action.payload;
 
         // Add new node for the resulting point (or get existing one)
         const toNode = addNode(state.graph, point, {
           label: `Point from ${operation.description}`,
         });
 
-        // Add edge from current node to new node
-        if (fromNodeId) {
-          addEdge(state.graph, fromNodeId, toNode.id, operation);
+        // Find the from node in the graph and add edge
+        const fromNode = findNodeByPoint(state.graph, fromPoint);
+        if (fromNode) {
+          addEdge(state.graph, fromNode.id, toNode.id, operation);
         }
 
         // Update all private keys in the graph
@@ -401,8 +355,6 @@ const eccCalculatorSlice = createSlice({
 
         // Update current state
         state.selectedPoint = point;
-        state.selectedNodeId = toNode.id;
-        state.operations = [...state.operations, operation];
         state.lastOperationValue = value;
         state.calculatorDisplay = '';
         state.pendingOperation = null;
@@ -426,7 +378,6 @@ const eccCalculatorSlice = createSlice({
 
 export const {
   setSelectedPoint,
-  setOperations,
   setError,
   setHasWon,
   setShowVictoryModal,
@@ -435,7 +386,6 @@ export const {
   setLastOperationValue,
   setHexMode,
   setSavedPoints,
-  setStartingPoint,
   setChallengePublicKey,
   clearCalculator,
   addToCalculator,

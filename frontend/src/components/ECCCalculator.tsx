@@ -14,16 +14,15 @@ import {
   pointToPublicKey,
   publicKeyToPoint,
 } from '../utils/ecc';
-import { calculatePrivateKey } from '../utils/privateKeyCalculation';
+import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
 import './ECCCalculator.css';
 import { SavePointModal } from './SavePointModal';
-import type { SavedPoint, ECPoint, Operation, KnownPoint } from '../types/ecc.ts';
+import type { SavedPoint, ECPoint, Operation } from '../types/ecc.ts';
+import { useAppSelector } from '../store/hooks';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
-  operations: Operation[]; // Operations passed from parent
   savedPoints: SavedPoint[];
-  startingPoint: KnownPoint; // Currently active saved point, if any
   challengePublicKey: string; // Challenge public key for private key calculations
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
@@ -33,15 +32,15 @@ interface ECCCalculatorProps {
 
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   currentPoint,
-  operations,
   savedPoints,
-  startingPoint,
   challengePublicKey,
   onPointChange,
   onError,
   onSavePoint,
   isLocked = false,
 }) => {
+  const { graph } = useAppSelector(state => state.eccCalculator);
+
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
   const [pendingOperation, setPendingOperation] = useState<
     'multiply' | 'divide' | 'add' | 'subtract' | null
@@ -74,16 +73,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     }
   }, [currentPoint, generatorPoint, challengePublicKey]);
 
-  // Calculate the actual private key for the current point using shared utility
+  // Calculate the actual private key for the current point using the graph
   const currentPrivateKey = useMemo(() => {
-    return calculatePrivateKey({
-      id: 'current',
-      point: currentPoint,
-      startingPoint: startingPoint,
-      operations: operations,
-      label: 'current',
-    });
-  }, [startingPoint, operations, currentPoint]);
+    return calculatePrivateKeyFromGraph(currentPoint, graph);
+  }, [currentPoint, graph]);
 
   // Calculate current address asynchronously
   useEffect(() => {

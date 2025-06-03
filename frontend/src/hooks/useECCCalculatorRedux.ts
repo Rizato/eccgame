@@ -2,8 +2,6 @@ import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   setSelectedPoint,
-  setOperations,
-  setStartingPoint,
   setError,
   setHasWon,
   setShowVictoryModal,
@@ -48,8 +46,6 @@ export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode
   return {
     // State
     currentPoint: eccState.selectedPoint,
-    operations: eccState.operations,
-    startingPoint: eccState.startingPoint,
     graph: eccState.graph,
     error: eccState.error,
     currentAddress: eccState.currentAddress,
@@ -62,8 +58,6 @@ export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode
     savedPoints: eccState.savedPoints,
     // Actions
     setCurrentPoint: (point: ECPoint) => dispatch(setSelectedPoint(point)),
-    setOperations: (operations: Operation[]) => dispatch(setOperations(operations)),
-    setStartingPoint: (knownPoint: KnownPoint) => dispatch(setStartingPoint(knownPoint)),
     setError: (error: string | null) => dispatch(setError(error)),
     setHasWon: (hasWon: boolean) => dispatch(setHasWon(hasWon)),
     setShowVictoryModal: (show: boolean) => dispatch(setShowVictoryModal(show)),
