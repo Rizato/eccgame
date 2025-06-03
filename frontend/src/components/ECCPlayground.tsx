@@ -29,11 +29,9 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     currentPoint,
     operations,
     error,
-    currentAddress: _currentAddress,
     calculatorDisplay,
     pendingOperation,
     lastOperationValue,
-    hexMode: _hexMode,
     startingMode,
     hasWon,
     showVictoryModal,
@@ -42,9 +40,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     setCurrentPoint,
     setOperations,
     setError,
-    setStartingMode: _setStartingMode,
-    setHasWon: _setHasWon,
     setShowVictoryModal,
+    setPendingOperation,
     clearCalculator,
     addToCalculator,
     backspaceCalculator,
@@ -60,6 +57,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     point: ECPoint;
     id: string;
     label: string;
+    savedPoint?: SavedPoint;
   } | null>(null);
   const [selectedPointAddress, setSelectedPointAddress] = useState<string>('');
 
@@ -127,32 +125,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     resetToChallenge(challenge.public_key);
   }, [challenge.public_key, resetToChallenge]);
 
-  // Directional win detection
-  const challengePoint = publicKeyToPoint(challenge.public_key);
-
-  const isAtGenerator =
-    currentPoint.x === generatorPoint.x &&
-    currentPoint.y === generatorPoint.y &&
-    !currentPoint.isInfinity;
-
-  const isAtChallengePoint =
-    currentPoint.x === challengePoint.x &&
-    currentPoint.y === challengePoint.y &&
-    !currentPoint.isInfinity;
-
-  const isAtInfinity = currentPoint.isInfinity;
-
-  // Check for win condition based on direction
-  const _hasWonRound = (() => {
-    if (startingMode === 'challenge') {
-      // Challenge -> G: win on generator point or infinity
-      return isAtGenerator || isAtInfinity;
-    } else {
-      // G -> Challenge: win on challenge point or infinity
-      return isAtChallengePoint || isAtInfinity;
-    }
-  })();
-
   // Calculate challenge address (this doesn't change during the session)
   useEffect(() => {
     const calculateChallengeAddress = async () => {
@@ -193,7 +165,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         setPendingOperation(operation);
       }
     },
-    [calculatorDisplay, pendingOperation, lastOperationValue]
+    [calculatorDisplay, pendingOperation, lastOperationValue, setPendingOperation]
   );
 
   // Save current point (wrapper around Redux action)
@@ -311,8 +283,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   ]);
 
   const handlePointClick = useCallback(
-    async (pointId: string, point: ECPoint, label: string, _savedPoint?: SavedPoint) => {
-      setSelectedPoint({ point, id: pointId, label });
+    async (pointId: string, point: ECPoint, label: string, savedPoint?: SavedPoint) => {
+      setSelectedPoint({ point, id: pointId, label, savedPoint });
 
       // Calculate address for the selected point
       if (point.isInfinity) {
@@ -362,7 +334,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             })()}
             onPointChange={(point, operation) => {
               setCurrentPoint(point);
-              setOperations(prev => [...prev, operation]);
+              setOperations([...operations, operation]);
             }}
             onError={setError}
             onSavePoint={saveCurrentPoint}
@@ -380,7 +352,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         isPracticeMode={isPracticeMode}
         practicePrivateKey={practicePrivateKey}
         point={selectedPoint?.point}
-        savedPoint={graphPoints.find(p => p.id === selectedPoint?.id)?.savedPoint}
+        savedPoint={selectedPoint?.savedPoint}
         onLoadPoint={loadPoint}
         onRenamePoint={renameSavedPoint}
         pointData={

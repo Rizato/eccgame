@@ -7,6 +7,7 @@ import {
   setStartingMode,
   setHasWon,
   setShowVictoryModal,
+  setPendingOperation,
   clearCalculator,
   addToCalculator,
   backspaceCalculator,
@@ -66,6 +67,8 @@ export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode
     setStartingMode: (mode: StartingMode) => dispatch(setStartingMode(mode)),
     setHasWon: (hasWon: boolean) => dispatch(setHasWon(hasWon)),
     setShowVictoryModal: (show: boolean) => dispatch(setShowVictoryModal(show)),
+    setPendingOperation: (op: 'multiply' | 'divide' | 'add' | 'subtract' | null) =>
+      dispatch(setPendingOperation(op)),
     clearCalculator: () => dispatch(clearCalculator()),
     addToCalculator: (value: string) => dispatch(addToCalculator(value)),
     backspaceCalculator: () => dispatch(backspaceCalculator()),
