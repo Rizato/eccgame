@@ -403,6 +403,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         const operationObj: Operation = {
           id: `op_${Date.now()}`,
           type: operation,
+          point: operation === 'add' || operation === 'subtract' ? differencePoint : undefined,
           description,
           value,
         };

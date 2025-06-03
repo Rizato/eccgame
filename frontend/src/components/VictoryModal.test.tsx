@@ -33,7 +33,6 @@ describe('VictoryModal Private Key Display', () => {
         type: 'multiply',
         description: '×2',
         value: '2',
-        direction: 'reverse',
       },
     ];
 
@@ -51,7 +50,6 @@ describe('VictoryModal Private Key Display', () => {
         type: 'add',
         description: '+1',
         value: '1',
-        direction: 'forward',
       },
     ];
 
@@ -70,7 +68,6 @@ describe('VictoryModal Private Key Display', () => {
         type: 'multiply',
         description: '×2',
         value: '2',
-        direction: 'forward',
       },
     ];
 
@@ -94,7 +91,6 @@ describe('VictoryModal Private Key Display', () => {
         type: 'multiply',
         description: '×invalid',
         value: '', // Invalid value that should cause error
-        direction: 'forward',
       },
     ];
 
@@ -111,7 +107,6 @@ describe('VictoryModal Private Key Display', () => {
         type: 'add',
         description: '+1',
         value: '1',
-        direction: 'forward',
       },
     ];
 
