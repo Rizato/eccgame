@@ -16,9 +16,9 @@ export function pointToHash(point: ECPoint): string {
  */
 export function createEmptyGraph(): PointGraph {
   return {
-    nodes: new Map(),
-    edges: new Map(),
-    pointToNodeId: new Map(),
+    nodes: {},
+    edges: {},
+    pointToNodeId: {},
   };
 }
 
@@ -37,10 +37,10 @@ export function addNode(
   } = {}
 ): GraphNode {
   const pointHash = pointToHash(point);
-  const existingNodeId = graph.pointToNodeId.get(pointHash);
+  const existingNodeId = graph.pointToNodeId[pointHash];
 
   if (existingNodeId) {
-    const existingNode = graph.nodes.get(existingNodeId)!;
+    const existingNode = graph.nodes[existingNodeId]!;
     // Update existing node with new information
     if (options.privateKey !== undefined) {
       existingNode.privateKey = options.privateKey;
@@ -57,7 +57,7 @@ export function addNode(
     return existingNode;
   }
 
-  const nodeId = options.id || `node_${graph.nodes.size}`;
+  const nodeId = options.id || `node_${Object.keys(graph.nodes).length}`;
   const node: GraphNode = {
     id: nodeId,
     point,
@@ -67,8 +67,8 @@ export function addNode(
     isChallenge: options.isChallenge,
   };
 
-  graph.nodes.set(nodeId, node);
-  graph.pointToNodeId.set(pointHash, nodeId);
+  graph.nodes[nodeId] = node;
+  graph.pointToNodeId[pointHash] = nodeId;
 
   return node;
 }
@@ -90,7 +90,7 @@ export function addEdge(
     operation,
   };
 
-  graph.edges.set(edgeId, edge);
+  graph.edges[edgeId] = edge;
   return edge;
 }
 
@@ -99,8 +99,8 @@ export function addEdge(
  */
 export function findNodeByPoint(graph: PointGraph, point: ECPoint): GraphNode | undefined {
   const pointHash = pointToHash(point);
-  const nodeId = graph.pointToNodeId.get(pointHash);
-  return nodeId ? graph.nodes.get(nodeId) : undefined;
+  const nodeId = graph.pointToNodeId[pointHash];
+  return nodeId ? graph.nodes[nodeId] : undefined;
 }
 
 /**
@@ -108,7 +108,7 @@ export function findNodeByPoint(graph: PointGraph, point: ECPoint): GraphNode | 
  */
 export function getOutgoingEdges(graph: PointGraph, nodeId: string): GraphEdge[] {
   const edges: GraphEdge[] = [];
-  for (const edge of graph.edges.values()) {
+  for (const edge of Object.values(graph.edges)) {
     if (edge.fromNodeId === nodeId) {
       edges.push(edge);
     }
@@ -121,7 +121,7 @@ export function getOutgoingEdges(graph: PointGraph, nodeId: string): GraphEdge[]
  */
 export function getIncomingEdges(graph: PointGraph, nodeId: string): GraphEdge[] {
   const edges: GraphEdge[] = [];
-  for (const edge of graph.edges.values()) {
+  for (const edge of Object.values(graph.edges)) {
     if (edge.toNodeId === nodeId) {
       edges.push(edge);
     }
@@ -197,7 +197,7 @@ export function findPath(
  * Calculate private key for a node by traversing back to nodes with known private keys
  */
 export function calculateNodePrivateKey(graph: PointGraph, nodeId: string): bigint | undefined {
-  const node = graph.nodes.get(nodeId);
+  const node = graph.nodes[nodeId];
   if (!node) return undefined;
   if (node.privateKey !== undefined) return node.privateKey;
 
@@ -212,7 +212,7 @@ export function calculateNodePrivateKey(graph: PointGraph, nodeId: string): bigi
     // Check incoming edges (paths that lead TO this node)
     const incomingEdges = getIncomingEdges(graph, currentNodeId);
     for (const edge of incomingEdges) {
-      const sourceNode = graph.nodes.get(edge.fromNodeId);
+      const sourceNode = graph.nodes[edge.fromNodeId];
       if (sourceNode?.privateKey !== undefined) {
         // Found a node with known private key, calculate through the path
         const reversePath = [edge, ...path].reverse();

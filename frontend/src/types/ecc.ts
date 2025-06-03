@@ -23,9 +23,9 @@ export interface GraphNode {
 }
 
 export interface PointGraph {
-  nodes: Map<string, GraphNode>;
-  edges: Map<string, GraphEdge>;
-  pointToNodeId: Map<string, string>; // point hash -> node id for quick lookup
+  nodes: Record<string, GraphNode>;
+  edges: Record<string, GraphEdge>;
+  pointToNodeId: Record<string, string>; // point hash -> node id for quick lookup
 }
 
 export interface SavedPoint {
