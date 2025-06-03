@@ -107,6 +107,24 @@ const eccCalculatorSlice = createSlice({
       });
       state.challengeNodeId = challengeNode.id;
     },
+    setChallengeWithPrivateKey: (
+      state,
+      action: PayloadAction<{ publicKey: string; privateKey: string }>
+    ) => {
+      const { publicKey, privateKey } = action.payload;
+      state.challengePublicKey = publicKey;
+      const challengePoint = publicKeyToPoint(publicKey);
+      state.selectedPoint = challengePoint;
+
+      // Add challenge node to graph with known private key
+      const challengeNode = addNode(state.graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge Point',
+        privateKey: BigInt('0x' + privateKey),
+        isChallenge: true,
+      });
+      state.challengeNodeId = challengeNode.id;
+    },
     clearCalculator: state => {
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -148,7 +166,16 @@ const eccCalculatorSlice = createSlice({
       const challengePublicKey = action.payload;
       const challengePoint = publicKeyToPoint(challengePublicKey);
       state.selectedPoint = challengePoint;
-      state.savedPoints = [];
+
+      // Ensure challenge node exists in graph (don't clear the graph, just ensure the node exists)
+      const challengeNode = addNode(state.graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge Point',
+        isChallenge: true,
+      });
+      state.challengeNodeId = challengeNode.id;
+
+      // Don't clear saved points when switching to challenge
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -158,9 +185,46 @@ const eccCalculatorSlice = createSlice({
       state.showVictoryModal = false;
       state.challengePublicKey = challengePublicKey;
     },
+    resetToChallengeWithPrivateKey: (
+      state,
+      action: PayloadAction<{ publicKey: string; privateKey: string }>
+    ) => {
+      const { publicKey, privateKey } = action.payload;
+      const challengePoint = publicKeyToPoint(publicKey);
+      state.selectedPoint = challengePoint;
+
+      // Ensure challenge node exists in graph with known private key
+      const challengeNode = addNode(state.graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge Point',
+        privateKey: BigInt('0x' + privateKey),
+        isChallenge: true,
+      });
+      state.challengeNodeId = challengeNode.id;
+
+      // Don't clear saved points when switching to challenge
+      state.error = null;
+      state.calculatorDisplay = '';
+      state.pendingOperation = null;
+      state.hexMode = false;
+      state.lastOperationValue = null;
+      state.hasWon = false;
+      state.showVictoryModal = false;
+      state.challengePublicKey = publicKey;
+    },
     resetToGenerator: state => {
       state.selectedPoint = generatorPoint;
-      state.savedPoints = [];
+
+      // Ensure generator node exists in graph (don't clear the graph, just ensure the node exists)
+      const generatorNode = addNode(state.graph, generatorPoint, {
+        id: 'generator',
+        label: 'Generator (G)',
+        privateKey: 1n,
+        isGenerator: true,
+      });
+      state.generatorNodeId = generatorNode.id;
+
+      // Don't clear saved points when switching to generator
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -253,10 +317,12 @@ export const {
   setShowVictoryModal,
   setPendingOperation,
   setChallengePublicKey,
+  setChallengeWithPrivateKey,
   clearCalculator,
   addToCalculator,
   backspaceCalculator,
   resetToChallenge,
+  resetToChallengeWithPrivateKey,
   resetToGenerator,
   savePoint,
   loadSavedPoint,

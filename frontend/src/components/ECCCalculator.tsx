@@ -29,6 +29,7 @@ interface ECCCalculatorProps {
   onError: (error: string | null) => void;
   onSavePoint: (label?: string) => void;
   isLocked?: boolean;
+  practicePrivateKey?: string; // Private key for practice mode
 }
 
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
@@ -39,6 +40,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   onError,
   onSavePoint,
   isLocked = false,
+  practicePrivateKey,
 }) => {
   const { graph } = useAppSelector(state => state.eccCalculator);
   const dispatch = useAppDispatch();
@@ -78,7 +80,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   // Calculate the actual private key for the current point using the graph
   const currentPrivateKey = useMemo(() => {
     return calculatePrivateKeyFromGraph(currentPoint, graph);
-  }, [currentPoint, graph]);
+  }, [currentPoint, graph, practicePrivateKey, challengePublicKey]);
 
   // Calculate current address asynchronously
   useEffect(() => {

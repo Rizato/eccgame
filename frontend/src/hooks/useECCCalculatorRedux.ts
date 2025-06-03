@@ -10,25 +10,36 @@ import {
   addToCalculator,
   backspaceCalculator,
   resetToChallenge,
+  resetToChallengeWithPrivateKey,
   resetToGenerator,
   savePoint,
   loadSavedPoint,
   checkWinCondition,
   calculateCurrentAddress,
   setChallengePublicKey,
+  setChallengeWithPrivateKey,
 } from '../store/slices/eccCalculatorSlice';
 import type { ECPoint, SavedPoint } from '../types/ecc';
 
-export function useECCCalculatorRedux(challengePublicKey: string) {
+export function useECCCalculatorRedux(challengePublicKey: string, practicePrivateKey?: string) {
   const dispatch = useAppDispatch();
   const eccState = useAppSelector(state => state.eccCalculator);
 
   // Update challenge public key when it changes
   useEffect(() => {
     if (challengePublicKey !== eccState.challengePublicKey) {
-      dispatch(setChallengePublicKey(challengePublicKey));
+      if (practicePrivateKey) {
+        dispatch(
+          setChallengeWithPrivateKey({
+            publicKey: challengePublicKey,
+            privateKey: practicePrivateKey,
+          })
+        );
+      } else {
+        dispatch(setChallengePublicKey(challengePublicKey));
+      }
     }
-  }, [challengePublicKey, eccState.challengePublicKey, dispatch]);
+  }, [challengePublicKey, practicePrivateKey, eccState.challengePublicKey, dispatch]);
 
   // Calculate current address when point changes
   useEffect(() => {
@@ -63,8 +74,18 @@ export function useECCCalculatorRedux(challengePublicKey: string) {
     clearCalculator: () => dispatch(clearCalculator()),
     addToCalculator: (value: string) => dispatch(addToCalculator(value)),
     backspaceCalculator: () => dispatch(backspaceCalculator()),
-    resetToChallenge: (challengePublicKey: string) =>
-      dispatch(resetToChallenge(challengePublicKey)),
+    resetToChallenge: (challengePublicKey: string) => {
+      if (practicePrivateKey) {
+        dispatch(
+          resetToChallengeWithPrivateKey({
+            publicKey: challengePublicKey,
+            privateKey: practicePrivateKey,
+          })
+        );
+      } else {
+        dispatch(resetToChallenge(challengePublicKey));
+      }
+    },
     resetToGenerator: () => dispatch(resetToGenerator()),
     savePoint: (label?: string) => dispatch(savePoint({ label })),
     loadSavedPoint: (savedPoint: SavedPoint) => dispatch(loadSavedPoint(savedPoint)),

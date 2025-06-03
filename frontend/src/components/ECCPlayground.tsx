@@ -40,7 +40,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     resetToGenerator,
     savePoint,
     loadSavedPoint,
-  } = useECCCalculatorRedux(challenge.public_key);
+  } = useECCCalculatorRedux(challenge.public_key, isPracticeMode ? practicePrivateKey : undefined);
 
   const [challengeAddress, setChallengeAddress] = useState<string>('');
   const [showPointModal, setShowPointModal] = useState(false);
@@ -146,6 +146,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             onError={setError}
             onSavePoint={saveCurrentPoint}
             isLocked={hasWon && !isPracticeMode}
+            practicePrivateKey={isPracticeMode ? practicePrivateKey : undefined}
           />
         </div>
       </div>
