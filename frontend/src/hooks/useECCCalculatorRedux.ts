@@ -20,7 +20,7 @@ import {
   setCalculatorOperationThunk,
   executeEqualsOperation,
 } from '../store/slices/eccCalculatorSlice';
-import type { ECPoint, Operation, SavedPoint, KnownPoint } from '../types/ecc';
+import type { ECPoint, SavedPoint } from '../types/ecc';
 
 export function useECCCalculatorRedux(challengePublicKey: string, isPracticeMode: boolean = false) {
   const dispatch = useAppDispatch();

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ECCCalculator from './ECCCalculator';
-import type { ECPoint } from '../utils/ecc';
+import type { ECPoint } from '../types/ecc';
 
 // Mock the crypto utilities
 vi.mock('../utils/crypto', () => ({

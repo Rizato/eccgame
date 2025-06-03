@@ -10,7 +10,7 @@ import {
   pointSubtract,
 } from '../utils/ecc';
 import ECCCalculator from './ECCCalculator';
-import type Operation from '../types/ecc';
+import type { Operation } from '../types/ecc';
 
 // Mock the crypto module to avoid async issues in tests
 vi.mock('../utils/crypto', () => ({

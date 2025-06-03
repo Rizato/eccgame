@@ -11,24 +11,16 @@ import {
   hexToBigint,
   CURVE_N,
 } from '../../utils/ecc';
-import type {
-  ECPoint,
-  KnownPoint,
-  Operation,
-  SavedPoint,
-  PointGraph,
-  GraphNode,
-} from '../../types/ecc';
+import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 import {
   createEmptyGraph,
   addNode,
   addEdge,
   findNodeByPoint,
   hasPath,
-  calculateNodePrivateKey,
-  pointToHash,
 } from '../../utils/pointGraph';
 import { updateAllPrivateKeys } from '../../utils/graphPrivateKeyCalculation';
+import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
 
 interface ECCCalculatorState {
   selectedPoint: ECPoint;
@@ -327,6 +319,30 @@ const eccCalculatorSlice = createSlice({
         }
       }
     },
+    addOperationToGraph: (
+      state,
+      action: PayloadAction<{
+        fromPoint: ECPoint;
+        toPoint: ECPoint;
+        operation: Operation;
+      }>
+    ) => {
+      const { fromPoint, toPoint, operation } = action.payload;
+      ensureOperationInGraph(state.graph, fromPoint, toPoint, operation);
+
+      // Update selected point to the result
+      state.selectedPoint = toPoint;
+
+      // Check win condition after adding operation
+      if (state.challengeNodeId && state.generatorNodeId) {
+        const hasConnection = hasPath(state.graph, state.challengeNodeId, state.generatorNodeId);
+
+        if (hasConnection && !state.hasWon) {
+          state.hasWon = true;
+          state.showVictoryModal = true;
+        }
+      }
+    },
   },
   extraReducers: builder => {
     builder
@@ -395,6 +411,7 @@ export const {
   savePoint,
   loadSavedPoint,
   checkWinCondition,
+  addOperationToGraph,
 } = eccCalculatorSlice.actions;
 
 // Define thunks that use slice actions after slice definition

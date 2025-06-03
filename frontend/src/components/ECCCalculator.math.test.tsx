@@ -8,7 +8,8 @@ import {
   pointMultiply,
   pointSubtract,
 } from '../utils/ecc';
-import { calculateKeyFromOperations, type Operation } from '../utils/privateKeyCalculation';
+import { calculateKeyFromOperations } from '../utils/privateKeyCalculation';
+import type { Operation } from '../types/ecc';
 
 describe('modInverse Tests', () => {
   it('should verify 2 modInverse N is the known value', () => {

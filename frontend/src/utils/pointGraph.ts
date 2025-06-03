@@ -1,5 +1,4 @@
 import type { ECPoint, GraphNode, GraphEdge, PointGraph, Operation } from '../types/ecc';
-import { pointToPublicKey } from './ecc';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
 
 /**

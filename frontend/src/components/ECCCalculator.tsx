@@ -18,7 +18,8 @@ import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
 import './ECCCalculator.css';
 import { SavePointModal } from './SavePointModal';
 import type { SavedPoint, ECPoint, Operation } from '../types/ecc.ts';
-import { useAppSelector } from '../store/hooks';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { addOperationToGraph } from '../store/slices/eccCalculatorSlice';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
@@ -40,6 +41,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   isLocked = false,
 }) => {
   const { graph } = useAppSelector(state => state.eccCalculator);
+  const dispatch = useAppDispatch();
 
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
   const [pendingOperation, setPendingOperation] = useState<
@@ -213,15 +215,25 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       const operation: Operation = {
         id: `op_${Date.now()}`,
         type: 'add',
-        description: '+1',
-        point: generatorPoint,
+        description: '+G',
         value: '1',
       };
+
+      // Add to graph through Redux
+      dispatch(
+        addOperationToGraph({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, onPointChange, onError, isLocked]);
+  }, [currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickSubtractG = useCallback(() => {
     if (isLocked) return;
@@ -235,15 +247,25 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       const operation: Operation = {
         id: `op_${Date.now()}`,
         type: 'subtract',
-        description: '-1',
-        point: generatorPoint,
+        description: '-G',
         value: '1',
       };
+
+      // Add to graph through Redux
+      dispatch(
+        addOperationToGraph({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, onPointChange, onError, isLocked]);
+  }, [currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickDouble = useCallback(() => {
     if (isLocked) return;
@@ -260,11 +282,22 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         description: '×2',
         value: '2',
       };
+
+      // Add to graph through Redux
+      dispatch(
+        addOperationToGraph({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, onPointChange, onError, isLocked]);
+  }, [currentPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickHalve = useCallback(() => {
     if (isLocked) return;
@@ -281,11 +314,22 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         description: '÷2',
         value: '2',
       };
+
+      // Add to graph through Redux
+      dispatch(
+        addOperationToGraph({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, onPointChange, onError, isLocked]);
+  }, [currentPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickNegate = useCallback(() => {
     if (isLocked) return;
@@ -302,11 +346,22 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         description: '±',
         value: '',
       };
+
+      // Add to graph through Redux
+      dispatch(
+        addOperationToGraph({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, onPointChange, onError, isLocked]);
+  }, [currentPoint, dispatch, onPointChange, onError, isLocked]);
 
   const executeCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
@@ -374,6 +429,16 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           description,
           value,
         };
+
+        // Add to graph through Redux
+        dispatch(
+          addOperationToGraph({
+            fromPoint: currentPoint,
+            toPoint: newPoint,
+            operation: operationObj,
+          })
+        );
+
         onPointChange(newPoint, operationObj);
         // Keep the value in display for potential chaining
         setCalculatorDisplay(value);
@@ -386,7 +451,16 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [currentPoint, onPointChange, onError, quickAddG, quickSubtractG, isLocked, generatorPoint]
+    [
+      currentPoint,
+      dispatch,
+      onPointChange,
+      onError,
+      quickAddG,
+      quickSubtractG,
+      isLocked,
+      generatorPoint,
+    ]
   );
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
