@@ -732,4 +732,507 @@ describe('Graph Private Key Calculation Tests', () => {
       expect(generatorNode.privateKey).toBe(1n); // Should not be overwritten
     });
   });
+
+  describe('Practice Mode Win Condition Tests', () => {
+    it('should not be solved when only challenge is in graph', () => {
+      const challengePoint = pointMultiply(7n, generatorPoint);
+      const challenge: Challenge = {
+        uuid: 'practice-challenge',
+        public_key: pointToPublicKey(challengePoint),
+        p2pkh_address: 'practice-address',
+        metadata: [],
+        explorer_link: '',
+        active: true,
+        active_date: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      // Add challenge node with known private key (practice mode)
+      addNode(graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge',
+        privateKey: 7n,
+        isChallenge: true,
+      });
+
+      // Should not be solvable - no generator (even though we know the private key)
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+      // Private key is known, but challenge isn't solved without path to generator
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(7n);
+    });
+
+    it('should not be solved when only generator is in graph', () => {
+      const challengePoint = pointMultiply(7n, generatorPoint);
+      const challenge: Challenge = {
+        uuid: 'practice-challenge',
+        public_key: pointToPublicKey(challengePoint),
+        p2pkh_address: 'practice-address',
+        metadata: [],
+        explorer_link: '',
+        active: true,
+        active_date: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      // Add only generator node to graph
+      addNode(graph, generatorPoint, {
+        id: 'generator',
+        label: 'Generator',
+        privateKey: 1n,
+        isGenerator: true,
+      });
+
+      // Should not be solvable - no challenge node
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBeUndefined();
+    });
+
+    it('should not be solved when both nodes exist but no path exists', () => {
+      const challengePoint = pointMultiply(7n, generatorPoint);
+      const challenge: Challenge = {
+        uuid: 'practice-challenge',
+        public_key: pointToPublicKey(challengePoint),
+        p2pkh_address: 'practice-address',
+        metadata: [],
+        explorer_link: '',
+        active: true,
+        active_date: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      // Add both nodes but no connecting edges
+      addNode(graph, generatorPoint, {
+        id: 'generator',
+        label: 'Generator',
+        privateKey: 1n,
+        isGenerator: true,
+      });
+
+      addNode(graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge',
+        privateKey: 7n, // Practice mode - private key known
+        isChallenge: true,
+      });
+
+      // Should not be solvable - no path between them (even though private key is known)
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(7n);
+    });
+
+    it('should be solved when path exists from challenge to generator', () => {
+      const challengePoint = pointMultiply(7n, generatorPoint);
+      const challenge: Challenge = {
+        uuid: 'practice-challenge',
+        public_key: pointToPublicKey(challengePoint),
+        p2pkh_address: 'practice-address',
+        metadata: [],
+        explorer_link: '',
+        active: true,
+        active_date: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      const generatorNode = addNode(graph, generatorPoint, {
+        id: 'generator',
+        label: 'Generator',
+        privateKey: 1n,
+        isGenerator: true,
+      });
+
+      const challengeNode = addNode(graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge',
+        privateKey: 7n, // Practice mode - private key known
+        isChallenge: true,
+      });
+
+      // Add path from challenge to generator
+      addEdge(graph, challengeNode.id, generatorNode.id, {
+        id: 'edge1',
+        type: 'divide',
+        description: '÷7',
+        value: '7',
+      });
+
+      // Should be solvable since there's a path from challenge to generator
+      expect(canSolveChallenge(challenge, graph)).toBe(true);
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(7n);
+    });
+
+    it('should not be solved when only reverse path exists (generator -> challenge only)', () => {
+      const challengePoint = pointMultiply(7n, generatorPoint);
+      const challenge: Challenge = {
+        uuid: 'practice-challenge',
+        public_key: pointToPublicKey(challengePoint),
+        p2pkh_address: 'practice-address',
+        metadata: [],
+        explorer_link: '',
+        active: true,
+        active_date: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      const generatorNode = addNode(graph, generatorPoint, {
+        id: 'generator',
+        label: 'Generator',
+        privateKey: 1n,
+        isGenerator: true,
+      });
+
+      const challengeNode = addNode(graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge',
+        privateKey: 7n, // Practice mode - private key known
+        isChallenge: true,
+      });
+
+      // Add only reverse path: generator -> challenge
+      addEdge(graph, generatorNode.id, challengeNode.id, {
+        id: 'edge1',
+        type: 'multiply',
+        description: '×7',
+        value: '7',
+      });
+
+      // Should NOT be solvable - need path FROM challenge TO generator, not the reverse
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+      // Private key is already known (practice mode), but challenge is not considered "solved"
+      // until there's a path from challenge to generator
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(7n);
+      expect(canSolveChallenge(challenge, graph)).toBe(false); // This is the key test
+    });
+
+    it('should be solved when path exists from challenge to generator through intermediate nodes', () => {
+      const challengePoint = pointMultiply(14n, generatorPoint);
+      const challenge: Challenge = {
+        uuid: 'practice-challenge',
+        public_key: pointToPublicKey(challengePoint),
+        p2pkh_address: 'practice-address',
+        metadata: [],
+        explorer_link: '',
+        active: true,
+        active_date: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      const generatorNode = addNode(graph, generatorPoint, {
+        id: 'generator',
+        label: 'Generator',
+        privateKey: 1n,
+        isGenerator: true,
+      });
+
+      const point7G = pointMultiply(7n, generatorPoint);
+      const node7G = addNode(graph, point7G, {
+        id: '7g',
+        label: '7G',
+      });
+
+      const challengeNode = addNode(graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge',
+        privateKey: 14n, // Practice mode - private key known
+        isChallenge: true,
+      });
+
+      // Add forward path only: G -> 7G -> Challenge (this doesn't help solve it)
+      addEdge(graph, generatorNode.id, node7G.id, {
+        id: 'edge1',
+        type: 'multiply',
+        description: '×7',
+        value: '7',
+      });
+
+      addEdge(graph, node7G.id, challengeNode.id, {
+        id: 'edge2',
+        type: 'multiply',
+        description: '×2',
+        value: '2',
+      });
+
+      // Should NOT be solvable yet - no path from challenge to generator
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+      // Private key is already known (practice mode), but challenge isn't solved
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(14n);
+      expect(canSolveChallenge(challenge, graph)).toBe(false); // Still not solvable
+
+      // Now add reverse path: Challenge -> 7G -> G
+      addEdge(graph, challengeNode.id, node7G.id, {
+        id: 'edge3',
+        type: 'divide',
+        description: '÷2',
+        value: '2',
+      });
+
+      addEdge(graph, node7G.id, generatorNode.id, {
+        id: 'edge4',
+        type: 'divide',
+        description: '÷7',
+        value: '7',
+      });
+
+      // Now should be solvable - path exists from challenge to generator
+      expect(canSolveChallenge(challenge, graph)).toBe(true);
+
+      // Update private keys and verify solution
+      updateAllPrivateKeys(graph);
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(14n);
+    });
+
+    it('should maintain unsolved state during partial construction of path from challenge to generator', () => {
+      const challengePoint = pointMultiply(6n, generatorPoint);
+      const challenge: Challenge = {
+        uuid: 'practice-challenge',
+        public_key: pointToPublicKey(challengePoint),
+        p2pkh_address: 'practice-address',
+        metadata: [],
+        explorer_link: '',
+        active: true,
+        active_date: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      const generatorNode = addNode(graph, generatorPoint, {
+        id: 'generator',
+        label: 'Generator',
+        privateKey: 1n,
+        isGenerator: true,
+      });
+
+      const point2G = pointMultiply(2n, generatorPoint);
+      const node2G = addNode(graph, point2G, {
+        id: '2g',
+        label: '2G',
+      });
+
+      const point3G = pointMultiply(3n, generatorPoint);
+      const node3G = addNode(graph, point3G, {
+        id: '3g',
+        label: '3G',
+      });
+
+      const challengeNode = addNode(graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge',
+        privateKey: 6n, // Practice mode - private key known
+        isChallenge: true,
+      });
+
+      // Step 1: Add partial forward path G -> 2G
+      addEdge(graph, generatorNode.id, node2G.id, {
+        id: 'edge1',
+        type: 'multiply',
+        description: '×2',
+        value: '2',
+      });
+
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+
+      // Step 2: Add another forward segment 2G -> 6G (challenge)
+      addEdge(graph, node2G.id, challengeNode.id, {
+        id: 'edge2',
+        type: 'multiply',
+        description: '×3',
+        value: '3',
+      });
+
+      // Still no reverse path
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+
+      // Step 3: Add partial reverse path challenge -> 3G
+      addEdge(graph, challengeNode.id, node3G.id, {
+        id: 'edge3',
+        type: 'divide',
+        description: '÷2',
+        value: '2',
+      });
+
+      // Still incomplete reverse path
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+
+      // Step 4: Complete reverse path 3G -> G
+      addEdge(graph, node3G.id, generatorNode.id, {
+        id: 'edge4',
+        type: 'divide',
+        description: '÷3',
+        value: '3',
+      });
+
+      // Now complete path from challenge to generator exists
+      expect(canSolveChallenge(challenge, graph)).toBe(true);
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(6n);
+    });
+
+    it('should be solved when direct connection from challenge to generator is created', () => {
+      const challengePoint = pointMultiply(5n, generatorPoint);
+      const challenge: Challenge = {
+        uuid: 'practice-challenge',
+        public_key: pointToPublicKey(challengePoint),
+        p2pkh_address: 'practice-address',
+        metadata: [],
+        explorer_link: '',
+        active: true,
+        active_date: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      const generatorNode = addNode(graph, generatorPoint, {
+        id: 'generator',
+        label: 'Generator',
+        privateKey: 1n,
+        isGenerator: true,
+      });
+
+      const challengeNode = addNode(graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge',
+        privateKey: 5n, // Practice mode - private key known
+        isChallenge: true,
+      });
+
+      // Initially not connected
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+
+      // Add forward connection G -> Challenge
+      addEdge(graph, generatorNode.id, challengeNode.id, {
+        id: 'edge1',
+        type: 'multiply',
+        description: '×5',
+        value: '5',
+      });
+
+      // Still not solvable - need path from challenge to generator
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+
+      // Add connection Challenge -> G
+      addEdge(graph, challengeNode.id, generatorNode.id, {
+        id: 'edge2',
+        type: 'divide',
+        description: '÷5',
+        value: '5',
+      });
+
+      // Now should be immediately solvable
+      expect(canSolveChallenge(challenge, graph)).toBe(true);
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(5n);
+    });
+
+    it('should handle complex graph with multiple possible paths', () => {
+      const challengePoint = pointMultiply(12n, generatorPoint);
+      const challenge: Challenge = {
+        uuid: 'practice-challenge',
+        public_key: pointToPublicKey(challengePoint),
+        p2pkh_address: 'practice-address',
+        metadata: [],
+        explorer_link: '',
+        active: true,
+        active_date: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      // Create complex graph with multiple paths:
+      // G -> 3G -> 6G -> 12G (challenge)
+      // G -> 4G -> 12G (challenge)
+      // Challenge -> 6G -> 3G -> G
+      // Challenge -> 4G -> G
+
+      const generatorNode = addNode(graph, generatorPoint, {
+        id: 'generator',
+        label: 'Generator',
+        privateKey: 1n,
+        isGenerator: true,
+      });
+
+      const point3G = pointMultiply(3n, generatorPoint);
+      const node3G = addNode(graph, point3G, {
+        id: '3g',
+        label: '3G',
+      });
+
+      const point4G = pointMultiply(4n, generatorPoint);
+      const node4G = addNode(graph, point4G, {
+        id: '4g',
+        label: '4G',
+      });
+
+      const point6G = pointMultiply(6n, generatorPoint);
+      const node6G = addNode(graph, point6G, {
+        id: '6g',
+        label: '6G',
+      });
+
+      const challengeNode = addNode(graph, challengePoint, {
+        id: 'challenge',
+        label: 'Challenge',
+        isChallenge: true,
+      });
+
+      // Add forward paths
+      addEdge(graph, generatorNode.id, node3G.id, {
+        id: 'edge1',
+        type: 'multiply',
+        description: '×3',
+        value: '3',
+      });
+
+      addEdge(graph, node3G.id, node6G.id, {
+        id: 'edge2',
+        type: 'multiply',
+        description: '×2',
+        value: '2',
+      });
+
+      addEdge(graph, node6G.id, challengeNode.id, {
+        id: 'edge3',
+        type: 'multiply',
+        description: '×2',
+        value: '2',
+      });
+
+      addEdge(graph, generatorNode.id, node4G.id, {
+        id: 'edge4',
+        type: 'multiply',
+        description: '×4',
+        value: '4',
+      });
+
+      addEdge(graph, node4G.id, challengeNode.id, {
+        id: 'edge5',
+        type: 'multiply',
+        description: '×3',
+        value: '3',
+      });
+
+      // Not solvable yet - no reverse paths
+      expect(canSolveChallenge(challenge, graph)).toBe(false);
+
+      // Add one reverse path: Challenge -> 6G -> 3G -> G
+      addEdge(graph, challengeNode.id, node6G.id, {
+        id: 'edge6',
+        type: 'divide',
+        description: '÷2',
+        value: '2',
+      });
+
+      addEdge(graph, node6G.id, node3G.id, {
+        id: 'edge7',
+        type: 'divide',
+        description: '÷2',
+        value: '2',
+      });
+
+      addEdge(graph, node3G.id, generatorNode.id, {
+        id: 'edge8',
+        type: 'divide',
+        description: '÷3',
+        value: '3',
+      });
+
+      // Now should be solvable with path from challenge to generator
+      expect(canSolveChallenge(challenge, graph)).toBe(true);
+      updateAllPrivateKeys(graph);
+      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(12n);
+    });
+  });
 });
