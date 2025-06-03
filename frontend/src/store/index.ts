@@ -48,6 +48,8 @@ export const store = configureStore({
           'game/loadDailyChallenge/fulfilled',
           'game/loadDailyChallenge/pending',
         ],
+        // Ignore undefined values in action payloads
+        ignoredActionPaths: ['payload', 'meta.arg'],
       },
     }),
 });

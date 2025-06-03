@@ -39,7 +39,7 @@ export function canSolveChallenge(challenge: Challenge, graph: PointGraph): bool
   }
 
   // Find generator node
-  const generatorNode = Array.from(graph.nodes.values()).find(node => node.isGenerator);
+  const generatorNode = Object.values(graph.nodes).find(node => node.isGenerator);
   if (!generatorNode) {
     return false;
   }
@@ -59,7 +59,7 @@ export function getSolutionPath(challenge: Challenge, graph: PointGraph): string
   }
 
   // Find generator node
-  const generatorNode = Array.from(graph.nodes.values()).find(node => node.isGenerator);
+  const generatorNode = Object.values(graph.nodes).find(node => node.isGenerator);
   if (!generatorNode) {
     return [];
   }
@@ -73,7 +73,7 @@ export function getSolutionPath(challenge: Challenge, graph: PointGraph): string
  */
 export function updateAllPrivateKeys(graph: PointGraph): void {
   // Find all nodes with known private keys
-  const knownNodes = Array.from(graph.nodes.values()).filter(node => node.privateKey !== undefined);
+  const knownNodes = Object.values(graph.nodes).filter(node => node.privateKey !== undefined);
 
   if (knownNodes.length === 0) {
     return;
@@ -91,10 +91,10 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
     const currentNode = queue.shift()!;
 
     // Find all edges connected to this node
-    const outgoingEdges = Array.from(graph.edges.values()).filter(
+    const outgoingEdges = Object.values(graph.edges).filter(
       edge => edge.fromNodeId === currentNode.id
     );
-    const incomingEdges = Array.from(graph.edges.values()).filter(
+    const incomingEdges = Object.values(graph.edges).filter(
       edge => edge.toNodeId === currentNode.id
     );
 

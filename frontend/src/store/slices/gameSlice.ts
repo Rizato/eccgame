@@ -23,7 +23,7 @@ const initialState: GameState = {
 
 export const loadDailyChallenge = createAsyncThunk(
   'game/loadDailyChallenge',
-  async (_, { rejectWithValue }) => {
+  async (arg: void, { rejectWithValue }) => {
     try {
       const dailyChallenge = await challengeApi.getDailyChallenge();
       const wonToday = storageUtils.hasWonToday(dailyChallenge.uuid);

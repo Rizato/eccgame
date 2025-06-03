@@ -34,7 +34,7 @@ export function canCalculatePrivateKey(point: ECPoint, graph: PointGraph): boole
   }
 
   // Find generator node
-  const generatorNode = Array.from(graph.nodes.values()).find(node => node.isGenerator);
+  const generatorNode = Object.values(graph.nodes).find(node => node.isGenerator);
   if (!generatorNode) {
     return false;
   }

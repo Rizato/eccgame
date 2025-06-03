@@ -54,8 +54,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Calculate shortest path length from generator to challenge
   const shortestPathLength = useMemo(() => {
-    const generatorNode = Array.from(graph.nodes.values()).find(node => node.isGenerator);
-    const challengeNode = Array.from(graph.nodes.values()).find(node => node.isChallenge);
+    const generatorNode = Object.values(graph.nodes).find(node => node.isGenerator);
+    const challengeNode = Object.values(graph.nodes).find(node => node.isChallenge);
 
     if (!generatorNode || !challengeNode) {
       return 0;
