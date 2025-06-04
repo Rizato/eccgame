@@ -204,8 +204,17 @@ export function optimizeGraphWithBundling(
     optimizedGraph.edges[bundledEdge.id] = bundledEdge;
     const fromNode = optimizedGraph.nodes[bundledEdge.fromNodeId];
     const toNode = optimizedGraph.nodes[bundledEdge.toNodeId];
-    // Propagate keys
-    propagatePrivateKeyFromNodes(optimizedGraph, fromNode, toNode, bundledEdge.operation);
+
+    // Only propagate if one of the nodes is missing a private key
+    // Don't overwrite existing correct private keys with bundled calculations
+    if (
+      fromNode &&
+      toNode &&
+      (fromNode.privateKey === undefined || toNode.privateKey === undefined) &&
+      !(fromNode.privateKey !== undefined && toNode.privateKey !== undefined)
+    ) {
+      propagatePrivateKeyFromNodes(optimizedGraph, fromNode, toNode, bundledEdge.operation);
+    }
   }
 
   return optimizedGraph;
