@@ -4,7 +4,7 @@ import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../uti
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
-import { optimizeGraphWithBundling } from '../../utils/operationBundling';
+import { addBundledEdgeForNewSave } from '../../utils/operationBundling';
 import { calculateNodePrivateKey } from '../../utils/pointGraph';
 
 interface DailyCalculatorState {
@@ -256,8 +256,10 @@ const dailyCalculatorSlice = createSlice({
 
       state.savedPoints.push(savedPoint);
 
-      // Automatically optimize graph after saving a point
-      state.graph = optimizeGraphWithBundling(state.graph, state.savedPoints);
+      // Create bundled edge for the saved point path (only if currentNode exists)
+      if (currentNode) {
+        addBundledEdgeForNewSave(state.graph, currentNode.id, state.savedPoints);
+      }
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
       const savedPoint = action.payload;
