@@ -620,19 +620,20 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                   : pointToPublicKey(currentPoint)}
               </span>
             </div>
-            {/* Private Key Display - show when we can calculate the actual private key */}
-            {(() => {
-              if (
-                currentPrivateKey === null ||
-                currentPrivateKey === undefined ||
-                currentPoint.isInfinity
-              )
-                return null;
+            {/* Private Key Display - always show to keep UI steady */}
+            <div className="point-private-key">
+              <div className="private-key-row">
+                <span>Private Key: </span>
+                {(() => {
+                  if (currentPoint.isInfinity) {
+                    return <span className="private-key-value">N/A (Point at Infinity)</span>;
+                  }
 
-              return (
-                <div className="point-private-key">
-                  <div className="private-key-row">
-                    <span>Private Key: </span>
+                  if (currentPrivateKey === null || currentPrivateKey === undefined) {
+                    return <span className="private-key-value">Unknown</span>;
+                  }
+
+                  return (
                     <span
                       className="private-key-value clickable"
                       onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
@@ -644,10 +645,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                         ? '0x' + currentPrivateKey.toString(16)
                         : currentPrivateKey.toString()}
                     </span>
-                  </div>
-                </div>
-              );
-            })()}
+                  );
+                })()}
+              </div>
+            </div>
           </>
         </div>
       </div>
