@@ -4,6 +4,7 @@ import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../uti
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
+import { optimizeGraphWithBundling } from '../../utils/operationBundling';
 
 interface PracticeCalculatorState {
   selectedPoint: ECPoint;
@@ -251,6 +252,9 @@ const practiceCalculatorSlice = createSlice({
       };
 
       state.savedPoints.push(savedPoint);
+
+      // Automatically optimize graph after saving a point
+      state.graph = optimizeGraphWithBundling(state.graph, state.savedPoints);
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
       state.selectedPoint = action.payload.point;
@@ -290,6 +294,9 @@ const practiceCalculatorSlice = createSlice({
         }
       }
     },
+    optimizeGraph: state => {
+      state.graph = optimizeGraphWithBundling(state.graph, state.savedPoints);
+    },
   },
   extraReducers: builder => {
     builder
@@ -317,6 +324,7 @@ export const {
   clearPracticeState,
   savePoint,
   loadSavedPoint,
+  optimizeGraph,
   checkWinCondition,
   addOperationToGraph,
 } = practiceCalculatorSlice.actions;

@@ -1,5 +1,6 @@
 import type { ECPoint, GraphNode, GraphEdge, PointGraph, Operation } from '../types/ecc';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
+import { getEffectiveOperations } from './operationBundling';
 
 /**
  * Create a hash key for a point for lookup purposes
@@ -204,11 +205,16 @@ export function findPath(
     for (const { edge, direction } of connections) {
       const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
 
-      // Create operation (reverse it if we're traversing backwards)
-      const operation =
-        direction === 'outgoing' ? edge.operation : reverseOperation(edge.operation);
+      // Get effective operations (handles bundled edges)
+      const effectiveOperations = getEffectiveOperations(edge);
 
-      const newPath = [...path, operation];
+      // Create operations (reverse them if we're traversing backwards)
+      const operations =
+        direction === 'outgoing'
+          ? effectiveOperations
+          : effectiveOperations.map(op => reverseOperation(op)).reverse();
+
+      const newPath = [...path, ...operations];
 
       if (connectedNodeId === toNodeId) {
         return newPath;
@@ -305,11 +311,15 @@ function calculateKeyThroughBidirectionalPath(
   let currentNodeId = startNodeId;
 
   for (const { edge, direction } of path) {
-    // Determine the operation to apply based on direction
-    const operation = direction === 'outgoing' ? edge.operation : reverseOperation(edge.operation);
+    // Get effective operations and apply them based on direction
+    const effectiveOperations = getEffectiveOperations(edge);
+    const operations =
+      direction === 'outgoing'
+        ? effectiveOperations
+        : effectiveOperations.map(op => reverseOperation(op)).reverse();
 
-    // Apply the operation
-    currentKey = calculateKeyFromOperations([operation], currentKey);
+    // Apply the operations
+    currentKey = calculateKeyFromOperations(operations, currentKey);
 
     // Update current node for next iteration
     currentNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;

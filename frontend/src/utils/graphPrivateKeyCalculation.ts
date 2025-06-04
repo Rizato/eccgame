@@ -3,6 +3,7 @@ import type { Challenge } from '../types/api';
 import { publicKeyToPoint } from './ecc';
 import { findNodeByPoint, hasPath, findPath, calculateNodePrivateKey } from './pointGraph';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
+import { getEffectiveOperations } from './operationBundling';
 
 /**
  * Calculate the challenge point's private key using graph traversal
@@ -114,8 +115,9 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
       const targetNode = graph.nodes[edge.toNodeId];
       if (targetNode && targetNode.privateKey === undefined && !visited.has(targetNode.id)) {
         try {
+          const effectiveOperations = getEffectiveOperations(edge);
           const calculatedKey = calculateKeyFromOperations(
-            [edge.operation],
+            effectiveOperations,
             currentNode.privateKey!
           );
           updates.set(targetNode.id, calculatedKey);
@@ -133,10 +135,11 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
       const sourceNode = graph.nodes[edge.fromNodeId];
       if (sourceNode && sourceNode.privateKey === undefined && !visited.has(sourceNode.id)) {
         try {
-          // We need to reverse the operation to go backwards
-          const reversedOperation = reverseOperation(edge.operation);
+          // We need to reverse the operations to go backwards
+          const effectiveOperations = getEffectiveOperations(edge);
+          const reversedOperations = effectiveOperations.map(op => reverseOperation(op)).reverse();
           const calculatedKey = calculateKeyFromOperations(
-            [reversedOperation],
+            reversedOperations,
             currentNode.privateKey!
           );
           updates.set(sourceNode.id, calculatedKey);

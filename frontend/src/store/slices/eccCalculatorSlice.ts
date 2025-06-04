@@ -4,6 +4,7 @@ import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../uti
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
+import { optimizeGraphWithBundling } from '../../utils/operationBundling';
 
 interface DailyCalculatorState {
   selectedPoint: ECPoint;
@@ -244,6 +245,9 @@ const dailyCalculatorSlice = createSlice({
       };
 
       state.savedPoints.push(savedPoint);
+
+      // Automatically optimize graph after saving a point
+      state.graph = optimizeGraphWithBundling(state.graph, state.savedPoints);
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
       const savedPoint = action.payload;
@@ -298,6 +302,9 @@ const dailyCalculatorSlice = createSlice({
         }
       }
     },
+    optimizeGraph: state => {
+      state.graph = optimizeGraphWithBundling(state.graph, state.savedPoints);
+    },
   },
   extraReducers: builder => {
     builder
@@ -326,6 +333,7 @@ export const {
   resetToGenerator,
   savePoint,
   loadSavedPoint,
+  optimizeGraph,
   checkWinCondition,
   addOperationToGraph,
 } = dailyCalculatorSlice.actions;

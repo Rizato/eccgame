@@ -11,6 +11,8 @@ export interface GraphEdge {
   fromNodeId: string;
   toNodeId: string;
   operation: Operation;
+  bundledOperations?: Operation[];
+  isBundled?: boolean;
 }
 
 export interface GraphNode {
