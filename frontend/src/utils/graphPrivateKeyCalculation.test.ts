@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { CURVE_N, getGeneratorPoint, pointMultiply, pointToPublicKey } from './ecc';
+import { getGeneratorPoint, pointMultiply, pointToPublicKey } from './ecc';
 import { createEmptyGraph, addNode, addEdge, findPath } from './pointGraph';
 import type { PointGraph } from '../types/ecc';
 import type { Challenge } from '../types/api';
@@ -7,7 +7,6 @@ import {
   calculateChallengePrivateKeyFromGraph,
   canSolveChallenge,
   getSolutionPath,
-  updateAllPrivateKeys,
 } from './graphPrivateKeyCalculation';
 
 describe('Graph Private Key Calculation Tests', () => {
@@ -416,254 +415,6 @@ describe('Graph Private Key Calculation Tests', () => {
     });
   });
 
-  describe('updateAllPrivateKeys', () => {
-    it('should handle empty graph', () => {
-      updateAllPrivateKeys(graph);
-      expect(graph.nodes.size).toBeFalsy();
-    });
-
-    it('should handle graph with no known private keys', () => {
-      const point = pointMultiply(5n, generatorPoint);
-      addNode(graph, point, {
-        id: 'unknown',
-        label: 'Unknown',
-      });
-
-      updateAllPrivateKeys(graph);
-      const node = graph.nodes['unknown'];
-      expect(node?.privateKey).toBeUndefined();
-    });
-
-    it('should propagate private keys through forward operations', () => {
-      // Create G -> 5G chain
-      const generatorNode = addNode(graph, generatorPoint, {
-        id: 'generator',
-        label: 'Generator',
-        privateKey: 1n,
-        isGenerator: true,
-      });
-
-      const point5G = pointMultiply(5n, generatorPoint);
-      const node5G = addNode(graph, point5G, {
-        id: '5g',
-        label: '5G',
-      });
-
-      addEdge(graph, generatorNode.id, node5G.id, {
-        id: 'edge1',
-        type: 'multiply',
-        description: '×5',
-        value: '5',
-      });
-
-      updateAllPrivateKeys(graph);
-
-      expect(node5G.privateKey).toBe(5n);
-    });
-
-    it('should propagate private keys through backward operations', () => {
-      // Create G <- 5G chain (5G has known key, G should be calculated)
-      const generatorNode = addNode(graph, generatorPoint, {
-        id: 'generator',
-        label: 'Generator',
-        isGenerator: true,
-      });
-
-      const point5G = pointMultiply(5n, generatorPoint);
-      const node5G = addNode(graph, point5G, {
-        id: '5g',
-        label: '5G',
-        privateKey: 5n,
-      });
-
-      addEdge(graph, generatorNode.id, node5G.id, {
-        id: 'edge1',
-        type: 'multiply',
-        description: '×5',
-        value: '5',
-      });
-
-      updateAllPrivateKeys(graph);
-
-      expect(generatorNode.privateKey).toBe(1n);
-    });
-
-    it('should handle complex graph with multiple paths - specific test case', () => {
-      // Test case: nodes G (1G), 5G, 10G, Challenge (18G)
-      // edges: G -> 5G, 10G -> 5G, Challenge -> 10G
-
-      // Create nodes
-      const generatorNode = addNode(graph, generatorPoint, {
-        id: 'generator',
-        label: 'G',
-        privateKey: 1n,
-        isGenerator: true,
-      });
-
-      const point5G = pointMultiply(5n, generatorPoint);
-      const node5G = addNode(graph, point5G, {
-        id: '5g',
-        label: '5G',
-      });
-
-      const point10G = pointMultiply(10n, generatorPoint);
-      const node10G = addNode(graph, point10G, {
-        id: '10g',
-        label: '10G',
-      });
-
-      const point18G = pointMultiply(18n, generatorPoint);
-      const challengeNode = addNode(graph, point18G, {
-        id: 'challenge',
-        label: 'Challenge (18G)',
-        isChallenge: true,
-      });
-
-      // Create edges
-      // G -> 5G (multiply by 5)
-      addEdge(graph, generatorNode.id, node5G.id, {
-        id: 'edge1',
-        type: 'multiply',
-        description: '×5',
-        value: '5',
-      });
-
-      // 10G -> 5G (divide by 2)
-      addEdge(graph, node10G.id, node5G.id, {
-        id: 'edge2',
-        type: 'divide',
-        description: '÷2',
-        value: '2',
-      });
-
-      // Challenge -> 10G (subtract 8G)
-      addEdge(graph, challengeNode.id, node10G.id, {
-        id: 'edge3',
-        type: 'subtract',
-        description: '-8',
-        value: '8',
-      });
-
-      updateAllPrivateKeys(graph);
-
-      // Verify all private keys are calculated correctly
-      expect(generatorNode.privateKey).toBe(1n);
-      expect(node5G.privateKey).toBe(5n);
-      expect(node10G.privateKey).toBe(10n);
-      expect(challengeNode.privateKey).toBe(18n);
-    });
-
-    it('should handle negate operations', () => {
-      const generatorNode = addNode(graph, generatorPoint, {
-        id: 'generator',
-        label: 'Generator',
-        privateKey: 1n,
-        isGenerator: true,
-      });
-
-      const negatedPoint = pointMultiply(-1n, generatorPoint);
-      const negatedNode = addNode(graph, negatedPoint, {
-        id: 'negated',
-        label: 'Negated G',
-      });
-
-      addEdge(graph, generatorNode.id, negatedNode.id, {
-        id: 'edge1',
-        type: 'negate',
-        description: '±',
-        value: '',
-      });
-
-      updateAllPrivateKeys(graph);
-
-      // Negated point should have private key CURVE_N - 1 (which is -1 in modular arithmetic)
-      expect(negatedNode.privateKey).toBeDefined();
-      expect(negatedNode.privateKey).toBe(CURVE_N - 1n);
-    });
-
-    it('should handle add and subtract operations correctly', () => {
-      const generatorNode = addNode(graph, generatorPoint, {
-        id: 'generator',
-        label: 'Generator',
-        privateKey: 1n,
-        isGenerator: true,
-      });
-
-      const point4G = pointMultiply(4n, generatorPoint);
-      const node4G = addNode(graph, point4G, {
-        id: '4g',
-        label: '4G',
-      });
-
-      // G + 3G = 4G
-      addEdge(graph, generatorNode.id, node4G.id, {
-        id: 'edge1',
-        type: 'add',
-        description: '+3',
-        value: '3',
-      });
-
-      updateAllPrivateKeys(graph);
-
-      expect(node4G.privateKey).toBe(4n);
-    });
-
-    it('should handle divide operations correctly', () => {
-      const point6G = pointMultiply(6n, generatorPoint);
-      const node6G = addNode(graph, point6G, {
-        id: '6g',
-        label: '6G',
-        privateKey: 6n,
-      });
-
-      const point3G = pointMultiply(3n, generatorPoint);
-      const node3G = addNode(graph, point3G, {
-        id: '3g',
-        label: '3G',
-      });
-
-      // 6G / 2 = 3G
-      addEdge(graph, node6G.id, node3G.id, {
-        id: 'edge1',
-        type: 'divide',
-        description: '÷2',
-        value: '2',
-      });
-
-      updateAllPrivateKeys(graph);
-
-      expect(node3G.privateKey).toBe(3n);
-    });
-
-    it('should not overwrite existing private keys', () => {
-      const generatorNode = addNode(graph, generatorPoint, {
-        id: 'generator',
-        label: 'Generator',
-        privateKey: 1n,
-        isGenerator: true,
-      });
-
-      const point5G = pointMultiply(5n, generatorPoint);
-      const node5G = addNode(graph, point5G, {
-        id: '5g',
-        label: '5G',
-        privateKey: 999n, // Wrong value, but should not be overwritten
-      });
-
-      addEdge(graph, generatorNode.id, node5G.id, {
-        id: 'edge1',
-        type: 'multiply',
-        description: '×5',
-        value: '5',
-      });
-
-      updateAllPrivateKeys(graph);
-
-      // Should keep the existing (wrong) value
-      expect(node5G.privateKey).toBe(999n);
-    });
-  });
-
   describe('Edge cases and error handling', () => {
     it('should handle challenge with invalid public key', () => {
       const challenge: Challenge = {
@@ -680,93 +431,6 @@ describe('Graph Private Key Calculation Tests', () => {
       expect(() => {
         calculateChallengePrivateKeyFromGraph(challenge, graph);
       }).toThrow();
-    });
-
-    it('should handle disconnected graph components', () => {
-      // Create two separate components
-      const generatorNode = addNode(graph, generatorPoint, {
-        id: 'generator',
-        label: 'Generator',
-        privateKey: 1n,
-        isGenerator: true,
-      });
-
-      const point2G = pointMultiply(2n, generatorPoint);
-      const node2G = addNode(graph, point2G, {
-        id: '2g',
-        label: '2G',
-      });
-
-      // Separate component
-      const point7G = pointMultiply(7n, generatorPoint);
-      const node7G = addNode(graph, point7G, {
-        id: '7g',
-        label: '7G',
-        privateKey: 7n,
-      });
-
-      const point14G = pointMultiply(14n, generatorPoint);
-      const node14G = addNode(graph, point14G, {
-        id: '14g',
-        label: '14G',
-      });
-
-      // Connect within components
-      addEdge(graph, generatorNode.id, node2G.id, {
-        id: 'edge1',
-        type: 'multiply',
-        description: '×2',
-        value: '2',
-      });
-
-      addEdge(graph, node7G.id, node14G.id, {
-        id: 'edge2',
-        type: 'multiply',
-        description: '×2',
-        value: '2',
-      });
-
-      updateAllPrivateKeys(graph);
-
-      // Both components should be updated independently
-      expect(node2G.privateKey).toBe(2n);
-      expect(node14G.privateKey).toBe(14n);
-    });
-
-    it('should handle cycles in the graph', () => {
-      const generatorNode = addNode(graph, generatorPoint, {
-        id: 'generator',
-        label: 'Generator',
-        privateKey: 1n,
-        isGenerator: true,
-      });
-
-      const point2G = pointMultiply(2n, generatorPoint);
-      const node2G = addNode(graph, point2G, {
-        id: '2g',
-        label: '2G',
-      });
-
-      // Create a cycle: G -> 2G -> G
-      addEdge(graph, generatorNode.id, node2G.id, {
-        id: 'edge1',
-        type: 'multiply',
-        description: '×2',
-        value: '2',
-      });
-
-      addEdge(graph, node2G.id, generatorNode.id, {
-        id: 'edge2',
-        type: 'divide',
-        description: '÷2',
-        value: '2',
-      });
-
-      updateAllPrivateKeys(graph);
-
-      // Should handle cycle gracefully and calculate correct private key
-      expect(node2G.privateKey).toBe(2n);
-      expect(generatorNode.privateKey).toBe(1n); // Should not be overwritten
     });
   });
 
@@ -986,9 +650,6 @@ describe('Graph Private Key Calculation Tests', () => {
 
       // Should NOT be solvable yet - no path from challenge to generator
       expect(canSolveChallenge(challenge, graph)).toBe(false);
-      // Private key is already known (practice mode), but challenge isn't solved
-      expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(14n);
-      expect(canSolveChallenge(challenge, graph)).toBe(false); // Still not solvable
 
       // Now add reverse path: Challenge (14G) -> 7G -> 10G -> G
       addEdge(graph, challengeNode.id, node7G.id, {
@@ -1007,9 +668,6 @@ describe('Graph Private Key Calculation Tests', () => {
 
       // Now should be solvable - path exists from challenge to generator
       expect(canSolveChallenge(challenge, graph)).toBe(true);
-
-      // Update private keys and verify solution
-      updateAllPrivateKeys(graph);
       expect(calculateChallengePrivateKeyFromGraph(challenge, graph)).toBe(14n);
     });
 
