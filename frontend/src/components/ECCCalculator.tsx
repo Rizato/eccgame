@@ -19,7 +19,8 @@ import './ECCCalculator.css';
 import { SavePointModal } from './SavePointModal';
 import type { SavedPoint, ECPoint, Operation } from '../types/ecc.ts';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { addOperationToGraph } from '../store/slices/eccCalculatorSlice';
+import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
+import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
@@ -29,7 +30,6 @@ interface ECCCalculatorProps {
   onError: (error: string | null) => void;
   onSavePoint: (label?: string) => void;
   isLocked?: boolean;
-  practicePrivateKey?: string; // Private key for practice mode
 }
 
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
@@ -40,9 +40,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   onError,
   onSavePoint,
   isLocked = false,
-  practicePrivateKey,
 }) => {
-  const { graph } = useAppSelector(state => state.eccCalculator);
+  const gameMode = useAppSelector(state => state.game.gameMode);
+  const { graph } = useAppSelector(state =>
+    gameMode === 'practice' ? state.practiceCalculator : state.dailyCalculator
+  );
   const dispatch = useAppDispatch();
 
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
@@ -80,7 +82,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   // Calculate the actual private key for the current point using the graph
   const currentPrivateKey = useMemo(() => {
     return calculatePrivateKeyFromGraph(currentPoint, graph);
-  }, [currentPoint, graph, practicePrivateKey, challengePublicKey]);
+  }, [currentPoint, graph]);
 
   // Calculate current address asynchronously
   useEffect(() => {
@@ -221,9 +223,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '1',
       };
 
-      // Add to graph through Redux
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
       dispatch(
-        addOperationToGraph({
+        addOperationAction({
           fromPoint: currentPoint,
           toPoint: newPoint,
           operation,
@@ -253,9 +258,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '1',
       };
 
-      // Add to graph through Redux
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
       dispatch(
-        addOperationToGraph({
+        addOperationAction({
           fromPoint: currentPoint,
           toPoint: newPoint,
           operation,
@@ -285,9 +293,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '2',
       };
 
-      // Add to graph through Redux
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
       dispatch(
-        addOperationToGraph({
+        addOperationAction({
           fromPoint: currentPoint,
           toPoint: newPoint,
           operation,
@@ -317,9 +328,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '2',
       };
 
-      // Add to graph through Redux
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
       dispatch(
-        addOperationToGraph({
+        addOperationAction({
           fromPoint: currentPoint,
           toPoint: newPoint,
           operation,
@@ -349,9 +363,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '',
       };
 
-      // Add to graph through Redux
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
       dispatch(
-        addOperationToGraph({
+        addOperationAction({
           fromPoint: currentPoint,
           toPoint: newPoint,
           operation,
@@ -432,9 +449,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           value,
         };
 
-        // Add to graph through Redux
+        // Add to graph through Redux using the appropriate action based on game mode
+        const addOperationAction =
+          gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
         dispatch(
-          addOperationToGraph({
+          addOperationAction({
             fromPoint: currentPoint,
             toPoint: newPoint,
             operation: operationObj,

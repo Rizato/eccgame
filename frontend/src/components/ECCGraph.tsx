@@ -23,7 +23,10 @@ interface GraphPoint {
 }
 
 const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick }) => {
-  const { selectedPoint, savedPoints } = useAppSelector(state => state.eccCalculator);
+  const gameMode = useAppSelector(state => state.game.gameMode);
+  const { selectedPoint, savedPoints } = useAppSelector(state =>
+    gameMode === 'practice' ? state.practiceCalculator : state.dailyCalculator
+  );
 
   const generatorPoint = getGeneratorPoint();
 

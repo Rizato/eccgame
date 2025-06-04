@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import type { Challenge } from '../types/api';
-import { useECCCalculatorRedux } from '../hooks/useECCCalculatorRedux';
+import { useDailyCalculatorRedux } from '../hooks/useDailyCalculatorRedux';
+import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux';
 import { getP2PKHAddress } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
 import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
@@ -26,6 +27,16 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   isPracticeMode = false,
   practicePrivateKey,
 }) => {
+  // Use the appropriate calculator hook based on mode
+  const dailyCalculator = useDailyCalculatorRedux(challenge.public_key);
+  const practiceCalculator = usePracticeCalculatorRedux(
+    challenge.public_key,
+    practicePrivateKey || ''
+  );
+
+  // Select the appropriate calculator based on mode
+  const calculator = isPracticeMode ? practiceCalculator : dailyCalculator;
+
   const {
     currentPoint,
     error,
@@ -40,7 +51,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     resetToGenerator,
     savePoint,
     loadSavedPoint,
-  } = useECCCalculatorRedux(challenge.public_key, isPracticeMode ? practicePrivateKey : undefined);
+  } = calculator;
 
   const [challengeAddress, setChallengeAddress] = useState<string>('');
   const [showPointModal, setShowPointModal] = useState(false);
@@ -146,7 +157,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             onError={setError}
             onSavePoint={saveCurrentPoint}
             isLocked={hasWon && !isPracticeMode}
-            practicePrivateKey={isPracticeMode ? practicePrivateKey : undefined}
           />
         </div>
       </div>

@@ -5,7 +5,7 @@ import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc
 import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
 
-interface DailyCalculatorState {
+interface PracticeCalculatorState {
   selectedPoint: ECPoint;
   graph: PointGraph;
   generatorNodeId: string | null;
@@ -20,6 +20,7 @@ interface DailyCalculatorState {
   showVictoryModal: boolean;
   savedPoints: SavedPoint[];
   challengePublicKey: string;
+  practicePrivateKey: string;
 }
 
 const generatorPoint = getGeneratorPoint();
@@ -38,7 +39,7 @@ const initializeGraph = (): { graph: PointGraph; generatorNodeId: string } => {
 
 const { graph: initialGraph, generatorNodeId: initialGeneratorNodeId } = initializeGraph();
 
-const initialState: DailyCalculatorState = {
+const initialState: PracticeCalculatorState = {
   selectedPoint: generatorPoint,
   graph: initialGraph,
   generatorNodeId: initialGeneratorNodeId,
@@ -53,17 +54,19 @@ const initialState: DailyCalculatorState = {
   showVictoryModal: false,
   savedPoints: [],
   challengePublicKey: '',
+  practicePrivateKey: '',
 };
 
-export const calculateDailyCurrentAddress = createAsyncThunk(
-  'dailyCalculator/calculateCurrentAddress',
-  async (currentPoint: ECPoint) => {
-    if (currentPoint.isInfinity) {
+// Async thunk for calculating current address
+export const calculatePracticeCurrentAddress = createAsyncThunk(
+  'practiceCalculator/calculateCurrentAddress',
+  async (point: ECPoint) => {
+    if (point.isInfinity) {
       return 'Point at Infinity';
     }
 
     try {
-      const pubKey = pointToPublicKey(currentPoint);
+      const pubKey = pointToPublicKey(point);
       const address = await getP2PKHAddress(pubKey);
       return address;
     } catch {
@@ -72,8 +75,8 @@ export const calculateDailyCurrentAddress = createAsyncThunk(
   }
 );
 
-const dailyCalculatorSlice = createSlice({
-  name: 'dailyCalculator',
+const practiceCalculatorSlice = createSlice({
+  name: 'practiceCalculator',
   initialState,
   reducers: {
     setSelectedPoint: (state, action: PayloadAction<ECPoint>) => {
@@ -94,35 +97,33 @@ const dailyCalculatorSlice = createSlice({
     ) => {
       state.pendingOperation = action.payload;
     },
-    setChallengePublicKey: (state, action: PayloadAction<string>) => {
-      state.challengePublicKey = action.payload;
-      const challengePoint = publicKeyToPoint(action.payload);
-      state.selectedPoint = challengePoint;
-
-      // Add challenge node to graph
-      const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
-        label: 'Challenge Point',
-        isChallenge: true,
-      });
-      state.challengeNodeId = challengeNode.id;
-    },
     setChallengeWithPrivateKey: (
       state,
       action: PayloadAction<{ publicKey: string; privateKey: string }>
     ) => {
       const { publicKey, privateKey } = action.payload;
       state.challengePublicKey = publicKey;
+      state.practicePrivateKey = privateKey;
       const challengePoint = publicKeyToPoint(publicKey);
       state.selectedPoint = challengePoint;
 
-      // Add challenge node to graph with known private key
-      const challengeNode = addNode(state.graph, challengePoint, {
+      // Add challenge node to graph with known private key (only if privateKey is valid)
+      const nodeOptions: any = {
         id: 'challenge',
         label: 'Challenge Point',
-        privateKey: BigInt('0x' + privateKey),
         isChallenge: true,
-      });
+      };
+
+      // Only add private key if it's a valid hex string
+      if (privateKey && privateKey.length > 0 && /^[0-9a-fA-F]+$/.test(privateKey)) {
+        try {
+          nodeOptions.privateKey = BigInt('0x' + privateKey);
+        } catch (error) {
+          console.warn('Invalid private key format:', privateKey);
+        }
+      }
+
+      const challengeNode = addNode(state.graph, challengePoint, nodeOptions);
       state.challengeNodeId = challengeNode.id;
     },
     clearCalculator: state => {
@@ -162,29 +163,6 @@ const dailyCalculatorSlice = createSlice({
         }
       }
     },
-    resetToChallenge: (state, action: PayloadAction<string>) => {
-      const challengePublicKey = action.payload;
-      const challengePoint = publicKeyToPoint(challengePublicKey);
-      state.selectedPoint = challengePoint;
-
-      // Ensure challenge node exists in graph (don't clear the graph, just ensure the node exists)
-      const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
-        label: 'Challenge Point',
-        isChallenge: true,
-      });
-      state.challengeNodeId = challengeNode.id;
-
-      // Don't clear saved points when switching to challenge
-      state.error = null;
-      state.calculatorDisplay = '';
-      state.pendingOperation = null;
-      state.hexMode = false;
-      state.lastOperationValue = null;
-      state.hasWon = false;
-      state.showVictoryModal = false;
-      state.challengePublicKey = challengePublicKey;
-    },
     resetToChallengeWithPrivateKey: (
       state,
       action: PayloadAction<{ publicKey: string; privateKey: string }>
@@ -194,12 +172,22 @@ const dailyCalculatorSlice = createSlice({
       state.selectedPoint = challengePoint;
 
       // Ensure challenge node exists in graph with known private key
-      const challengeNode = addNode(state.graph, challengePoint, {
+      const nodeOptions: any = {
         id: 'challenge',
         label: 'Challenge Point',
-        privateKey: BigInt('0x' + privateKey),
         isChallenge: true,
-      });
+      };
+
+      // Only add private key if it's a valid hex string
+      if (privateKey && privateKey.length > 0 && /^[0-9a-fA-F]+$/.test(privateKey)) {
+        try {
+          nodeOptions.privateKey = BigInt('0x' + privateKey);
+        } catch (error) {
+          console.warn('Invalid private key format:', privateKey);
+        }
+      }
+
+      const challengeNode = addNode(state.graph, challengePoint, nodeOptions);
       state.challengeNodeId = challengeNode.id;
 
       // Don't clear saved points when switching to challenge
@@ -211,6 +199,7 @@ const dailyCalculatorSlice = createSlice({
       state.hasWon = false;
       state.showVictoryModal = false;
       state.challengePublicKey = publicKey;
+      state.practicePrivateKey = privateKey;
     },
     resetToGenerator: state => {
       state.selectedPoint = generatorPoint;
@@ -239,29 +228,14 @@ const dailyCalculatorSlice = createSlice({
       const savedPoint: SavedPoint = {
         id: `saved_${Date.now()}`,
         point: state.selectedPoint,
-        label: label || `Point ${state.savedPoints.length + 1}`,
+        label: label || `Saved Point ${state.savedPoints.length + 1}`,
         timestamp: Date.now(),
       };
 
       state.savedPoints.push(savedPoint);
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
-      const savedPoint = action.payload;
-      state.selectedPoint = savedPoint.point;
-
-      // Add the saved point to the graph if it doesn't exist
-      addNode(state.graph, savedPoint.point, {
-        id: savedPoint.id,
-        label: savedPoint.label,
-      });
-
-      state.error = null;
-      state.calculatorDisplay = '';
-      state.pendingOperation = null;
-      state.hexMode = false;
-      state.lastOperationValue = null;
-      state.hasWon = false;
-      state.showVictoryModal = false;
+      state.selectedPoint = action.payload.point;
     },
     checkWinCondition: state => {
       // Win condition: there's a path from challenge to generator in the graph
@@ -301,10 +275,10 @@ const dailyCalculatorSlice = createSlice({
   },
   extraReducers: builder => {
     builder
-      .addCase(calculateDailyCurrentAddress.fulfilled, (state, action) => {
+      .addCase(calculatePracticeCurrentAddress.fulfilled, (state, action) => {
         state.currentAddress = action.payload;
       })
-      .addCase(calculateDailyCurrentAddress.rejected, state => {
+      .addCase(calculatePracticeCurrentAddress.rejected, state => {
         state.currentAddress = 'Invalid';
       });
   },
@@ -316,18 +290,16 @@ export const {
   setHasWon,
   setShowVictoryModal,
   setPendingOperation,
-  setChallengePublicKey,
   setChallengeWithPrivateKey,
   clearCalculator,
   addToCalculator,
   backspaceCalculator,
-  resetToChallenge,
   resetToChallengeWithPrivateKey,
   resetToGenerator,
   savePoint,
   loadSavedPoint,
   checkWinCondition,
   addOperationToGraph,
-} = dailyCalculatorSlice.actions;
+} = practiceCalculatorSlice.actions;
 
-export default dailyCalculatorSlice.reducer;
+export default practiceCalculatorSlice.reducer;
