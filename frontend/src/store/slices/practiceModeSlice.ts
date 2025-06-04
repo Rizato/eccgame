@@ -32,15 +32,15 @@ export const generatePracticeChallenge = createAsyncThunk(
 
     switch (difficulty) {
       case 'easy':
-        // Small private key (1-100)
-        privateKey = BigInt(Math.floor(Math.random() * 100) + 1);
+        // Small private key (2-100)
+        privateKey = BigInt(Math.floor(Math.random() * 100) + 2);
         break;
       case 'medium':
         // Medium private key (up to 2^20)
-        privateKey = BigInt(Math.floor(Math.random() * 1048576) + 1);
+        privateKey = BigInt(Math.floor(Math.random() * 1048576) + 2);
         break;
       case 'hard':
-        // Large private key (full range)
+        // Large private key (full range) (Don't need to worry, this will never be 1)
         privateKey = generateRandomScalar();
         break;
     }
