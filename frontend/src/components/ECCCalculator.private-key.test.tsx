@@ -1,10 +1,12 @@
 import { act, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import { Provider } from 'react-redux';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
+import gameSlice from '../store/slices/gameSlice';
+import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
 import { getGeneratorPoint } from '../utils/ecc';
 import ECCCalculator from './ECCCalculator';
-import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
 
 // Mock the crypto module to avoid async issues in tests
 vi.mock('../utils/crypto', () => ({
@@ -15,7 +17,9 @@ vi.mock('../utils/crypto', () => ({
 const createTestStore = () =>
   configureStore({
     reducer: {
-      eccCalculator: eccCalculatorSlice,
+      game: gameSlice,
+      dailyCalculator: eccCalculatorSlice,
+      practiceCalculator: practiceCalculatorSlice,
     },
   });
 

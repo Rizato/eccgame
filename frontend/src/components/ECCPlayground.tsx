@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import type { Challenge } from '../types/api';
 import { useDailyCalculatorRedux } from '../hooks/useDailyCalculatorRedux';
 import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux';
@@ -58,6 +58,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
 
+  const calculatorDisplayRef = useRef<((value: string) => void) | null>(null);
   const generatorPoint = getGeneratorPoint();
 
   const victoryPrivateKey = useMemo(() => {
@@ -185,6 +186,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             onError={setError}
             onSavePoint={saveCurrentPoint}
             isLocked={hasWon && !isPracticeMode}
+            calculatorDisplayRef={calculatorDisplayRef}
           />
         </div>
       </div>
@@ -233,6 +235,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         practicePrivateKey={practicePrivateKey}
         point={modalPoint}
         onLoadPoint={loadPoint}
+        onCopyPrivateKeyToCalculator={(privateKey: string) => {
+          if (calculatorDisplayRef.current) {
+            calculatorDisplayRef.current(privateKey);
+          }
+        }}
         pointData={
           modalPoint
             ? {

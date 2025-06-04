@@ -26,6 +26,8 @@ interface ModalProps {
   // Point loading operations
   point: ECPoint | null;
   onLoadPoint?: (point: ECPoint) => void;
+  // Calculator integration
+  onCopyPrivateKeyToCalculator?: (privateKey: string) => void;
 }
 
 interface ModalItemProps {
@@ -46,6 +48,7 @@ export const Modal: React.FC<ModalProps> = ({
   pointData,
   point,
   onLoadPoint,
+  onCopyPrivateKeyToCalculator,
 }) => {
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
 
@@ -133,6 +136,28 @@ export const Modal: React.FC<ModalProps> = ({
                 >
                   Copy
                 </button>
+                {onCopyPrivateKeyToCalculator && (
+                  <button
+                    className="copy-button primary"
+                    onClick={() => {
+                      const keyToUse = pointData?.privateKey || practicePrivateKey;
+                      if (!keyToUse) return;
+
+                      try {
+                        const keyBigInt = BigInt('0x' + keyToUse);
+                        const keyValue = privateKeyHexMode
+                          ? '0x' + keyBigInt.toString(16)
+                          : keyBigInt.toString();
+                        onCopyPrivateKeyToCalculator(keyValue);
+                        onClose();
+                      } catch {
+                        // Handle invalid key
+                      }
+                    }}
+                  >
+                    Copy to Calculator
+                  </button>
+                )}
               </div>
             </div>
           )}

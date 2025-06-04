@@ -30,6 +30,7 @@ interface ECCCalculatorProps {
   onError: (error: string | null) => void;
   onSavePoint: (label?: string) => void;
   isLocked?: boolean;
+  calculatorDisplayRef?: React.MutableRefObject<((value: string) => void) | null>;
 }
 
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
@@ -40,6 +41,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   onError,
   onSavePoint,
   isLocked = false,
+  calculatorDisplayRef,
 }) => {
   const gameMode = useAppSelector(state => state.game.gameMode);
   const { graph } = useAppSelector(state =>
@@ -487,6 +489,16 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
   executeCalculatorOperationRef.current = executeCalculatorOperation;
+
+  // Expose calculator display setter to parent
+  useEffect(() => {
+    if (calculatorDisplayRef) {
+      calculatorDisplayRef.current = (value: string) => {
+        clearCalculator();
+        setCalculatorDisplay(value);
+      };
+    }
+  }, [calculatorDisplayRef, clearCalculator]);
 
   // Keyboard event handler
   useEffect(() => {
