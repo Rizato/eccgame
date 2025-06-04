@@ -5,6 +5,7 @@ import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc
 import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
 import { optimizeGraphWithBundling } from '../../utils/operationBundling';
+import { calculateNodePrivateKey } from '../../utils/pointGraph';
 
 interface DailyCalculatorState {
   selectedPoint: ECPoint;
@@ -237,11 +238,20 @@ const dailyCalculatorSlice = createSlice({
     savePoint: (state, action: PayloadAction<{ label?: string }>) => {
       const { label } = action.payload;
 
+      // Find the current point's private key from the graph
+      const currentNode = Object.values(state.graph.nodes).find(
+        node =>
+          node.point.x === state.selectedPoint.x &&
+          node.point.y === state.selectedPoint.y &&
+          node.point.isInfinity === state.selectedPoint.isInfinity
+      );
+
       const savedPoint: SavedPoint = {
         id: `saved_${Date.now()}`,
         point: state.selectedPoint,
         label: label || `Point ${state.savedPoints.length + 1}`,
         timestamp: Date.now(),
+        privateKey: currentNode?.privateKey,
       };
 
       state.savedPoints.push(savedPoint);
@@ -253,11 +263,20 @@ const dailyCalculatorSlice = createSlice({
       const savedPoint = action.payload;
       state.selectedPoint = savedPoint.point;
 
-      // Add the saved point to the graph if it doesn't exist
-      addNode(state.graph, savedPoint.point, {
+      // Add the saved point to the graph if it doesn't exist, including its private key
+      const node = addNode(state.graph, savedPoint.point, {
         id: savedPoint.id,
         label: savedPoint.label,
+        privateKey: savedPoint.privateKey,
       });
+
+      // If the saved point doesn't have a private key, try to calculate it from the graph
+      if (!node.privateKey) {
+        const calculatedKey = calculateNodePrivateKey(state.graph, node.id);
+        if (calculatedKey) {
+          node.privateKey = calculatedKey;
+        }
+      }
 
       state.error = null;
       state.calculatorDisplay = '';

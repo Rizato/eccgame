@@ -35,6 +35,7 @@ export interface SavedPoint {
   point: ECPoint;
   label: string;
   timestamp: number;
+  privateKey?: bigint;
 }
 
 export interface ECPoint {
