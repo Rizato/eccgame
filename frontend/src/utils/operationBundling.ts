@@ -203,7 +203,7 @@ export function optimizeGraphWithBundling(
   for (const bundledEdge of bundledEdges) {
     optimizedGraph.edges[bundledEdge.id] = bundledEdge;
     const fromNode = optimizedGraph.nodes[bundledEdge.fromNodeId];
-    const toNode = optimizedGraph.nodes[bundledEdge.fromNodeId];
+    const toNode = optimizedGraph.nodes[bundledEdge.toNodeId];
     // Propagate keys
     propagatePrivateKeyFromNodes(optimizedGraph, fromNode, toNode, bundledEdge.operation);
   }

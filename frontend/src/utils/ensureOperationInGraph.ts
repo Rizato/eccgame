@@ -50,11 +50,24 @@ export function propagatePrivateKeyFromNodes(
   toNode: GraphNode,
   operation: Operation
 ): void {
-  // Exit if they both have no keys, or both have keys
-  if (
-    (fromNode.privateKey === undefined && toNode.privateKey === undefined) ||
-    (fromNode.privateKey !== undefined && toNode.privateKey !== undefined)
-  ) {
+  // Exit if they both have no keys
+  if (fromNode.privateKey === undefined && toNode.privateKey === undefined) {
+    return;
+  }
+
+  // If both nodes have keys, verify they are consistent with the operation
+  if (fromNode.privateKey !== undefined && toNode.privateKey !== undefined) {
+    try {
+      const expectedToKey = calculateKeyFromOperations([operation], fromNode.privateKey);
+      if (toNode.privateKey !== expectedToKey) {
+        console.warn('Private key inconsistency detected! Correcting toNode private key.');
+        toNode.privateKey = expectedToKey;
+        // Recursively propagate from the corrected node
+        propagatePrivateKeyRecursively(graph, toNode.id, new Set([fromNode.id]));
+      }
+    } catch (error) {
+      console.warn('Failed to verify private key consistency:', error);
+    }
     return;
   }
 

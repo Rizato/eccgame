@@ -116,7 +116,7 @@ describe('ensureOperationInGraph', () => {
       expect(generatorNode?.privateKey).toBe(1n);
     });
 
-    it('should not propagate when both nodes have private keys', () => {
+    it('should detect and correct inconsistent private keys when both nodes have keys', () => {
       // Pre-add both nodes with private keys
       const generatorNode = addNode(graph, generatorPoint, {
         id: 'generator',
@@ -139,9 +139,9 @@ describe('ensureOperationInGraph', () => {
         value: '5',
       });
 
-      // Should not overwrite existing private keys
+      // Should correct the inconsistent private key
       expect(generatorNode.privateKey).toBe(1n);
-      expect(point5GNode.privateKey).toBe(999n);
+      expect(point5GNode.privateKey).toBe(5n); // Should be corrected from 999n to 5n
     });
 
     it('should not propagate when neither node has private key', () => {
