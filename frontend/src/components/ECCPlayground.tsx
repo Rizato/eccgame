@@ -64,8 +64,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     return calculateChallengePrivateKeyFromGraph(challenge, graph);
   }, [challenge, graph]);
 
-  // Calculate shortest path length from generator to challenge
-  const shortestPathLength = useMemo(() => {
+  // Calculate total number of operations from generator to challenge
+  const totalOperationCount = useMemo(() => {
     const generatorNode = Object.values(graph.nodes).find(node => node.isGenerator);
     const challengeNode = Object.values(graph.nodes).find(node => node.isChallenge);
 
@@ -74,8 +74,21 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     }
 
     const path = findPath(graph, generatorNode.id, challengeNode.id);
-    // TODO Get total operation length, not optimized length (Can inflate a bunch of nops)
-    return path ? path.length : 0;
+    if (!path) return 0;
+
+    // Calculate total operations by checking for bundled operations
+    let totalCount = 0;
+    for (const operation of path) {
+      // Find the edge that contains this operation to check if it's bundled
+      const edge = Object.values(graph.edges).find(e => e.operation.id === operation.id);
+      if (edge && edge.bundleCount) {
+        totalCount += Number(edge.bundleCount);
+      } else {
+        totalCount += 1;
+      }
+    }
+
+    return totalCount;
   }, [graph]);
 
   // Reset current point when challenge changes
@@ -257,7 +270,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           }
         }}
         savedPoints={savedPoints}
-        operationCount={shortestPathLength}
+        operationCount={totalOperationCount}
         challengeAddress={challengeAddress}
         victoryPrivateKey={victoryPrivateKey ? '0x' + victoryPrivateKey.toString(16) : ''}
         isPracticeMode={isPracticeMode}
