@@ -1,6 +1,5 @@
 import type { ECPoint, GraphNode, GraphEdge, PointGraph, Operation } from '../types/ecc';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
-import { getEffectiveOperations } from './operationBundling';
 
 /**
  * Create a hash key for a point for lookup purposes
@@ -105,32 +104,6 @@ export function findNodeByPoint(graph: PointGraph, point: ECPoint): GraphNode | 
 }
 
 /**
- * Get all edges from a node
- */
-export function getOutgoingEdges(graph: PointGraph, nodeId: string): GraphEdge[] {
-  const edges: GraphEdge[] = [];
-  for (const edge of Object.values(graph.edges)) {
-    if (edge.fromNodeId === nodeId) {
-      edges.push(edge);
-    }
-  }
-  return edges;
-}
-
-/**
- * Get all edges to a node
- */
-export function getIncomingEdges(graph: PointGraph, nodeId: string): GraphEdge[] {
-  const edges: GraphEdge[] = [];
-  for (const edge of Object.values(graph.edges)) {
-    if (edge.toNodeId === nodeId) {
-      edges.push(edge);
-    }
-  }
-  return edges;
-}
-
-/**
  * Get all edges connected to a node (both incoming and outgoing)
  */
 export function getAllConnectedEdges(
@@ -206,15 +179,10 @@ export function findPath(
       const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
 
       // Get effective operations (handles bundled edges)
-      const effectiveOperations = getEffectiveOperations(edge);
+      const operation =
+        direction === 'outgoing' ? edge.operation : reverseOperation(edge.operation);
 
-      // Create operations (reverse them if we're traversing backwards)
-      const operations =
-        direction === 'outgoing'
-          ? effectiveOperations
-          : effectiveOperations.map(op => reverseOperation(op)).reverse();
-
-      const newPath = [...path, ...operations];
+      const newPath = [...path, operation];
 
       if (connectedNodeId === toNodeId) {
         return newPath;
@@ -233,7 +201,7 @@ export function findPath(
 /**
  * Reverse an operation for backward traversal
  */
-function reverseOperation(operation: Operation): Operation {
+export function reverseOperation(operation: Operation): Operation {
   switch (operation.type) {
     case 'multiply':
       return { ...operation, type: 'divide' };
@@ -279,12 +247,7 @@ export function calculateNodePrivateKey(graph: PointGraph, nodeId: string): bigi
       if (connectedNode?.privateKey !== undefined) {
         // Found a node with known private key, calculate through the path
         const fullPath = [...path, connection];
-        return calculateKeyThroughBidirectionalPath(
-          connectedNode.privateKey,
-          fullPath,
-          connectedNodeId,
-          nodeId
-        );
+        return calculateKeyThroughBidirectionalPath(connectedNode.privateKey, fullPath);
       }
 
       if (!visited.has(connectedNodeId)) {
@@ -302,36 +265,18 @@ export function calculateNodePrivateKey(graph: PointGraph, nodeId: string): bigi
  */
 function calculateKeyThroughBidirectionalPath(
   startingKey: bigint,
-  path: Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }>,
-  startNodeId: string,
-  targetNodeId: string
+  path: Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }>
 ): bigint {
   // Build the sequence of operations to get from startNodeId to targetNodeId
   let currentKey = startingKey;
-  let currentNodeId = startNodeId;
 
   for (const { edge, direction } of path) {
     // Get effective operations and apply them based on direction
-    const effectiveOperations = getEffectiveOperations(edge);
-    const operations =
-      direction === 'outgoing'
-        ? effectiveOperations
-        : effectiveOperations.map(op => reverseOperation(op)).reverse();
+    const operation = direction === 'outgoing' ? edge.operation : reverseOperation(edge.operation);
 
     // Apply the operations
-    currentKey = calculateKeyFromOperations(operations, currentKey);
-
-    // Update current node for next iteration
-    currentNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
+    currentKey = calculateKeyFromOperations([operation], currentKey);
   }
 
   return currentKey;
-}
-
-/**
- * Calculate private key by applying operations along a path (legacy function for compatibility)
- */
-function calculateKeyThroughPath(startingKey: bigint, edgePath: GraphEdge[]): bigint {
-  const operations = edgePath.map(edge => edge.operation);
-  return calculateKeyFromOperations(operations, startingKey);
 }

@@ -120,54 +120,17 @@ function createBundledEdge(
   toNodeId: string,
   operations: Operation[]
 ): GraphEdge {
-  // First, remove negation pairs
-  const optimizedOps = removeNegationPairs(operations);
-
-  // Separate negations from other operations
-  const { nonNegationOps, hasNegations } = separateNegationOperations(optimizedOps);
-
-  // If we only have non-negation operations, compute scalar and create single multiply operation
-  if (!hasNegations && nonNegationOps.length > 0) {
-    const scalar = computeOperationScalar(nonNegationOps);
-    const scalarOperation = createScalarOperation(optimizedOps, scalar);
-
-    return {
-      id: `scalar_${fromNodeId}_to_${toNodeId}`,
-      fromNodeId,
-      toNodeId,
-      operation: scalarOperation,
-      isBundled: true,
-      bundledOperations: [scalarOperation], // Store the computed scalar operation
-    };
-  }
-
-  // If we have negations, we need to preserve the original bundled structure
-  // TODO: More sophisticated negation handling could be added here
-  const summaryOperation: Operation = {
-    id: `bundled_${optimizedOps.map(op => op.id).join('_')}`,
-    type: 'multiply',
-    description: `${optimizedOps.length} operations: ${optimizedOps.map(op => op.description).join(' → ')}`,
-    value: `Bundle of ${optimizedOps.length} operations`,
-  };
+  const scalar = computeOperationScalar(operations);
+  const scalarOperation = createScalarOperation(operations, scalar);
 
   return {
-    id: `bundled_${fromNodeId}_to_${toNodeId}`,
+    id: `scalar_${fromNodeId}_to_${toNodeId}`,
     fromNodeId,
     toNodeId,
-    operation: summaryOperation,
-    bundledOperations: optimizedOps,
+    operation: scalarOperation,
     isBundled: true,
+    bundleCount: BigInt(operations.length),
   };
-}
-
-/**
- * Get the effective operations from an edge (handles both bundled and regular)
- */
-export function getEffectiveOperations(edge: GraphEdge): Operation[] {
-  if (edge.isBundled && edge.bundledOperations) {
-    return edge.bundledOperations;
-  }
-  return [edge.operation];
 }
 
 /**
@@ -183,61 +146,6 @@ function computeOperationScalar(operations: Operation[]): bigint {
 }
 
 /**
- * Check if two consecutive operations are a negation pair that cancels out
- */
-function isNegationPair(op1: Operation, op2: Operation): boolean {
-  return op1.type === 'negate' && op2.type === 'negate';
-}
-
-/**
- * Remove negation pairs from a sequence of operations
- */
-function removeNegationPairs(operations: Operation[]): Operation[] {
-  const optimized: Operation[] = [];
-
-  for (let i = 0; i < operations.length; i++) {
-    const current = operations[i];
-    const next = operations[i + 1];
-
-    // If current and next form a negation pair, skip both
-    if (next && isNegationPair(current, next)) {
-      i++; // Skip the next operation too
-      continue;
-    }
-
-    optimized.push(current);
-  }
-
-  return optimized;
-}
-
-/**
- * Separate operations into negation and non-negation groups
- */
-function separateNegationOperations(operations: Operation[]): {
-  nonNegationOps: Operation[];
-  negationOps: Operation[];
-  hasNegations: boolean;
-} {
-  const nonNegationOps: Operation[] = [];
-  const negationOps: Operation[] = [];
-
-  for (const op of operations) {
-    if (op.type === 'negate') {
-      negationOps.push(op);
-    } else {
-      nonNegationOps.push(op);
-    }
-  }
-
-  return {
-    nonNegationOps,
-    negationOps,
-    hasNegations: negationOps.length > 0,
-  };
-}
-
-/**
  * Create a scalar multiplication operation from bundled operations
  */
 function createScalarOperation(operations: Operation[], scalar: bigint): Operation {
@@ -245,50 +153,16 @@ function createScalarOperation(operations: Operation[], scalar: bigint): Operati
   return {
     id: `scalar_${operationIds}`,
     type: 'add',
-    description: `+${scalar.toString()} (${operations.length} ops bundled)`,
+    description: `+${scalar.toString()}`,
     value: scalar.toString(),
   };
 }
 
 /**
- * Check if a node should be preserved (saved points, generator, challenge, or negation nodes)
+ * Check if a node should be preserved (saved points, generator, or challenge nodes)
  */
-function shouldPreserveNode(
-  node: GraphNode,
-  savedPoints: SavedPoint[],
-  negationNodeIds: Set<string>
-): boolean {
-  return (
-    isNodeSaved(node, savedPoints) ||
-    node.isGenerator ||
-    node.isChallenge ||
-    negationNodeIds.has(node.id)
-  );
-}
-
-/**
- * Find all nodes that are involved in negation operations
- */
-function findNegationNodes(graph: PointGraph): Set<string> {
-  const negationNodeIds = new Set<string>();
-
-  for (const edge of Object.values(graph.edges)) {
-    if (edge.operation.type === 'negate') {
-      negationNodeIds.add(edge.fromNodeId);
-      negationNodeIds.add(edge.toNodeId);
-    }
-
-    // Also check bundled operations
-    if (edge.bundledOperations) {
-      const hasNegation = edge.bundledOperations.some(op => op.type === 'negate');
-      if (hasNegation) {
-        negationNodeIds.add(edge.fromNodeId);
-        negationNodeIds.add(edge.toNodeId);
-      }
-    }
-  }
-
-  return negationNodeIds;
+function shouldPreserveNode(node: GraphNode, savedPoints: SavedPoint[]): boolean {
+  return isNodeSaved(node, savedPoints) || node.isGenerator == true || node.isChallenge == true;
 }
 
 /**
@@ -298,9 +172,6 @@ export function optimizeGraphWithBundling(
   graph: PointGraph,
   savedPoints: SavedPoint[]
 ): PointGraph {
-  // Find negation nodes that should be preserved
-  const negationNodeIds = findNegationNodes(graph);
-
   const bundledEdges = createBundledEdges(graph, savedPoints);
 
   // Create new graph starting fresh
@@ -313,7 +184,7 @@ export function optimizeGraphWithBundling(
   // Get all saved/special node IDs that should be preserved
   const savedNodeIds = new Set(
     Object.values(graph.nodes)
-      .filter(node => shouldPreserveNode(node, savedPoints, negationNodeIds))
+      .filter(node => shouldPreserveNode(node, savedPoints))
       .map(node => node.id)
   );
 
@@ -330,25 +201,6 @@ export function optimizeGraphWithBundling(
   // Add bundled edges (these replace multiple individual edges between saved points)
   for (const bundledEdge of bundledEdges) {
     optimizedGraph.edges[bundledEdge.id] = bundledEdge;
-  }
-
-  // Add remaining edges that involve preserved nodes but don't connect two saved points
-  for (const edge of Object.values(graph.edges)) {
-    const fromIsSaved = savedNodeIds.has(edge.fromNodeId);
-    const toIsSaved = savedNodeIds.has(edge.toNodeId);
-    const fromIsPreserved = savedNodeIds.has(edge.fromNodeId);
-    const toIsPreserved = savedNodeIds.has(edge.toNodeId);
-
-    // Keep edges that:
-    // 1. Connect preserved nodes but don't connect two saved points (e.g., negation edges)
-    // 2. OR connect preserved nodes where at least one is not a saved point
-    const shouldKeepEdge =
-      (fromIsPreserved && toIsPreserved && (!fromIsSaved || !toIsSaved)) ||
-      edge.operation.type === 'negate'; // Always preserve negation edges
-
-    if (shouldKeepEdge) {
-      optimizedGraph.edges[edge.id] = edge;
-    }
   }
 
   return optimizedGraph;

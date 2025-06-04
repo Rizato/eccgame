@@ -1,9 +1,14 @@
 import type { PointGraph, GraphNode } from '../types/ecc';
 import type { Challenge } from '../types/api';
 import { publicKeyToPoint } from './ecc';
-import { findNodeByPoint, hasPath, findPath, calculateNodePrivateKey } from './pointGraph';
+import {
+  findNodeByPoint,
+  hasPath,
+  findPath,
+  calculateNodePrivateKey,
+  reverseOperation,
+} from './pointGraph';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
-import { getEffectiveOperations } from './operationBundling';
 
 /**
  * Calculate the challenge point's private key using graph traversal
@@ -115,9 +120,8 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
       const targetNode = graph.nodes[edge.toNodeId];
       if (targetNode && targetNode.privateKey === undefined && !visited.has(targetNode.id)) {
         try {
-          const effectiveOperations = getEffectiveOperations(edge);
           const calculatedKey = calculateKeyFromOperations(
-            effectiveOperations,
+            [edge.operation],
             currentNode.privateKey!
           );
           updates.set(targetNode.id, calculatedKey);
@@ -136,10 +140,8 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
       if (sourceNode && sourceNode.privateKey === undefined && !visited.has(sourceNode.id)) {
         try {
           // We need to reverse the operations to go backwards
-          const effectiveOperations = getEffectiveOperations(edge);
-          const reversedOperations = effectiveOperations.map(op => reverseOperation(op)).reverse();
           const calculatedKey = calculateKeyFromOperations(
-            reversedOperations,
+            [reverseOperation(edge.operation)],
             currentNode.privateKey!
           );
           updates.set(sourceNode.id, calculatedKey);
@@ -159,25 +161,5 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
     if (node && node.privateKey === undefined) {
       node.privateKey = privateKey;
     }
-  }
-}
-
-/**
- * Reverse an operation for backward calculation
- */
-function reverseOperation(operation: any): any {
-  switch (operation.type) {
-    case 'multiply':
-      return { ...operation, type: 'divide' };
-    case 'divide':
-      return { ...operation, type: 'multiply' };
-    case 'add':
-      return { ...operation, type: 'subtract' };
-    case 'subtract':
-      return { ...operation, type: 'add' };
-    case 'negate':
-      return { ...operation }; // Negate is its own inverse
-    default:
-      return operation;
   }
 }

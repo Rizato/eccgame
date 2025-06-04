@@ -73,6 +73,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     }
 
     const path = findPath(graph, generatorNode.id, challengeNode.id);
+    // TODO Get total operation length, not optimized length (Can inflate a bunch of nops)
     return path ? path.length : 0;
   }, [graph]);
 
