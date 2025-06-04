@@ -182,7 +182,18 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         title={(() => {
           if (!modalPoint) return '';
 
-          // Check if this is the current point first
+          // Check if this is a saved point first
+          const savedPoint = savedPoints.find(
+            sp =>
+              sp.point.x === modalPoint.x &&
+              sp.point.y === modalPoint.y &&
+              sp.point.isInfinity === modalPoint.isInfinity
+          );
+          if (savedPoint) {
+            return `${savedPoint.label} (Saved Point)`;
+          }
+
+          // Check if this is the current point
           if (modalPoint.x === currentPoint.x && modalPoint.y === currentPoint.y) {
             return 'Current Point';
           }
