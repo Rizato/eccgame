@@ -242,11 +242,10 @@ function separateNegationOperations(operations: Operation[]): {
  */
 function createScalarOperation(operations: Operation[], scalar: bigint): Operation {
   const operationIds = operations.map(op => op.id).join('_');
-
   return {
     id: `scalar_${operationIds}`,
-    type: 'multiply',
-    description: `×${scalar.toString()} (${operations.length} ops bundled)`,
+    type: 'add',
+    description: `+${scalar.toString()} (${operations.length} ops bundled)`,
     value: scalar.toString(),
   };
 }

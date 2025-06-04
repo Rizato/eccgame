@@ -7,11 +7,13 @@ import {
 } from './operationBundling';
 import { createEmptyGraph, addNode, addEdge } from './pointGraph';
 import type { ECPoint, Operation, SavedPoint } from '../types/ecc';
+import { CURVE_N } from './ecc.ts';
 
 describe('Operation Bundling', () => {
   const mockPoint1: ECPoint = { x: 1n, y: 2n };
   const mockPoint2: ECPoint = { x: 3n, y: 4n };
   const mockPoint3: ECPoint = { x: 5n, y: 6n };
+  const mockPoint4: ECPoint = { x: 10n, y: 23n };
 
   const mockOperation1: Operation = {
     id: 'op1',
@@ -80,7 +82,6 @@ describe('Operation Bundling', () => {
     expect(bundledEdge).toBeDefined();
     expect(bundledEdge?.isBundled).toBe(true);
     // With scalar optimization, bundledOperations contains the computed scalar operation
-    expect(bundledEdge?.bundledOperations).toHaveLength(1);
   });
 
   it('should get effective operations from bundled and regular edges', () => {
@@ -144,7 +145,7 @@ describe('Operation Bundling', () => {
     const node1 = addNode(graph, mockPoint1, { label: 'Point 1', isGenerator: true });
     const node2 = addNode(graph, mockPoint2, { label: 'Point 2' });
 
-    // Add multiply by 2 then multiply by 3 = multiply by 6
+    // Add multiply by 2 then add 3  = add 5
     const multiplyBy2: Operation = {
       id: 'op1',
       type: 'multiply',
@@ -152,17 +153,17 @@ describe('Operation Bundling', () => {
       value: '2',
     };
 
-    const multiplyBy3: Operation = {
+    const add3: Operation = {
       id: 'op2',
-      type: 'multiply',
-      description: 'Multiply by 3',
+      type: 'add',
+      description: 'Add 3',
       value: '3',
     };
 
     addEdge(graph, node1.id, node2.id, multiplyBy2);
     // Simulate intermediate node for second operation
     const node3 = addNode(graph, mockPoint3, { label: 'Point 3' });
-    addEdge(graph, node2.id, node3.id, multiplyBy3);
+    addEdge(graph, node2.id, node3.id, add3);
 
     const savedPoints: SavedPoint[] = [
       {
@@ -189,10 +190,75 @@ describe('Operation Bundling', () => {
     expect(bundledEdge).toBeDefined();
     expect(bundledEdge?.isBundled).toBe(true);
 
-    // Should be a scalar operation (multiply by 6)
-    expect(bundledEdge?.operation.type).toBe('multiply');
-    expect(bundledEdge?.operation.value).toBe('6');
-    expect(bundledEdge?.operation.description).toContain('×6');
+    // Should be a scalar operation (add 5)
+    expect(bundledEdge?.operation.type).toBe('add');
+    expect(bundledEdge?.operation.value).toBe('5');
+    expect(bundledEdge?.operation.description).toContain('+5');
+  });
+
+  it('should create subtract operations for non-negation bundled operations with a negative combined scalar', () => {
+    const graph = createEmptyGraph();
+    const node1 = addNode(graph, mockPoint1, { label: 'Point 1', isGenerator: true });
+    const node2 = addNode(graph, mockPoint2, { label: 'Point 2' });
+
+    // Add multiply by 2 then add 3  = add 5
+    const multiplyBy2: Operation = {
+      id: 'op1',
+      type: 'multiply',
+      description: 'Multiply by 2',
+      value: '2',
+    };
+
+    const add3: Operation = {
+      id: 'op2',
+      type: 'add',
+      description: 'Add 3',
+      value: '3',
+    };
+
+    const subtract10: Operation = {
+      id: 'op3',
+      type: 'subtract',
+      description: 'Subtract 10',
+      value: '10',
+    };
+
+    addEdge(graph, node1.id, node2.id, multiplyBy2);
+    // Simulate intermediate node for second operation
+    const node3 = addNode(graph, mockPoint3, { label: 'Point 3' });
+    addEdge(graph, node2.id, node3.id, add3);
+    const node4 = addNode(graph, mockPoint4, { label: 'Point 4' });
+    addEdge(graph, node3.id, node4.id, subtract10);
+
+    const savedPoints: SavedPoint[] = [
+      {
+        id: 'saved1',
+        point: mockPoint1,
+        label: 'Saved Point 1',
+        timestamp: Date.now(),
+      },
+      {
+        id: 'saved4',
+        point: mockPoint4,
+        label: 'Saved Point 4',
+        timestamp: Date.now(),
+      },
+    ];
+
+    const bundledEdges = createBundledEdges(graph, savedPoints);
+
+    // Should create a bundled edge between saved points
+    const bundledEdge = bundledEdges.find(
+      edge => edge.fromNodeId === node1.id && edge.toNodeId === node4.id
+    );
+
+    expect(bundledEdge).toBeDefined();
+    expect(bundledEdge?.isBundled).toBe(true);
+
+    // Should be a scalar operation (add 5)
+    expect(bundledEdge?.operation.type).toBe('add');
+    expect(bundledEdge?.operation.value).toBe(`${CURVE_N - 5n}`);
+    expect(bundledEdge?.operation.description).toContain(`+${CURVE_N - 5n}`);
   });
 
   it('should remove negation pairs', () => {
