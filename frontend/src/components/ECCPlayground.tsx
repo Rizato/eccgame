@@ -56,6 +56,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   const [challengeAddress, setChallengeAddress] = useState<string>('');
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
+  const [modalPointAddress, setModalPointAddress] = useState<string>('');
 
   const generatorPoint = getGeneratorPoint();
 
@@ -132,9 +133,22 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     [savedPoints, generatorPoint, challenge.public_key]
   );
 
-  const handlePointClick = useCallback((point: ECPoint) => {
+  const handlePointClick = useCallback(async (point: ECPoint) => {
     setModalPoint(point);
     setShowPointModal(true);
+
+    // Calculate address for the modal point
+    if (point.isInfinity) {
+      setModalPointAddress('Point at Infinity');
+    } else {
+      try {
+        const pubKey = pointToPublicKey(point);
+        const address = await getP2PKHAddress(pubKey);
+        setModalPointAddress(address);
+      } catch {
+        setModalPointAddress('Invalid');
+      }
+    }
   }, []);
 
   return (
@@ -168,13 +182,12 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         title={(() => {
           if (!modalPoint) return '';
 
-          // Look up point information from the graph
-          const node = findNodeByPoint(graph, modalPoint);
-          if (node) {
-            return `${node.label} Point Information`;
+          // Check if this is the current point first
+          if (modalPoint.x === currentPoint.x && modalPoint.y === currentPoint.y) {
+            return 'Current Point';
           }
 
-          // Fallback for points not in graph
+          // Check for special points
           const generatorPoint = getGeneratorPoint();
           const challengePoint = publicKeyToPoint(challenge.public_key);
 
@@ -182,8 +195,12 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             return 'Generator (G) Point Information';
           } else if (modalPoint.x === challengePoint.x && modalPoint.y === challengePoint.y) {
             return 'Challenge Point Information';
-          } else if (modalPoint.x === currentPoint.x && modalPoint.y === currentPoint.y) {
-            return 'Current Point Information';
+          }
+
+          // Look up point information from the graph
+          const node = findNodeByPoint(graph, modalPoint);
+          if (node) {
+            return `${node.label} Point Information`;
           }
 
           return 'Point Information';
@@ -195,15 +212,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         pointData={
           modalPoint
             ? {
-                address: modalPoint.isInfinity
-                  ? 'Point at Infinity'
-                  : (() => {
-                      try {
-                        return pointToPublicKey(modalPoint);
-                      } catch {
-                        return 'Invalid';
-                      }
-                    })(),
+                address: modalPointAddress,
                 compressedKey: modalPoint.isInfinity
                   ? '020000000000000000000000000000000000000000000000000000000000000000'
                   : (() => {
