@@ -166,6 +166,60 @@ export function addBundledEdgeForNewSave(
   }
 }
 
+/**
+ * Clean up dangling nodes and edges when loading a saved point
+ * Removes any intermediate operations that don't lead to saved points
+ */
+export function cleanupDanglingNodes(graph: PointGraph, savedPoints: SavedPoint[]): void {
+  // Identify nodes that should be preserved
+  const preservedNodeIds = new Set<string>();
+
+  // Always preserve base nodes (generator, challenge)
+  for (const node of Object.values(graph.nodes)) {
+    if (isBaseNode(node)) {
+      preservedNodeIds.add(node.id);
+    }
+  }
+
+  // Always preserve saved point nodes
+  for (const node of Object.values(graph.nodes)) {
+    if (isNodeSaved(node, savedPoints)) {
+      preservedNodeIds.add(node.id);
+    }
+  }
+
+  // Identify edges that should be preserved (connect preserved nodes)
+  const preservedEdgeIds = new Set<string>();
+  for (const edge of Object.values(graph.edges)) {
+    if (preservedNodeIds.has(edge.fromNodeId) && preservedNodeIds.has(edge.toNodeId)) {
+      preservedEdgeIds.add(edge.id);
+    }
+  }
+
+  // Remove edges that don't connect preserved nodes
+  for (const edgeId of Object.keys(graph.edges)) {
+    if (!preservedEdgeIds.has(edgeId)) {
+      delete graph.edges[edgeId];
+    }
+  }
+
+  // Remove nodes that aren't preserved
+  for (const nodeId of Object.keys(graph.nodes)) {
+    if (!preservedNodeIds.has(nodeId)) {
+      const node = graph.nodes[nodeId];
+      if (node) {
+        // Remove from pointToNodeId mapping
+        const pointHash = pointToHash(node.point);
+        if (graph.pointToNodeId[pointHash] === nodeId) {
+          delete graph.pointToNodeId[pointHash];
+        }
+        // Remove the node
+        delete graph.nodes[nodeId];
+      }
+    }
+  }
+}
+
 // Legacy functions for backwards compatibility with existing tests
 // These are the old implementations that will be gradually phased out
 

@@ -62,6 +62,18 @@ export const store = configureStore({
         ignoredActionPaths: ['payload', 'meta.arg'],
       },
     }),
+  // Enable Redux DevTools
+  // Redux DevTools with BigInt serialization support
+  devTools: process.env.NODE_ENV !== 'production' && {
+    serialize: {
+      replacer: (_key: string, value: any) => {
+        if (typeof value === 'bigint') {
+          return `0x${value.toString(16)})`;
+        }
+        return value;
+      },
+    },
+  },
 });
 
 export type RootState = ReturnType<typeof store.getState>;

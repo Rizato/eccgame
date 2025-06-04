@@ -4,7 +4,7 @@ import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../uti
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
-import { addBundledEdgeForNewSave } from '../../utils/operationBundling';
+import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
 import { calculateNodePrivateKey } from '../../utils/pointGraph';
 
 interface PracticeCalculatorState {
@@ -286,6 +286,9 @@ const practiceCalculatorSlice = createSlice({
           node.privateKey = calculatedKey;
         }
       }
+
+      // Clean up dangling nodes and edges when loading a saved point
+      cleanupDanglingNodes(state.graph, state.savedPoints);
 
       state.error = null;
       state.calculatorDisplay = '';

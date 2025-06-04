@@ -11,6 +11,9 @@ export function pointToHash(point: ECPoint): string {
   return `${point.x.toString(16)}_${point.y.toString(16)}`;
 }
 
+// Global counter to ensure unique node IDs even after cleanup
+let globalNodeCounter = 0;
+
 /**
  * Create an empty graph
  */
@@ -57,7 +60,7 @@ export function addNode(
     return existingNode;
   }
 
-  const nodeId = options.id || `node_${Object.keys(graph.nodes).length}`;
+  const nodeId = options.id || `node_${globalNodeCounter++}`;
   const node: GraphNode = {
     id: nodeId,
     point,
