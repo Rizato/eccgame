@@ -271,8 +271,8 @@ function calculateKeyThroughBidirectionalPath(
   let currentKey = startingKey;
 
   for (const { edge, direction } of path) {
-    // Get effective operations and apply them based on direction
-    const operation = direction === 'outgoing' ? edge.operation : reverseOperation(edge.operation);
+    // Apply operation based on direction
+    const operation = direction === 'incoming' ? edge.operation : reverseOperation(edge.operation);
 
     // Apply the operations
     currentKey = calculateKeyFromOperations([operation], currentKey);

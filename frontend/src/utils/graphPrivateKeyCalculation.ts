@@ -107,6 +107,11 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
       continue;
     }
 
+    const startingPrivateKey = currentNode.privateKey || updates.get(currentNode.id);
+    if (startingPrivateKey === undefined) {
+      continue;
+    }
+
     // Find all edges connected to this node from our snapshot
     const outgoingEdges = edgeSnapshot.filter(
       edge => edge.fromNodeId === currentNode.id && nodeIds.has(edge.toNodeId)
@@ -120,10 +125,7 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
       const targetNode = graph.nodes[edge.toNodeId];
       if (targetNode && targetNode.privateKey === undefined && !visited.has(targetNode.id)) {
         try {
-          const calculatedKey = calculateKeyFromOperations(
-            [edge.operation],
-            currentNode.privateKey!
-          );
+          const calculatedKey = calculateKeyFromOperations([edge.operation], startingPrivateKey);
           updates.set(targetNode.id, calculatedKey);
           visited.add(targetNode.id);
           queue.push(targetNode);
@@ -142,7 +144,7 @@ export function updateAllPrivateKeys(graph: PointGraph): void {
           // We need to reverse the operations to go backwards
           const calculatedKey = calculateKeyFromOperations(
             [reverseOperation(edge.operation)],
-            currentNode.privateKey!
+            startingPrivateKey
           );
           updates.set(sourceNode.id, calculatedKey);
           visited.add(sourceNode.id);
