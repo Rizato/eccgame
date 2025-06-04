@@ -16,6 +16,7 @@ import {
   checkWinCondition,
   calculatePracticeCurrentAddress,
   setChallengeWithPrivateKey,
+  clearPracticeState,
 } from '../store/slices/practiceCalculatorSlice';
 import type { ECPoint, SavedPoint } from '../types/ecc';
 
@@ -23,7 +24,7 @@ export function usePracticeCalculatorRedux(challengePublicKey: string, practiceP
   const dispatch = useAppDispatch();
   const practiceState = useAppSelector(state => state.practiceCalculator);
 
-  // Update challenge public key and private key when they change
+  // Clear state and set new challenge when challenge changes
   useEffect(() => {
     if (
       challengePublicKey !== practiceState.challengePublicKey ||
@@ -31,6 +32,14 @@ export function usePracticeCalculatorRedux(challengePublicKey: string, practiceP
     ) {
       // Only dispatch if we have a valid private key
       if (practicePrivateKey && practicePrivateKey.length > 0) {
+        // Clear the practice state first if this is a new challenge (not just initialization)
+        if (
+          practiceState.challengePublicKey &&
+          challengePublicKey !== practiceState.challengePublicKey
+        ) {
+          dispatch(clearPracticeState());
+        }
+
         dispatch(
           setChallengeWithPrivateKey({
             publicKey: challengePublicKey,

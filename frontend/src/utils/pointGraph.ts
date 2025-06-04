@@ -130,7 +130,27 @@ export function getIncomingEdges(graph: PointGraph, nodeId: string): GraphEdge[]
 }
 
 /**
- * Check if there's a path between two nodes using BFS
+ * Get all edges connected to a node (both incoming and outgoing)
+ */
+export function getAllConnectedEdges(
+  graph: PointGraph,
+  nodeId: string
+): Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }> {
+  const connections: Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }> = [];
+
+  for (const edge of Object.values(graph.edges)) {
+    if (edge.fromNodeId === nodeId) {
+      connections.push({ edge, direction: 'outgoing' });
+    } else if (edge.toNodeId === nodeId) {
+      connections.push({ edge, direction: 'incoming' });
+    }
+  }
+
+  return connections;
+}
+
+/**
+ * Check if there's a path between two nodes using BFS (bidirectional)
  */
 export function hasPath(graph: PointGraph, fromNodeId: string, toNodeId: string): boolean {
   if (fromNodeId === toNodeId) return true;
@@ -142,15 +162,19 @@ export function hasPath(graph: PointGraph, fromNodeId: string, toNodeId: string)
   while (queue.length > 0) {
     const currentNodeId = queue.shift()!;
 
-    const outgoingEdges = getOutgoingEdges(graph, currentNodeId);
-    for (const edge of outgoingEdges) {
-      if (edge.toNodeId === toNodeId) {
+    // Check all connected edges (both directions)
+    const connections = getAllConnectedEdges(graph, currentNodeId);
+    for (const { edge, direction } of connections) {
+      // Get the connected node (opposite end of the edge)
+      const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
+
+      if (connectedNodeId === toNodeId) {
         return true;
       }
 
-      if (!visited.has(edge.toNodeId)) {
-        visited.add(edge.toNodeId);
-        queue.push(edge.toNodeId);
+      if (!visited.has(connectedNodeId)) {
+        visited.add(connectedNodeId);
+        queue.push(connectedNodeId);
       }
     }
   }
@@ -159,7 +183,7 @@ export function hasPath(graph: PointGraph, fromNodeId: string, toNodeId: string)
 }
 
 /**
- * Find the shortest path between two nodes and return the operations
+ * Find the shortest path between two nodes and return the operations (bidirectional)
  */
 export function findPath(
   graph: PointGraph,
@@ -175,17 +199,24 @@ export function findPath(
   while (queue.length > 0) {
     const { nodeId: currentNodeId, path } = queue.shift()!;
 
-    const outgoingEdges = getOutgoingEdges(graph, currentNodeId);
-    for (const edge of outgoingEdges) {
-      const newPath = [...path, edge.operation];
+    // Check all connected edges (both directions)
+    const connections = getAllConnectedEdges(graph, currentNodeId);
+    for (const { edge, direction } of connections) {
+      const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
 
-      if (edge.toNodeId === toNodeId) {
+      // Create operation (reverse it if we're traversing backwards)
+      const operation =
+        direction === 'outgoing' ? edge.operation : reverseOperation(edge.operation);
+
+      const newPath = [...path, operation];
+
+      if (connectedNodeId === toNodeId) {
         return newPath;
       }
 
-      if (!visited.has(edge.toNodeId)) {
-        visited.add(edge.toNodeId);
-        queue.push({ nodeId: edge.toNodeId, path: newPath });
+      if (!visited.has(connectedNodeId)) {
+        visited.add(connectedNodeId);
+        queue.push({ nodeId: connectedNodeId, path: newPath });
       }
     }
   }
@@ -194,34 +225,65 @@ export function findPath(
 }
 
 /**
- * Calculate private key for a node by traversing back to nodes with known private keys
+ * Reverse an operation for backward traversal
+ */
+function reverseOperation(operation: Operation): Operation {
+  switch (operation.type) {
+    case 'multiply':
+      return { ...operation, type: 'divide' };
+    case 'divide':
+      return { ...operation, type: 'multiply' };
+    case 'add':
+      return { ...operation, type: 'subtract' };
+    case 'subtract':
+      return { ...operation, type: 'add' };
+    case 'negate':
+      return { ...operation }; // Negate is its own inverse
+    default:
+      return operation;
+  }
+}
+
+/**
+ * Calculate private key for a node by traversing to nodes with known private keys (bidirectional)
  */
 export function calculateNodePrivateKey(graph: PointGraph, nodeId: string): bigint | undefined {
   const node = graph.nodes[nodeId];
   if (!node) return undefined;
   if (node.privateKey !== undefined) return node.privateKey;
 
-  // Use BFS to find a path to any node with a known private key
+  // Use BFS to find a path to any node with a known private key (bidirectional)
   const visited = new Set<string>();
-  const queue: Array<{ nodeId: string; path: GraphEdge[] }> = [{ nodeId, path: [] }];
+  const queue: Array<{
+    nodeId: string;
+    path: Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }>;
+  }> = [{ nodeId, path: [] }];
   visited.add(nodeId);
 
   while (queue.length > 0) {
     const { nodeId: currentNodeId, path } = queue.shift()!;
 
-    // Check incoming edges (paths that lead TO this node)
-    const incomingEdges = getIncomingEdges(graph, currentNodeId);
-    for (const edge of incomingEdges) {
-      const sourceNode = graph.nodes[edge.fromNodeId];
-      if (sourceNode?.privateKey !== undefined) {
+    // Check all connected edges (both directions)
+    const connections = getAllConnectedEdges(graph, currentNodeId);
+    for (const connection of connections) {
+      const { edge, direction } = connection;
+      const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
+      const connectedNode = graph.nodes[connectedNodeId];
+
+      if (connectedNode?.privateKey !== undefined) {
         // Found a node with known private key, calculate through the path
-        const reversePath = [edge, ...path].reverse();
-        return calculateKeyThroughPath(sourceNode.privateKey, reversePath);
+        const fullPath = [...path, connection];
+        return calculateKeyThroughBidirectionalPath(
+          connectedNode.privateKey,
+          fullPath,
+          connectedNodeId,
+          nodeId
+        );
       }
 
-      if (!visited.has(edge.fromNodeId)) {
-        visited.add(edge.fromNodeId);
-        queue.push({ nodeId: edge.fromNodeId, path: [edge, ...path] });
+      if (!visited.has(connectedNodeId)) {
+        visited.add(connectedNodeId);
+        queue.push({ nodeId: connectedNodeId, path: [...path, connection] });
       }
     }
   }
@@ -230,7 +292,34 @@ export function calculateNodePrivateKey(graph: PointGraph, nodeId: string): bigi
 }
 
 /**
- * Calculate private key by applying operations along a path
+ * Calculate private key by applying operations along a bidirectional path
+ */
+function calculateKeyThroughBidirectionalPath(
+  startingKey: bigint,
+  path: Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }>,
+  startNodeId: string,
+  targetNodeId: string
+): bigint {
+  // Build the sequence of operations to get from startNodeId to targetNodeId
+  let currentKey = startingKey;
+  let currentNodeId = startNodeId;
+
+  for (const { edge, direction } of path) {
+    // Determine the operation to apply based on direction
+    const operation = direction === 'outgoing' ? edge.operation : reverseOperation(edge.operation);
+
+    // Apply the operation
+    currentKey = calculateKeyFromOperations([operation], currentKey);
+
+    // Update current node for next iteration
+    currentNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
+  }
+
+  return currentKey;
+}
+
+/**
+ * Calculate private key by applying operations along a path (legacy function for compatibility)
  */
 function calculateKeyThroughPath(startingKey: bigint, edgePath: GraphEdge[]): bigint {
   const operations = edgePath.map(edge => edge.operation);

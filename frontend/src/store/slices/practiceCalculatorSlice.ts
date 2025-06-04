@@ -222,6 +222,24 @@ const practiceCalculatorSlice = createSlice({
       state.hasWon = false;
       state.showVictoryModal = false;
     },
+    clearPracticeState: state => {
+      // Reset to initial state but keep the generator point
+      const { graph: resetGraph, generatorNodeId: resetGeneratorNodeId } = initializeGraph();
+      state.selectedPoint = generatorPoint;
+      state.graph = resetGraph;
+      state.generatorNodeId = resetGeneratorNodeId;
+      state.challengeNodeId = null;
+      state.error = null;
+      state.currentAddress = '';
+      state.calculatorDisplay = '';
+      state.pendingOperation = null;
+      state.lastOperationValue = null;
+      state.hexMode = false;
+      state.hasWon = false;
+      state.showVictoryModal = false;
+      state.savedPoints = [];
+      // Keep challengePublicKey and practicePrivateKey as they'll be set by the new challenge
+    },
     savePoint: (state, action: PayloadAction<{ label?: string }>) => {
       const { label } = action.payload;
 
@@ -296,6 +314,7 @@ export const {
   backspaceCalculator,
   resetToChallengeWithPrivateKey,
   resetToGenerator,
+  clearPracticeState,
   savePoint,
   loadSavedPoint,
   checkWinCondition,
