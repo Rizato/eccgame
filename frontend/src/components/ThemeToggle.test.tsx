@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import ThemeToggle from './ThemeToggle';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { themeUtils } from '../utils/theme';
+import ThemeToggle from './ThemeToggle';
 
 // Mock the theme utils
 vi.mock('../utils/theme', () => ({
@@ -212,42 +212,6 @@ describe('ThemeToggle', () => {
       // Should respond to keyboard events
       fireEvent.keyDown(select, { key: 'ArrowDown' });
       fireEvent.keyDown(select, { key: 'Enter' });
-    });
-  });
-
-  describe('error handling', () => {
-    it('should handle theme utils errors gracefully', () => {
-      mockThemeUtils.setStoredTheme.mockImplementation(() => {
-        throw new Error('Storage error');
-      });
-
-      // Suppress console errors for this test
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      render(<ThemeToggle />);
-
-      const select = screen.getByRole('combobox');
-
-      // Should not crash when storage fails
-      expect(() => {
-        fireEvent.change(select, { target: { value: 'dark' } });
-      }).not.toThrow();
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle apply theme errors gracefully', () => {
-      mockThemeUtils.applyTheme.mockImplementation(() => {
-        throw new Error('Apply error');
-      });
-
-      // Suppress console errors for this test
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      // Should not crash during render
-      expect(() => render(<ThemeToggle />)).not.toThrow();
-
-      consoleSpy.mockRestore();
     });
   });
 

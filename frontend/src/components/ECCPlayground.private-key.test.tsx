@@ -1,12 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   getGeneratorPoint,
-  pointMultiply,
-  pointDivide,
   pointAdd,
+  pointDivide,
+  pointMultiply,
   pointSubtract,
+  modInverse,
+  CURVE_N,
 } from '../utils/ecc';
-import { calculateKeyFromOperations, type Operation } from '../utils/privateKeyCalculation';
+import { calculateKeyFromOperations } from '../utils/privateKeyCalculation';
+import type { Operation } from '../types/ecc';
 
 describe('ECCPlayground Private Key Calculations', () => {
   const generatorPoint = getGeneratorPoint();
@@ -22,10 +25,10 @@ describe('ECCPlayground Private Key Calculations', () => {
 
     it('should calculate private key 2 for G * 2', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×2', value: '2' },
       ];
 
-      const privateKey = calculateKeyFromOperations(operations, 'generator', 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(2n);
 
       // Verify the point calculation matches
@@ -37,11 +40,11 @@ describe('ECCPlayground Private Key Calculations', () => {
 
     it('should calculate private key 2 for 4G / 2', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×4', value: '4', direction: 'reverse' },
-        { id: '2', type: 'divide', description: '÷2', value: '2', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×4', value: '4' },
+        { id: '2', type: 'divide', description: '÷2', value: '2' },
       ];
 
-      const privateKey = calculateKeyFromOperations(operations, 'generator', 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(2n);
 
       // Verify the point calculation matches
@@ -53,22 +56,22 @@ describe('ECCPlayground Private Key Calculations', () => {
 
     it('should calculate private key for complex operation chain', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×3', value: '3', direction: 'reverse' },
-        { id: '2', type: 'multiply', description: '×4', value: '4', direction: 'reverse' },
-        { id: '3', type: 'divide', description: '÷6', value: '6', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×3', value: '3' },
+        { id: '2', type: 'multiply', description: '×4', value: '4' },
+        { id: '3', type: 'divide', description: '÷6', value: '6' },
       ];
 
       // 1 * 3 * 4 / 6 = 12 / 6 = 2
-      const privateKey = calculateKeyFromOperations(operations, 'generator', 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(2n);
     });
 
     it('should handle hex values correctly', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×0xA', value: '0xA', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×0xA', value: '0xA' },
       ];
 
-      const privateKey = calculateKeyFromOperations(operations, 'generator', 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(10n); // 0xA = 10
     });
   });
@@ -78,16 +81,16 @@ describe('ECCPlayground Private Key Calculations', () => {
 
     it('should maintain challenge private key with no operations', () => {
       const operations: Operation[] = [];
-      const privateKey = calculateKeyFromOperations(operations, 'challenge', challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(5n);
     });
 
     it('should calculate private key 10 for challenge * 2', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'forward' },
+        { id: '1', type: 'multiply', description: '×2', value: '2' },
       ];
 
-      const privateKey = calculateKeyFromOperations(operations, 'challenge', challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(10n);
 
       // Verify the point calculation matches
@@ -99,11 +102,9 @@ describe('ECCPlayground Private Key Calculations', () => {
     });
 
     it('should calculate private key for challenge / 5 = 1 (back to G)', () => {
-      const operations: Operation[] = [
-        { id: '1', type: 'divide', description: '÷5', value: '5', direction: 'forward' },
-      ];
+      const operations: Operation[] = [{ id: '1', type: 'divide', description: '÷5', value: '5' }];
 
-      const privateKey = calculateKeyFromOperations(operations, 'challenge', challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(1n);
 
       // Verify we get back to G
@@ -114,12 +115,12 @@ describe('ECCPlayground Private Key Calculations', () => {
 
     it('should handle complex operations from challenge', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×3', value: '3', direction: 'forward' },
-        { id: '2', type: 'divide', description: '÷15', value: '15', direction: 'forward' },
+        { id: '1', type: 'multiply', description: '×3', value: '3' },
+        { id: '2', type: 'divide', description: '÷15', value: '15' },
       ];
 
       // 5 * 3 / 15 = 15 / 15 = 1
-      const privateKey = calculateKeyFromOperations(operations, 'challenge', challengePrivateKey);
+      const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(1n);
     });
   });
@@ -166,20 +167,18 @@ describe('ECCPlayground Private Key Calculations', () => {
     it('should handle modular arithmetic correctly for large numbers', () => {
       const largeNumber = CURVE_N - 1n; // Maximum valid private key
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×2', value: '2' },
       ];
 
-      const privateKey = calculateKeyFromOperations(operations, 'generator', largeNumber);
+      const privateKey = calculateKeyFromOperations(operations, largeNumber);
       const expected = (largeNumber * 2n) % CURVE_N;
       expect(privateKey).toBe(expected);
     });
 
     it('should handle division by finding modular inverse', () => {
-      const operations: Operation[] = [
-        { id: '1', type: 'divide', description: '÷7', value: '7', direction: 'reverse' },
-      ];
+      const operations: Operation[] = [{ id: '1', type: 'divide', description: '÷7', value: '7' }];
 
-      const privateKey = calculateKeyFromOperations(operations, 'generator', 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
 
       // Verify that privateKey * 7 ≡ 1 (mod CURVE_N)
       const verification = (privateKey * 7n) % CURVE_N;
@@ -188,26 +187,26 @@ describe('ECCPlayground Private Key Calculations', () => {
 
     it('should handle zero and one correctly', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×1', value: '1', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×1', value: '1' },
       ];
 
-      const privateKey = calculateKeyFromOperations(operations, 'generator', 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(1n);
     });
 
     it('should handle consecutive operations correctly', () => {
       // Test that (G * 2) * 3 = G * 6
       const operations1: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
-        { id: '2', type: 'multiply', description: '×3', value: '3', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×2', value: '2' },
+        { id: '2', type: 'multiply', description: '×3', value: '3' },
       ];
 
       const operations2: Operation[] = [
-        { id: '1', type: 'multiply', description: '×6', value: '6', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×6', value: '6' },
       ];
 
-      const privateKey1 = calculateKeyFromOperations(operations1, 'generator', 1n);
-      const privateKey2 = calculateKeyFromOperations(operations2, 'generator', 1n);
+      const privateKey1 = calculateKeyFromOperations(operations1, 1n);
+      const privateKey2 = calculateKeyFromOperations(operations2, 1n);
 
       expect(privateKey1).toBe(privateKey2);
       expect(privateKey1).toBe(6n);
@@ -215,11 +214,11 @@ describe('ECCPlayground Private Key Calculations', () => {
 
     it('should handle inverse operations (multiply then divide)', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×7', value: '7', direction: 'reverse' },
-        { id: '2', type: 'divide', description: '÷7', value: '7', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×7', value: '7' },
+        { id: '2', type: 'divide', description: '÷7', value: '7' },
       ];
 
-      const privateKey = calculateKeyFromOperations(operations, 'generator', 1n);
+      const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(1n);
     });
   });
@@ -227,8 +226,8 @@ describe('ECCPlayground Private Key Calculations', () => {
   describe('Point Operations (Non-Scalar)', () => {
     it('should recognize when operations include point addition/subtraction', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2', direction: 'reverse' },
-        { id: '2', type: 'add', description: '+G', point: generatorPoint, direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×2', value: '2' },
+        { id: '2', type: 'add', description: '+G', point: generatorPoint, value: '1' },
       ];
 
       // Check if all operations are scalar-only
@@ -240,8 +239,8 @@ describe('ECCPlayground Private Key Calculations', () => {
 
     it('should calculate scalar operations only when no point operations exist', () => {
       const scalarOnlyOps: Operation[] = [
-        { id: '1', type: 'multiply', description: '×3', value: '3', direction: 'reverse' },
-        { id: '2', type: 'divide', description: '÷2', value: '2', direction: 'reverse' },
+        { id: '1', type: 'multiply', description: '×3', value: '3' },
+        { id: '2', type: 'divide', description: '÷2', value: '2' },
       ];
 
       const hasOnlyScalarOps = scalarOnlyOps.every(
@@ -250,7 +249,7 @@ describe('ECCPlayground Private Key Calculations', () => {
       expect(hasOnlyScalarOps).toBe(true);
 
       if (hasOnlyScalarOps) {
-        const privateKey = calculateKeyFromOperations(scalarOnlyOps, 'generator', 1n);
+        const privateKey = calculateKeyFromOperations(scalarOnlyOps, 1n);
         expect(privateKey).toBe((modInverse(2n, CURVE_N) * 3n) % CURVE_N);
       }
     });

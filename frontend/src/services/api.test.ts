@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import axios from 'axios';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Challenge, GuessRequest, GuessResponse } from '../types/api';
 
 // Mock axios
@@ -26,12 +26,11 @@ const mockChallenge: Challenge = {
   uuid: 'challenge-123',
   p2pkh_address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
   public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
-  challenge_date: '2023-01-01',
-  is_solved: false,
-  solve_count: 0,
-  total_guesses: 5,
+  active_date: '2023-01-01',
+  metadata: [],
+  explorer_link: '',
+  active: true,
   created_at: '2023-01-01T00:00:00Z',
-  updated_at: '2023-01-01T00:00:00Z',
 };
 
 const mockGuessRequest: GuessRequest = {
@@ -45,9 +44,12 @@ const mockGuessResponse: GuessResponse = {
   public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   signature:
     '304402207fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a002201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-  is_correct: false,
-  distance: '12345',
+  result: 'incorrect',
+  is_key_valid: true,
+  is_signature_valid: true,
+  validated_at: '2023-01-01T00:00:00Z',
   created_at: '2023-01-01T00:00:00Z',
+  challenge: 'challenge-123',
 };
 
 // Mock document for CSRF token
@@ -69,11 +71,10 @@ describe('api service', () => {
     });
 
     // Mock environment variables
-    vi.stubEnv('VITE_API_URL', 'http://test-api.example.com');
+    import.meta.env.VITE_API_URL = 'http://test-api.example.com';
   });
 
   afterEach(() => {
-    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -93,7 +94,7 @@ describe('api service', () => {
     });
 
     it('should use default URL when VITE_API_URL is not set', () => {
-      vi.unstubAllEnvs();
+      delete import.meta.env.VITE_API_URL;
       vi.resetModules();
       require('./api');
 
@@ -321,10 +322,11 @@ describe('api service', () => {
       expect(result).toHaveProperty('uuid');
       expect(result).toHaveProperty('p2pkh_address');
       expect(result).toHaveProperty('public_key');
-      expect(result).toHaveProperty('challenge_date');
-      expect(result).toHaveProperty('is_solved');
-      expect(result).toHaveProperty('solve_count');
-      expect(result).toHaveProperty('total_guesses');
+      expect(result).toHaveProperty('active_date');
+      expect(result).toHaveProperty('active');
+      expect(result).toHaveProperty('metadata');
+      expect(result).toHaveProperty('explorer_link');
+      expect(result).toHaveProperty('created_at');
     });
 
     it('should return guess response with correct structure', async () => {
@@ -335,8 +337,7 @@ describe('api service', () => {
       expect(result).toHaveProperty('uuid');
       expect(result).toHaveProperty('public_key');
       expect(result).toHaveProperty('signature');
-      expect(result).toHaveProperty('is_correct');
-      expect(result).toHaveProperty('distance');
+      expect(result).toHaveProperty('result');
       expect(result).toHaveProperty('created_at');
     });
   });

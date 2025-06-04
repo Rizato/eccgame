@@ -1,7 +1,8 @@
 import React, { type ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { Challenge } from '../types/api';
 import { publicKeyToPoint } from '../utils/ecc';
+import type { Challenge } from '../types/api';
+import type { ECPoint } from '../types/ecc';
 import './Modal.css';
 
 interface ModalProps {
@@ -21,15 +22,16 @@ interface ModalProps {
     xCoordinate: string;
     yCoordinate: string;
     privateKey?: string;
-    distanceToTarget?: string;
   };
+  // Point loading operations
+  point: ECPoint | null;
+  onLoadPoint?: (point: ECPoint) => void;
 }
 
 interface ModalItemProps {
   label: string;
   value: string;
   onCopy?: () => void;
-  type?: 'text' | 'password';
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -42,6 +44,8 @@ export const Modal: React.FC<ModalProps> = ({
   isPracticeMode = false,
   practicePrivateKey,
   pointData,
+  point,
+  onLoadPoint,
 }) => {
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
 
@@ -131,15 +135,6 @@ export const Modal: React.FC<ModalProps> = ({
                 </button>
               </div>
             </div>
-          )}
-
-          {/* Distance to Target (Point data only) */}
-          {pointData?.distanceToTarget && (
-            <ModalItem
-              label="Distance to Target"
-              value={pointData.distanceToTarget}
-              onCopy={() => navigator.clipboard.writeText(pointData.distanceToTarget || '')}
-            />
           )}
 
           {/* Compressed Key */}
@@ -274,6 +269,22 @@ export const Modal: React.FC<ModalProps> = ({
               navigator.clipboard.writeText(value);
             }}
           />
+
+          {/* Action Buttons */}
+          <div className="modal-actions">
+            {/* Set as Current Point button for all points */}
+            {onLoadPoint && point && (
+              <button
+                className="action-button primary"
+                onClick={() => {
+                  onLoadPoint(point);
+                  onClose();
+                }}
+              >
+                Set as Current Point
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>,
@@ -281,7 +292,7 @@ export const Modal: React.FC<ModalProps> = ({
   );
 };
 
-export const ModalItem: React.FC<ModalItemProps> = ({ label, value, onCopy, type = 'text' }) => {
+export const ModalItem: React.FC<ModalItemProps> = ({ label, value, onCopy }) => {
   return (
     <div className="modal-item">
       <span className="modal-label">{label}:</span>

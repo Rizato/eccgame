@@ -1,152 +1,17 @@
 import React from 'react';
-import { useGameState } from '../hooks/useGameState';
-import ECCPlayground from '../components/ECCPlayground';
-import PracticeMode from '../components/PracticeMode';
-import ChallengeInfo from '../components/ChallengeInfo';
-import ThemeToggle from '../components/ThemeToggle';
+import DailyView from '../components/DailyView';
+import PracticeModeView from '../components/PracticeModeView';
+import { useAppSelector } from '../store/hooks';
 import './ECCGamePage.css';
 
 const ECCGamePage: React.FC = () => {
-  const {
-    gameMode,
-    challenge,
-    loading,
-    error,
-    hasWon,
-    setGameMode,
-    loadDailyChallenge,
-    handleSolve,
-    clearError,
-  } = useGameState();
+  const gameMode = useAppSelector(state => state.game.gameMode);
 
   if (gameMode === 'practice') {
-    return (
-      <div className="ecc-game-page">
-        <header className="game-header">
-          <div className="header-content">
-            <h1>ECC Crypto Playground</h1>
-            <div className="mode-controls">
-              <div className="mode-selector">
-                <button
-                  className={`mode-button ${gameMode === 'daily' ? 'active' : ''}`}
-                  onClick={() => setGameMode('daily')}
-                >
-                  Daily Challenge
-                </button>
-                <button
-                  className={`mode-button ${gameMode === 'practice' ? 'active' : ''}`}
-                  onClick={() => setGameMode('practice')}
-                >
-                  Practice Mode
-                </button>
-              </div>
-              <ThemeToggle />
-            </div>
-          </div>
-        </header>
-
-        <main className="game-main">
-          <PracticeMode />
-        </main>
-      </div>
-    );
+    return <PracticeModeView />;
   }
 
-  if (loading) {
-    return (
-      <div className="ecc-game-page">
-        <header className="game-header">
-          <div className="header-content">
-            <h1>ECC Crypto Playground</h1>
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="game-main">
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>Loading today's challenge...</p>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  if (!challenge) {
-    return (
-      <div className="ecc-game-page">
-        <header className="game-header">
-          <div className="header-content">
-            <h1>ECC Crypto Playground</h1>
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="game-main">
-          <div className="error-state">
-            <h2>Unable to load challenge</h2>
-            <p>{error || 'Something went wrong. Please try again.'}</p>
-            <button onClick={loadDailyChallenge} className="retry-button">
-              Try Again
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  return (
-    <div className="ecc-game-page">
-      <header className="game-header">
-        <div className="header-content">
-          <h1>ECC Crypto Playground</h1>
-          <div className="mode-controls">
-            <div className="mode-selector">
-              <button
-                className={`mode-button ${gameMode === 'daily' ? 'active' : ''}`}
-                onClick={() => setGameMode('daily')}
-              >
-                Daily Challenge
-              </button>
-              <button
-                className={`mode-button ${gameMode === 'practice' ? 'active' : ''}`}
-                onClick={() => setGameMode('practice')}
-              >
-                Practice Mode
-              </button>
-            </div>
-            <ThemeToggle />
-          </div>
-        </div>
-        {error && (
-          <div className="error-banner">
-            <span>{error}</span>
-            <button onClick={clearError}>×</button>
-          </div>
-        )}
-      </header>
-
-      <main className="game-main">
-        <div className="challenge-info-row">
-          <div className="challenge-info-card">
-            <ChallengeInfo challenge={challenge} />
-
-            {hasWon && (
-              <div className="victory-banner">
-                <div className="victory-icon">🎉</div>
-                <div className="victory-text">
-                  <strong>Challenge Completed!</strong>
-                  <p>You've solved today's challenge. Come back tomorrow for a new one!</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="playground-container">
-          <ECCPlayground challenge={challenge} onSolve={handleSolve} isPracticeMode={false} />
-        </div>
-      </main>
-    </div>
-  );
+  return <DailyView />;
 };
 
 export default ECCGamePage;

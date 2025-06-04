@@ -1,0 +1,218 @@
+/* Graph styles extracted from ECCPlayground.css */
+.graph-section {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.graph-display {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.graph-content {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.formula {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--text-color);
+  background: var(--background-color);
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  display: inline-block;
+}
+
+.ecc-graph {
+  position: relative;
+  flex: 1;
+  min-height: 300px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.graph-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid var(--border-color);
+  pointer-events: none;
+}
+
+.graph-axes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.axis-label {
+  position: absolute;
+  font-weight: bold;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.x-label {
+  bottom: 10px;
+  right: 15px;
+}
+
+.y-label {
+  top: 10px;
+  left: 15px;
+}
+
+.generator-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #3b82f6 0px,
+    #3b82f6 5px,
+    transparent 5px,
+    transparent 10px
+  );
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.curve-line {
+  position: absolute;
+  top: 20%;
+  left: 10%;
+  right: 10%;
+  bottom: 20%;
+  background: linear-gradient(
+    45deg,
+    transparent 40%,
+    rgba(99, 102, 241, 0.1) 45%,
+    rgba(99, 102, 241, 0.2) 50%,
+    rgba(99, 102, 241, 0.1) 55%,
+    transparent 60%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ecc-point {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.ecc-point:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+  z-index: 20;
+}
+
+.point-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--point-color, #ef4444);
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin: 0 auto 4px;
+}
+
+.point-label {
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-align: center;
+  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+  min-width: max-content;
+}
+
+.ecc-point.overlapping .point-dot {
+  border: 3px solid white;
+  box-shadow:
+    0 0 0 1px var(--border-color),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.range-indicator {
+  position: absolute;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: bold;
+}
+
+.bottom-left {
+  bottom: 5px;
+  left: 5px;
+}
+
+.bottom-right {
+  bottom: 5px;
+  right: 5px;
+}
+
+.top-left {
+  top: 5px;
+  left: 5px;
+}
+
+.legend-grid {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+  background: var(--background-color);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .ecc-graph {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  }
+
+  .point-label {
+    background: rgba(31, 41, 55, 0.9);
+    color: var(--text-color);
+  }
+}

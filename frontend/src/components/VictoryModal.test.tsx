@@ -1,129 +1,100 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { VictoryModal } from './VictoryModal';
-import { getGeneratorPoint } from '../utils/ecc';
-import type { Operation } from '../utils/privateKeyCalculation.ts';
 
-// Mock the crypto module
-vi.mock('../utils/crypto', () => ({
-  getP2PKHAddress: vi.fn().mockResolvedValue('1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2'),
-}));
-
-describe('VictoryModal Private Key Display', () => {
-  const generatorPoint = getGeneratorPoint();
-
-  const createDefaultProps = (
-    operations: Operation[] = [],
-    startingMode: 'challenge' | 'generator' = 'generator'
-  ) => ({
+describe('VictoryModal', () => {
+  const createDefaultProps = () => ({
     isOpen: true,
     onClose: vi.fn(),
-    operationCount: operations.length,
+    operationCount: 5,
     challengeAddress: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
-    startingMode,
-    targetPoint: generatorPoint,
-    operations,
+    savedPoints: [],
+    victoryPrivateKey: '0x0000000000000000000000000000000000000000000000000000000000000001',
     isPracticeMode: false,
   });
 
-  it('should display private key for generator mode with multiply operation', () => {
-    const operations: Operation[] = [
-      {
-        id: 'test-1',
-        type: 'multiply',
-        description: '×2',
-        value: '2',
-        direction: 'reverse',
-      },
-    ];
+  it('should render victory modal when open', () => {
+    render(<VictoryModal {...createDefaultProps()} />);
 
-    render(<VictoryModal {...createDefaultProps(operations, 'generator')} />);
-
-    // Should show the calculated private key (2 in hex = 0x2)
-    expect(screen.getByText('Private Key')).toBeInTheDocument();
-    expect(screen.getByText(/0x.*2$/)).toBeInTheDocument();
+    expect(screen.getByText('Private Key Found! 🎉')).toBeInTheDocument();
+    expect(
+      screen.getByText('Incredible! You successfully found the private key from the public key.')
+    ).toBeInTheDocument();
   });
 
-  it('should display private key for challenge mode with reversed operations', () => {
-    const operations: Operation[] = [
-      {
-        id: 'test-1',
-        type: 'add',
-        description: '+1',
-        value: '1',
-        direction: 'forward',
-      },
-    ];
+  it('should not render when closed', () => {
+    const props = { ...createDefaultProps(), isOpen: false };
+    const { container } = render(<VictoryModal {...props} />);
 
-    render(<VictoryModal {...createDefaultProps(operations, 'challenge')} />);
-
-    // Should show the calculated private key
-    expect(screen.getByText('Private Key')).toBeInTheDocument();
-    expect(screen.getByText(/0x/)).toBeInTheDocument();
+    expect(container.firstChild).toBeNull();
   });
 
-  it('should handle infinity point in challenge mode', () => {
-    const infinityPoint = { x: 0n, y: 0n, isInfinity: true };
-    const operations: Operation[] = [
-      {
-        id: 'test-1',
-        type: 'multiply',
-        description: '×2',
-        value: '2',
-        direction: 'forward',
-      },
-    ];
+  it('should display correct stats', () => {
+    render(<VictoryModal {...createDefaultProps()} />);
 
-    const props = {
-      ...createDefaultProps(operations, 'challenge'),
-      targetPoint: infinityPoint,
-    };
+    expect(screen.getByText('Operations Used')).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('Challenge Wallet')).toBeInTheDocument();
+    expect(screen.getByText('1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2')).toBeInTheDocument();
+    expect(screen.getByText('Private Key')).toBeInTheDocument();
+    expect(
+      screen.getByText('0x0000000000000000000000000000000000000000000000000000000000000001')
+    ).toBeInTheDocument();
+  });
 
+  it('should show practice mode content when isPracticeMode is true', () => {
+    const props = { ...createDefaultProps(), isPracticeMode: true };
     render(<VictoryModal {...props} />);
 
-    // Should show a private key (with +1 correction for infinity)
-    expect(screen.getByText('Private Key')).toBeInTheDocument();
-    expect(screen.getByText(/0x/)).toBeInTheDocument();
+    expect(screen.getByText('Practice Complete! 🎉')).toBeInTheDocument();
+    expect(
+      screen.getByText('Great work! You successfully solved the practice challenge.')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Practice Wallet')).toBeInTheDocument();
+    expect(screen.getByText('Continue')).toBeInTheDocument();
   });
 
-  it('should show error message if private key calculation fails', () => {
-    // Create operations that might cause calculation error
-    const operations: Operation[] = [
-      {
-        id: 'test-1',
-        type: 'multiply',
-        description: '×invalid',
-        value: '', // Invalid value that should cause error
-        direction: 'forward',
-      },
-    ];
+  it('should show challenge mode content when isPracticeMode is false', () => {
+    render(<VictoryModal {...createDefaultProps()} />);
 
-    render(<VictoryModal {...createDefaultProps(operations)} />);
-
-    // Should handle error gracefully
-    expect(screen.getByText('Private Key')).toBeInTheDocument();
-  });
-
-  it('should include all victory stats including private key', () => {
-    const operations: Operation[] = [
-      {
-        id: 'test-1',
-        type: 'add',
-        description: '+1',
-        value: '1',
-        direction: 'forward',
-      },
-    ];
-
-    render(<VictoryModal {...createDefaultProps(operations)} />);
-
-    // Check all expected stats are present
-    expect(screen.getByText('Operations Used')).toBeInTheDocument();
+    expect(screen.getByText('Private Key Found! 🎉')).toBeInTheDocument();
+    expect(
+      screen.getByText('Incredible! You successfully found the private key from the public key.')
+    ).toBeInTheDocument();
     expect(screen.getByText('Challenge Wallet')).toBeInTheDocument();
-    expect(screen.getByText('Direction')).toBeInTheDocument();
-    expect(screen.getByText('Private Key')).toBeInTheDocument();
+    expect(screen.getByText('Close')).toBeInTheDocument();
+  });
 
-    // Check operation count
-    expect(screen.getByText('1')).toBeInTheDocument();
+  it('should call onClose when close button is clicked', () => {
+    const onCloseMock = vi.fn();
+    const props = { ...createDefaultProps(), onClose: onCloseMock };
+    render(<VictoryModal {...props} />);
+
+    const closeButton = screen.getByText('Close');
+    closeButton.click();
+
+    expect(onCloseMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onClose when overlay is clicked', () => {
+    const onCloseMock = vi.fn();
+    const props = { ...createDefaultProps(), onClose: onCloseMock };
+    render(<VictoryModal {...props} />);
+
+    const overlay = document.querySelector('.victory-modal-overlay');
+    overlay?.click();
+
+    expect(onCloseMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not call onClose when modal content is clicked', () => {
+    const onCloseMock = vi.fn();
+    const props = { ...createDefaultProps(), onClose: onCloseMock };
+    render(<VictoryModal {...props} />);
+
+    const modal = document.querySelector('.victory-modal');
+    modal?.click();
+
+    expect(onCloseMock).not.toHaveBeenCalled();
   });
 });

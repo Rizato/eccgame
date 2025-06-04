@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { themeUtils, type Theme } from '../utils/theme';
+import React, { useEffect, useState } from 'react';
+import { type Theme, themeUtils } from '../utils/theme';
 import './ThemeToggle.css';
 
 const ThemeToggle: React.FC = () => {

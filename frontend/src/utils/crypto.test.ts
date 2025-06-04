@@ -1,14 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  hexToBytes,
+  base58CheckEncode,
   bytesToHex,
-  isValidPrivateKey,
-  getPublicKeyFromPrivate,
   createSignature,
   generateGuessFromPrivateKey,
   getP2PKHAddress,
-  ripemd160,
-  base58CheckEncode,
+  getPublicKeyFromPrivate,
+  hexToBytes,
+  isValidPrivateKey,
 } from './crypto';
 
 describe('crypto utilities', () => {

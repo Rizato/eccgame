@@ -1,68 +1,88 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import type { ECPoint } from '../utils/ecc';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getP2PKHAddress } from '../utils/crypto';
 import {
-  pointAdd,
-  pointSubtract,
-  pointMultiply,
-  pointDivide,
-  CURVE_N,
   bigintToHex,
+  CURVE_N,
+  getGeneratorPoint,
   hexToBigint,
   isPointOnCurve,
-  getGeneratorPoint,
+  pointAdd,
+  pointDivide,
+  pointMultiply,
+  pointNegate,
+  pointSubtract,
   pointToPublicKey,
+  publicKeyToPoint,
 } from '../utils/ecc';
-import {
-  calculatePrivateKey,
-  type Operation as SharedOperation,
-} from '../utils/privateKeyCalculation';
-import { getP2PKHAddress } from '../utils/crypto';
+import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
 import './ECCCalculator.css';
+import { SavePointModal } from './SavePointModal';
+import type { SavedPoint, ECPoint, Operation } from '../types/ecc.ts';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
+import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
-  operations: Operation[]; // Operations passed from parent
+  savedPoints: SavedPoint[];
+  challengePublicKey: string; // Challenge public key for private key calculations
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
-  onResetPoint: (startingMode: 'challenge' | 'generator') => void;
-  startingMode: 'challenge' | 'generator'; // challenge: start from challenge point, generator: start from G
-  isPracticeMode?: boolean;
-  practicePrivateKey?: string;
+  onSavePoint: (label?: string) => void;
   isLocked?: boolean;
 }
 
-export type Operation = SharedOperation;
-
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   currentPoint,
-  operations,
+  savedPoints,
+  challengePublicKey,
   onPointChange,
   onError,
-  onResetPoint,
-  startingMode,
-  isPracticeMode = false,
-  practicePrivateKey,
+  onSavePoint,
   isLocked = false,
 }) => {
+  const gameMode = useAppSelector(state => state.game.gameMode);
+  const { graph } = useAppSelector(state =>
+    gameMode === 'practice' ? state.practiceCalculator : state.dailyCalculator
+  );
+  const dispatch = useAppDispatch();
+
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
   const [pendingOperation, setPendingOperation] = useState<
     'multiply' | 'divide' | 'add' | 'subtract' | null
   >(null);
   const [lastOperationValue, setLastOperationValue] = useState<string | null>(null);
+  const [lastOperationType, setLastOperationType] = useState<
+    'multiply' | 'divide' | 'add' | 'subtract' | null
+  >(null);
   const [hexMode, setHexMode] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<string>('');
-  const [showResetDropdown, setShowResetDropdown] = useState(false);
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   const generatorPoint = getGeneratorPoint();
 
-  // Calculate the actual private key for the current point using shared utility
-  const currentPrivateKey = calculatePrivateKey(
-    operations,
-    startingMode,
-    isPracticeMode,
-    practicePrivateKey
-  );
+  // Check if current point is at a base point (generator or challenge)
+  const isAtBasePoint = useMemo(() => {
+    if (currentPoint.isInfinity) return false;
+
+    const isAtGenerator =
+      currentPoint.x === generatorPoint.x && currentPoint.y === generatorPoint.y;
+
+    try {
+      const challengePoint = publicKeyToPoint(challengePublicKey);
+      const isAtChallenge =
+        currentPoint.x === challengePoint.x && currentPoint.y === challengePoint.y;
+      return isAtGenerator || isAtChallenge;
+    } catch {
+      return isAtGenerator;
+    }
+  }, [currentPoint, generatorPoint, challengePublicKey]);
+
+  // Calculate the actual private key for the current point using the graph
+  const currentPrivateKey = useMemo(() => {
+    return calculatePrivateKeyFromGraph(currentPoint, graph);
+  }, [currentPoint, graph]);
 
   // Calculate current address asynchronously
   useEffect(() => {
@@ -88,6 +108,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const clearCalculator = useCallback(() => {
     setCalculatorDisplay('');
     setPendingOperation(null);
+    setLastOperationValue(null);
+    setLastOperationType(null);
     setHexMode(false);
   }, []);
 
@@ -164,24 +186,24 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
   const setCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract') => {
-      // If there's a value in the display and we haven't set a pending operation yet
-      if (calculatorDisplay.trim() && !pendingOperation) {
-        // Set pending operation and highlight the operator, wait for equals
+      if (isLocked) return;
+
+      // If there's a value in the display, set pending operation
+      if (calculatorDisplay.trim()) {
         setPendingOperation(operation);
-      } else if (calculatorDisplay.trim() && pendingOperation) {
-        // If there's already a pending operation, execute it with current display value
-        executeCalculatorOperationRef.current?.(pendingOperation, calculatorDisplay.trim());
-        // Then set the new operation as pending
-        setPendingOperation(operation);
-      } else if (lastOperationValue) {
-        // If no value but we have a last operation value, reuse it
+      } else if (
+        lastOperationValue &&
+        lastOperationType === operation &&
+        pendingOperation === operation
+      ) {
+        // If same operator is clicked and we have last operation value and it's already highlighted, repeat the operation
         executeCalculatorOperationRef.current?.(operation, lastOperationValue);
       } else {
-        // Just set the pending operation and highlight
+        // Set the pending operation to highlight the operator
         setPendingOperation(operation);
       }
     },
-    [calculatorDisplay, pendingOperation, lastOperationValue]
+    [calculatorDisplay, pendingOperation, lastOperationValue, lastOperationType, isLocked]
   );
 
   // Quick operation functions
@@ -197,16 +219,28 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       const operation: Operation = {
         id: `op_${Date.now()}`,
         type: 'add',
-        description: '+1',
-        point: generatorPoint,
+        description: '+G',
         value: '1',
-        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
+
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
+      dispatch(
+        addOperationAction({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, onPointChange, onError, startingMode, isLocked]);
+  }, [currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickSubtractG = useCallback(() => {
     if (isLocked) return;
@@ -220,16 +254,28 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       const operation: Operation = {
         id: `op_${Date.now()}`,
         type: 'subtract',
-        description: '-1',
-        point: generatorPoint,
+        description: '-G',
         value: '1',
-        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
+
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
+      dispatch(
+        addOperationAction({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, onPointChange, onError, startingMode, isLocked]);
+  }, [currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickDouble = useCallback(() => {
     if (isLocked) return;
@@ -245,13 +291,26 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         type: 'multiply',
         description: '×2',
         value: '2',
-        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
+
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
+      dispatch(
+        addOperationAction({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, onPointChange, onError, startingMode, isLocked]);
+  }, [currentPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickHalve = useCallback(() => {
     if (isLocked) return;
@@ -267,13 +326,61 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         type: 'divide',
         description: '÷2',
         value: '2',
-        direction: startingMode === 'challenge' ? 'forward' : 'reverse',
       };
+
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
+      dispatch(
+        addOperationAction({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, onPointChange, onError, startingMode, isLocked]);
+  }, [currentPoint, dispatch, onPointChange, onError, isLocked]);
+
+  const quickNegate = useCallback(() => {
+    if (isLocked) return;
+    try {
+      onError(null);
+      const newPoint = pointNegate(currentPoint);
+      if (!isPointOnCurve(newPoint)) {
+        onError('Result is not on the curve');
+        return;
+      }
+      const operation: Operation = {
+        id: `op_${Date.now()}`,
+        type: 'negate',
+        description: '±',
+        value: '',
+      };
+
+      // Add to graph through Redux using the appropriate action based on game mode
+      const addOperationAction =
+        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
+      dispatch(
+        addOperationAction({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation,
+        })
+      );
+
+      // Also notify parent for any UI updates
+      onPointChange(newPoint, operation);
+    } catch (error) {
+      onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [currentPoint, dispatch, onPointChange, onError, isLocked]);
 
   const executeCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
@@ -337,41 +444,49 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         const operationObj: Operation = {
           id: `op_${Date.now()}`,
           type: operation,
+          point: operation === 'add' || operation === 'subtract' ? differencePoint : undefined,
           description,
           value,
-          direction: startingMode === 'challenge' ? 'forward' : 'reverse',
         };
+
+        // Add to graph through Redux using the appropriate action based on game mode
+        const addOperationAction =
+          gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
+
+        dispatch(
+          addOperationAction({
+            fromPoint: currentPoint,
+            toPoint: newPoint,
+            operation: operationObj,
+          })
+        );
+
         onPointChange(newPoint, operationObj);
-        // TODO Clear this on calc clear
-        // Store the value for potential chaining
-        setLastOperationValue(value);
-        // Keep the value in display for chaining, keep the operation selected for repeated equals
+        // Keep the value in display for potential chaining
         setCalculatorDisplay(value);
-        // Keep pending operation and highlighted state for chaining equals
+        // Store the value and operation type for potential repeat operations
+        setLastOperationValue(value);
+        setLastOperationType(operation);
+        // Keep the operation highlighted so user can see what was just executed
+        setPendingOperation(operation);
       } catch (error) {
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [currentPoint, onPointChange, onError, quickAddG, quickSubtractG, startingMode, isLocked]
+    [
+      currentPoint,
+      dispatch,
+      onPointChange,
+      onError,
+      quickAddG,
+      quickSubtractG,
+      isLocked,
+      generatorPoint,
+    ]
   );
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
   executeCalculatorOperationRef.current = executeCalculatorOperation;
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showResetDropdown && event.target instanceof Element) {
-        const dropdown = event.target.closest('.reset-dropdown');
-        if (!dropdown) {
-          setShowResetDropdown(false);
-        }
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showResetDropdown]);
 
   // Keyboard event handler
   useEffect(() => {
@@ -435,8 +550,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           backspaceCalculator();
           break;
         case 'Escape':
-        case 'c':
-        case 'C':
           event.preventDefault();
           clearCalculator();
           break;
@@ -462,36 +575,16 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         <div className="point-display-header">
           <h5>Current Point</h5>
           <div className="point-display-actions">
-            <div className="reset-dropdown">
-              <button
-                onClick={() => setShowResetDropdown(!showResetDropdown)}
-                className="reset-point-button"
-              >
-                {startingMode === 'challenge' ? 'Challenge → G' : 'G → Challenge'} ▼
-              </button>
-              {showResetDropdown && (
-                <div className="reset-dropdown-menu">
-                  <button
-                    onClick={() => {
-                      onResetPoint('challenge');
-                      setShowResetDropdown(false);
-                    }}
-                    className="reset-dropdown-item"
-                  >
-                    Challenge → G
-                  </button>
-                  <button
-                    onClick={() => {
-                      onResetPoint('generator');
-                      setShowResetDropdown(false);
-                    }}
-                    className="reset-dropdown-item"
-                  >
-                    G → Challenge
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={() => setShowSaveModal(true)}
+              className="save-point-button"
+              disabled={isLocked || isAtBasePoint}
+              title={
+                isAtBasePoint ? 'Cannot save at generator or challenge point' : 'Save current point'
+              }
+            >
+              Save Point
+            </button>
           </div>
         </div>
         <div className="point-display-content">
@@ -517,7 +610,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             </div>
             {/* Private Key Display - show when we can calculate the actual private key */}
             {(() => {
-              if (currentPrivateKey === null || currentPoint.isInfinity) return null;
+              if (
+                currentPrivateKey === null ||
+                currentPrivateKey === undefined ||
+                currentPoint.isInfinity
+              )
+                return null;
 
               return (
                 <div className="point-private-key">
@@ -557,7 +655,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             <div className="number-section">
               <div className="button-row top-row">
                 <button onClick={clearCalculator} className="calc-button clear">
-                  C
+                  AC
                 </button>
                 <button onClick={quickAddG} className="calc-button quick-op add">
                   +1
@@ -633,7 +731,9 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 >
                   0x
                 </button>
-                <button className="calc-button spacer"></button>
+                <button onClick={quickNegate} className="calc-button quick-op negate">
+                  ±
+                </button>
                 <button className="calc-button spacer"></button>
                 <button className="calc-button spacer"></button>
               </div>
@@ -693,6 +793,13 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           current point above.
         </small>
       </div>
+
+      <SavePointModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={label => onSavePoint(label)}
+        defaultLabel={`Point ${(savedPoints || []).length + 1}`}
+      />
     </div>
   );
 };

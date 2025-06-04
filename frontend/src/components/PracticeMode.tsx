@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
-import { usePracticeMode } from '../hooks/usePracticeMode';
-import ECCPlayground from './ECCPlayground';
+import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import ChallengeInfo from './ChallengeInfo';
-import type { Challenge } from '../types/api';
+import ECCPlayground from './ECCPlayground';
 import './PracticeMode.css';
 
 const PracticeMode: React.FC = () => {
@@ -11,14 +10,22 @@ const PracticeMode: React.FC = () => {
     practiceChallenge,
     difficulty,
     isGenerating,
-    setDifficulty,
     generatePracticeChallenge,
-  } = usePracticeMode();
+  } = usePracticeModeRedux();
 
   // Initialize with first challenge
   useEffect(() => {
-    generatePracticeChallenge();
-  }, [difficulty, generatePracticeChallenge]);
+    if (!practiceChallenge || isGenerating) {
+      generatePracticeChallenge();
+    }
+  }, [difficulty]);
+
+  // Generate initial challenge on mount
+  useEffect(() => {
+    if (!practiceChallenge && !isGenerating) {
+      generatePracticeChallenge();
+    }
+  }, []);
 
   const handleSolve = async (submittedPrivateKey: string) => {
     if (submittedPrivateKey === practicePrivateKey) {
@@ -40,14 +47,7 @@ const PracticeMode: React.FC = () => {
     <>
       <div className="challenge-info-row">
         <div className="challenge-info-card">
-          <ChallengeInfo
-            challenge={practiceChallenge}
-            isPracticeMode={true}
-            difficulty={difficulty}
-            onDifficultyChange={setDifficulty}
-            onNewChallenge={generatePracticeChallenge}
-            practicePrivateKey={practicePrivateKey}
-          />
+          <ChallengeInfo />
         </div>
       </div>
 

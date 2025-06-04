@@ -1,0 +1,68 @@
+import { configureStore } from '@reduxjs/toolkit';
+import dailyCalculatorReducer from './slices/eccCalculatorSlice';
+import practiceCalculatorReducer from './slices/practiceCalculatorSlice';
+import gameReducer from './slices/gameSlice';
+import practiceModeReducer from './slices/practiceModeSlice';
+
+export const store = configureStore({
+  reducer: {
+    game: gameReducer,
+    dailyCalculator: dailyCalculatorReducer,
+    practiceCalculator: practiceCalculatorReducer,
+    practiceMode: practiceModeReducer,
+  },
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Ignore BigInt values in Redux state since we're working with cryptographic operations
+        isSerializable: (value: any) => {
+          // Allow BigInt values
+          if (typeof value === 'bigint') {
+            return true;
+          }
+          // Allow null values (they should be serializable by default)
+          if (value === null) {
+            return true;
+          }
+          // Use default check for other values
+          return (
+            typeof value !== 'function' && typeof value !== 'symbol' && typeof value !== 'undefined'
+          );
+        },
+        // Ignore all BigInt-containing paths in calculators and practiceMode
+        ignoredPaths: [
+          'dailyCalculator',
+          'practiceCalculator',
+          'practiceMode',
+          'game.challenge', // Challenge objects may contain related crypto data
+        ],
+        // Ignore all actions that might contain or trigger BigInt handling
+        ignoredActions: [
+          'dailyCalculator/setSelectedPoint',
+          'dailyCalculator/addOperationToGraph',
+          'dailyCalculator/savePoint',
+          'dailyCalculator/loadSavedPoint',
+          'dailyCalculator/setChallengePublicKey',
+          'dailyCalculator/resetToChallenge',
+          'dailyCalculator/resetToGenerator',
+          'practiceCalculator/setSelectedPoint',
+          'practiceCalculator/addOperationToGraph',
+          'practiceCalculator/savePoint',
+          'practiceCalculator/loadSavedPoint',
+          'practiceCalculator/setChallengeWithPrivateKey',
+          'practiceCalculator/resetToChallengeWithPrivateKey',
+          'practiceCalculator/resetToGenerator',
+          'practiceMode/setCurrentPoint',
+          'practiceMode/addOperationToGraph',
+          'game/loadDailyChallenge/rejected',
+          'game/loadDailyChallenge/fulfilled',
+          'game/loadDailyChallenge/pending',
+        ],
+        // Ignore undefined values in action payloads
+        ignoredActionPaths: ['payload', 'meta.arg'],
+      },
+    }),
+});
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

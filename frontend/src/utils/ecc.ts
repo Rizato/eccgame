@@ -4,10 +4,10 @@
  * Extended cryptographic utilities for elliptic curve operations
  * using elliptic.js for robust and performant curve arithmetic.
  */
-
 import { ec as EC } from 'elliptic';
 import * as secp256k1 from 'secp256k1';
-import { hexToBytes, bytesToHex } from './crypto';
+import { bytesToHex, hexToBytes } from './crypto';
+import type { ECPoint } from '../types/ecc.ts';
 
 // Initialize elliptic curve
 const ec = new EC('secp256k1');
@@ -15,19 +15,6 @@ const ec = new EC('secp256k1');
 // secp256k1 curve parameters
 export const CURVE_P = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F');
 export const CURVE_N = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141');
-
-export interface ECPoint {
-  x: bigint;
-  y: bigint;
-  isInfinity?: boolean;
-}
-
-export interface SavedPoint {
-  id: string;
-  point: ECPoint;
-  label: string;
-  timestamp: number;
-}
 
 /**
  * Convert elliptic.js point to our ECPoint format
@@ -146,6 +133,19 @@ export function pointDivide(scalar: bigint, point: ECPoint): ECPoint {
 
   const ecPoint = pointToElliptic(point);
   const result = ecPoint.mul(inverse.toString(16));
+  return ellipticToPoint(result);
+}
+
+/**
+ * Point negation (additive inverse)
+ */
+export function pointNegate(point: ECPoint): ECPoint {
+  if (point.isInfinity) {
+    return { x: 0n, y: 0n, isInfinity: true };
+  }
+
+  const ecPoint = pointToElliptic(point);
+  const result = ecPoint.neg();
   return ellipticToPoint(result);
 }
 

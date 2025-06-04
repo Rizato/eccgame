@@ -585,6 +585,25 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Overlapping points get wider dots and gradient colors */
+.ecc-point.overlapping .point-dot {
+  width: 16px;
+  height: 16px;
+}
+
+.ecc-point.overlapping .point-label {
+  min-width: 80px;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  font-weight: 600;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .point-label {
   position: absolute;
   top: -25px;
