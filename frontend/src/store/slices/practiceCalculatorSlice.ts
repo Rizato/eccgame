@@ -283,16 +283,6 @@ const practiceCalculatorSlice = createSlice({
 
       // Update selected point to the result
       state.selectedPoint = toPoint;
-
-      // Check win condition after adding operation
-      if (state.challengeNodeId && state.generatorNodeId) {
-        const hasConnection = hasPath(state.graph, state.challengeNodeId, state.generatorNodeId);
-
-        if (hasConnection && !state.hasWon) {
-          state.hasWon = true;
-          state.showVictoryModal = true;
-        }
-      }
     },
     optimizeGraph: state => {
       state.graph = optimizeGraphWithBundling(state.graph, state.savedPoints);
