@@ -44,7 +44,7 @@ export function ensureOperationInGraph(
 /**
  * Propagate private key between two nodes if one has a key and the other doesn't
  */
-function propagatePrivateKeyFromNodes(
+export function propagatePrivateKeyFromNodes(
   graph: PointGraph,
   fromNode: GraphNode,
   toNode: GraphNode,

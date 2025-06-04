@@ -8,6 +8,7 @@ import type {
   SavedPoint,
   ECPoint,
 } from '../types/ecc';
+import { propagatePrivateKeyFromNodes } from './ensureOperationInGraph.ts';
 
 /**
  * Check if a point is a saved point
@@ -201,6 +202,10 @@ export function optimizeGraphWithBundling(
   // Add bundled edges (these replace multiple individual edges between saved points)
   for (const bundledEdge of bundledEdges) {
     optimizedGraph.edges[bundledEdge.id] = bundledEdge;
+    const fromNode = optimizedGraph.nodes[bundledEdge.fromNodeId];
+    const toNode = optimizedGraph.nodes[bundledEdge.fromNodeId];
+    // Propagate keys
+    propagatePrivateKeyFromNodes(optimizedGraph, fromNode, toNode, bundledEdge.operation);
   }
 
   return optimizedGraph;
