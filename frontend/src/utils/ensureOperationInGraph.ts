@@ -7,6 +7,7 @@ import {
   reverseOperation,
 } from './pointGraph';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
+import { pointMultiply, getGeneratorPoint } from './ecc';
 
 /**
  * Ensure an operation (and its result) are added to the graph
@@ -42,6 +43,23 @@ export function ensureOperationInGraph(
 }
 
 /**
+ * Verify that a private key generates the correct public key for a given point
+ */
+function verifyPrivateKeyForPoint(privateKey: bigint, point: ECPoint): boolean {
+  try {
+    if (point.isInfinity) {
+      // Point at infinity should have private key 0 (but this is edge case)
+      return privateKey === 0n;
+    }
+
+    const generatedPoint = pointMultiply(privateKey, getGeneratorPoint());
+    return generatedPoint.x === point.x && generatedPoint.y === point.y;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Propagate private key between two nodes if one has a key and the other doesn't
  */
 export function propagatePrivateKeyFromNodes(
@@ -55,18 +73,58 @@ export function propagatePrivateKeyFromNodes(
     return;
   }
 
-  // If both nodes have keys, verify they are consistent with the operation
+  // If both nodes have keys, verify they are correct and consistent
   if (fromNode.privateKey !== undefined && toNode.privateKey !== undefined) {
-    try {
-      const expectedToKey = calculateKeyFromOperations([operation], fromNode.privateKey);
-      if (toNode.privateKey !== expectedToKey) {
-        console.warn('Private key inconsistency detected! Correcting toNode private key.');
-        toNode.privateKey = expectedToKey;
-        // Recursively propagate from the corrected node
-        propagatePrivateKeyRecursively(graph, toNode.id, new Set([fromNode.id]));
+    // First verify that both private keys are correct for their points
+    const fromKeyValid = verifyPrivateKeyForPoint(fromNode.privateKey, fromNode.point);
+    const toKeyValid = verifyPrivateKeyForPoint(toNode.privateKey, toNode.point);
+
+    if (!fromKeyValid) {
+      console.warn('fromNode has invalid private key for its point');
+    }
+
+    if (!toKeyValid) {
+      console.warn('toNode has invalid private key for its point');
+    }
+
+    // If both keys are valid, check consistency with the operation
+    if (fromKeyValid && toKeyValid) {
+      try {
+        const expectedToKey = calculateKeyFromOperations([operation], fromNode.privateKey);
+        if (toNode.privateKey !== expectedToKey) {
+          console.warn(
+            'Valid private keys but inconsistent with operation. This may be due to bundled operations.'
+          );
+          // Don't overwrite if both keys are individually valid
+        }
+      } catch (error) {
+        console.warn('Failed to verify operation consistency:', error);
       }
-    } catch (error) {
-      console.warn('Failed to verify private key consistency:', error);
+    } else if (fromKeyValid && !toKeyValid) {
+      // fromNode is correct, toNode is wrong - fix toNode
+      try {
+        const correctedToKey = calculateKeyFromOperations([operation], fromNode.privateKey);
+        if (verifyPrivateKeyForPoint(correctedToKey, toNode.point)) {
+          console.warn('Correcting invalid toNode private key based on valid fromNode');
+          toNode.privateKey = correctedToKey;
+          propagatePrivateKeyRecursively(graph, toNode.id, new Set([fromNode.id]));
+        }
+      } catch (error) {
+        console.warn('Failed to correct toNode private key:', error);
+      }
+    } else if (!fromKeyValid && toKeyValid) {
+      // toNode is correct, fromNode is wrong - fix fromNode
+      try {
+        const reverseOp = reverseOperation(operation);
+        const correctedFromKey = calculateKeyFromOperations([reverseOp], toNode.privateKey);
+        if (verifyPrivateKeyForPoint(correctedFromKey, fromNode.point)) {
+          console.warn('Correcting invalid fromNode private key based on valid toNode');
+          fromNode.privateKey = correctedFromKey;
+          propagatePrivateKeyRecursively(graph, fromNode.id, new Set([toNode.id]));
+        }
+      } catch (error) {
+        console.warn('Failed to correct fromNode private key:', error);
+      }
     }
     return;
   }
@@ -74,9 +132,15 @@ export function propagatePrivateKeyFromNodes(
   // If fromNode has a private key and toNode doesn't, calculate toNode's key
   if (fromNode.privateKey !== undefined && toNode.privateKey === undefined) {
     try {
-      toNode.privateKey = calculateKeyFromOperations([operation], fromNode.privateKey);
-      // Recursively propagate from toNode, but add fromNode to visited already
-      propagatePrivateKeyRecursively(graph, toNode.id, new Set([fromNode.id]));
+      const calculatedKey = calculateKeyFromOperations([operation], fromNode.privateKey);
+      // Verify the calculated key is correct before setting it
+      if (verifyPrivateKeyForPoint(calculatedKey, toNode.point)) {
+        toNode.privateKey = calculatedKey;
+        // Recursively propagate from toNode, but add fromNode to visited already
+        propagatePrivateKeyRecursively(graph, toNode.id, new Set([fromNode.id]));
+      } else {
+        console.warn('Calculated private key does not match toNode point - not setting');
+      }
     } catch (error) {
       console.warn('Failed to calculate private key from fromNode to toNode:', error);
     }
@@ -85,9 +149,15 @@ export function propagatePrivateKeyFromNodes(
   else if (toNode.privateKey !== undefined && fromNode.privateKey === undefined) {
     try {
       const reverseOp = reverseOperation(operation);
-      fromNode.privateKey = calculateKeyFromOperations([reverseOp], toNode.privateKey);
-      // Recursively propagate from fromNode, but add toNode to visited already
-      propagatePrivateKeyRecursively(graph, fromNode.id, new Set([toNode.id]));
+      const calculatedKey = calculateKeyFromOperations([reverseOp], toNode.privateKey);
+      // Verify the calculated key is correct before setting it
+      if (verifyPrivateKeyForPoint(calculatedKey, fromNode.point)) {
+        fromNode.privateKey = calculatedKey;
+        // Recursively propagate from fromNode, but add toNode to visited already
+        propagatePrivateKeyRecursively(graph, fromNode.id, new Set([toNode.id]));
+      } else {
+        console.warn('Calculated private key does not match fromNode point - not setting');
+      }
     } catch (error) {
       console.warn('Failed to calculate private key from toNode to fromNode:', error);
     }

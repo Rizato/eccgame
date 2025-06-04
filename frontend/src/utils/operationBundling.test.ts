@@ -279,4 +279,76 @@ describe('Operation Bundling', () => {
     expect(bundledEdge?.operation.value).toBe(`${CURVE_N - 2n}`);
     expect(bundledEdge?.operation.description).toContain(`+${CURVE_N - 2n}`);
   });
+
+  it('should preserve correct private keys during bundling optimization', () => {
+    // Test the specific scenario: correct private keys should not be overwritten by bundling
+    const graph = createEmptyGraph();
+
+    // Create nodes with correct private keys
+    const node1 = addNode(graph, mockPoint1, {
+      label: 'Generator',
+      isGenerator: true,
+      privateKey: 5n, // Correct private key
+    });
+    const node2 = addNode(graph, mockPoint2, {
+      label: 'Intermediate Point',
+      // No private key initially
+    });
+    const node3 = addNode(graph, mockPoint3, {
+      label: 'Target Point',
+      privateKey: 15n, // Correct private key for this point
+    });
+
+    // Add operations between nodes
+    addEdge(graph, node1.id, node2.id, {
+      id: 'op1',
+      type: 'multiply',
+      description: '×2',
+      value: '2',
+    });
+    addEdge(graph, node2.id, node3.id, {
+      id: 'op2',
+      type: 'add',
+      description: '+5',
+      value: '5',
+    });
+
+    const savedPoints: SavedPoint[] = [
+      {
+        id: 'saved1',
+        point: mockPoint1,
+        label: 'Saved Generator',
+        timestamp: Date.now(),
+        privateKey: 5n,
+      },
+      {
+        id: 'saved3',
+        point: mockPoint3,
+        label: 'Saved Target',
+        timestamp: Date.now(),
+        privateKey: 15n,
+      },
+    ];
+
+    // Store original private keys for comparison
+    const originalNode1Key = node1.privateKey;
+    const originalNode3Key = node3.privateKey;
+
+    // Optimize graph with bundling
+    const optimizedGraph = optimizeGraphWithBundling(graph, savedPoints);
+
+    // Verify that correct private keys are preserved
+    const optimizedNode1 = optimizedGraph.nodes[node1.id];
+    const optimizedNode3 = optimizedGraph.nodes[node3.id];
+
+    expect(optimizedNode1).toBeDefined();
+    expect(optimizedNode3).toBeDefined();
+
+    // The key assertion: correct private keys should be preserved
+    expect(optimizedNode1.privateKey).toBe(originalNode1Key);
+    expect(optimizedNode3.privateKey).toBe(originalNode3Key);
+
+    // Bundled edges should still be created
+    expect(Object.keys(optimizedGraph.edges).length).toBeGreaterThan(0);
+  });
 });
