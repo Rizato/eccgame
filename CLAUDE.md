@@ -139,6 +139,7 @@ Access Django admin at `http://localhost:8000/admin/` after creating a superuser
 - Local storage utilities in `src/utils/storage.ts`
 - Theme management in `src/utils/theme.ts`
 - Keep tests is .test.ts files, no mixing tests and code in the same file
+- Serialize bigint values as '0x' prefixed hex strings
 
 ## Task Management Guidelines
 
