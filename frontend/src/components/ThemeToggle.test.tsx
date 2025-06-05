@@ -21,7 +21,6 @@ describe('ThemeToggle', () => {
 
     // Default mocks
     mockThemeUtils.getStoredTheme.mockReturnValue('light');
-    mockThemeUtils.watchSystemTheme.mockReturnValue(() => {});
   });
 
   afterEach(() => {
@@ -39,7 +38,7 @@ describe('ThemeToggle', () => {
     it('should render all theme options', () => {
       render(<ThemeToggle />);
 
-      const select = screen.getByRole('combobox');
+      screen.getByRole('combobox');
 
       expect(screen.getByText('☀️ Light')).toBeInTheDocument();
       expect(screen.getByText('🌙 Dark')).toBeInTheDocument();
@@ -63,22 +62,6 @@ describe('ThemeToggle', () => {
       render(<ThemeToggle />);
 
       expect(mockThemeUtils.applyTheme).toHaveBeenCalledWith('dark');
-    });
-
-    it('should setup system theme watcher for system theme', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('system');
-
-      render(<ThemeToggle />);
-
-      expect(mockThemeUtils.watchSystemTheme).toHaveBeenCalledWith(expect.any(Function));
-    });
-
-    it('should not setup system theme watcher for non-system themes', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('light');
-
-      render(<ThemeToggle />);
-
-      expect(mockThemeUtils.watchSystemTheme).not.toHaveBeenCalled();
     });
   });
 
@@ -115,58 +98,6 @@ describe('ThemeToggle', () => {
         expect(mockThemeUtils.setStoredTheme).toHaveBeenCalledWith(theme);
         expect(mockThemeUtils.applyTheme).toHaveBeenCalledWith(theme);
       });
-    });
-  });
-
-  describe('system theme watching', () => {
-    it('should setup and cleanup system theme watcher', () => {
-      const mockCleanup = vi.fn();
-      mockThemeUtils.getStoredTheme.mockReturnValue('system');
-      mockThemeUtils.watchSystemTheme.mockReturnValue(mockCleanup);
-
-      const { unmount } = render(<ThemeToggle />);
-
-      expect(mockThemeUtils.watchSystemTheme).toHaveBeenCalled();
-
-      unmount();
-
-      expect(mockCleanup).toHaveBeenCalled();
-    });
-
-    it('should re-apply system theme when system preference changes', () => {
-      const mockCleanup = vi.fn();
-      mockThemeUtils.getStoredTheme.mockReturnValue('system');
-      mockThemeUtils.watchSystemTheme.mockImplementation(callback => {
-        // Simulate system theme change
-        setTimeout(() => callback(), 0);
-        return mockCleanup;
-      });
-
-      render(<ThemeToggle />);
-
-      // Wait for async callback
-      setTimeout(() => {
-        expect(mockThemeUtils.applyTheme).toHaveBeenCalledWith('system');
-      }, 10);
-    });
-
-    it('should not setup watcher when switching away from system theme', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('system');
-
-      const { rerender } = render(<ThemeToggle />);
-
-      expect(mockThemeUtils.watchSystemTheme).toHaveBeenCalled();
-
-      // Clear the mock and change theme
-      mockThemeUtils.watchSystemTheme.mockClear();
-
-      const select = screen.getByRole('combobox');
-      fireEvent.change(select, { target: { value: 'light' } });
-
-      // Re-render to trigger useEffect
-      rerender(<ThemeToggle />);
-
-      expect(mockThemeUtils.watchSystemTheme).not.toHaveBeenCalled();
     });
   });
 
@@ -239,29 +170,6 @@ describe('ThemeToggle', () => {
 
       expect(mockThemeUtils.setStoredTheme).toHaveBeenCalledTimes(3);
       expect(mockThemeUtils.applyTheme).toHaveBeenCalledTimes(3); // 3 changes
-    });
-  });
-
-  describe('component lifecycle', () => {
-    it('should cleanup system theme watcher on unmount', () => {
-      const mockCleanup = vi.fn();
-      mockThemeUtils.getStoredTheme.mockReturnValue('system');
-      mockThemeUtils.watchSystemTheme.mockReturnValue(mockCleanup);
-
-      const { unmount } = render(<ThemeToggle />);
-
-      unmount();
-
-      expect(mockCleanup).toHaveBeenCalled();
-    });
-
-    it('should not call cleanup if no watcher was setup', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('light');
-
-      const { unmount } = render(<ThemeToggle />);
-
-      // Should not throw or cause issues
-      expect(() => unmount()).not.toThrow();
     });
   });
 });

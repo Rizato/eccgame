@@ -208,67 +208,6 @@ describe('themeUtils', () => {
     });
   });
 
-  describe('watchSystemTheme', () => {
-    it('should setup media query listener for system theme changes', () => {
-      const mockMediaQuery = {
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        matches: false,
-      };
-
-      mockMatchMedia.mockReturnValue(mockMediaQuery);
-
-      const callback = vi.fn();
-      const cleanup = themeUtils.watchSystemTheme(callback);
-
-      expect(mockMatchMedia).toHaveBeenCalledWith('(prefers-color-scheme: dark)');
-      expect(mockMediaQuery.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
-
-      // Test callback execution
-      const [eventType, handler] = mockMediaQuery.addEventListener.mock.calls[0];
-      expect(eventType).toBe('change');
-
-      // Simulate theme change event
-      handler({ matches: true } as MediaQueryListEvent);
-      expect(callback).toHaveBeenCalledWith('dark');
-
-      handler({ matches: false } as MediaQueryListEvent);
-      expect(callback).toHaveBeenCalledWith('light');
-
-      // Test cleanup
-      cleanup();
-      expect(mockMediaQuery.removeEventListener).toHaveBeenCalledWith('change', handler);
-    });
-
-    it('should return noop cleanup function when matchMedia is not available', () => {
-      // @ts-expect-error - testing undefined matchMedia
-      delete window.matchMedia;
-
-      const callback = vi.fn();
-      const cleanup = themeUtils.watchSystemTheme(callback);
-
-      expect(typeof cleanup).toBe('function');
-      expect(() => cleanup()).not.toThrow();
-      expect(callback).not.toHaveBeenCalled();
-    });
-
-    it('should return noop cleanup function in non-browser environment', () => {
-      const originalWindow = global.window;
-      // @ts-expect-error - testing undefined window
-      delete global.window;
-
-      const callback = vi.fn();
-      const cleanup = themeUtils.watchSystemTheme(callback);
-
-      expect(typeof cleanup).toBe('function');
-      expect(() => cleanup()).not.toThrow();
-      expect(callback).not.toHaveBeenCalled();
-
-      // Restore window
-      global.window = originalWindow;
-    });
-  });
-
   describe('integration tests', () => {
     it('should work through complete theme lifecycle', () => {
       mockMatchMedia.mockReturnValue({

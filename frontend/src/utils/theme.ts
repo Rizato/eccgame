@@ -47,21 +47,4 @@ export const themeUtils = {
     document.documentElement.classList.remove('light-theme', 'dark-theme');
     document.documentElement.classList.add(`${effectiveTheme}-theme`);
   },
-
-  // Listen for system theme changes
-  watchSystemTheme: (callback: (theme: 'light' | 'dark') => void): (() => void) => {
-    if (typeof window === 'undefined' || !window.matchMedia) {
-      return () => {};
-    }
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e: MediaQueryListEvent) => {
-      callback(e.matches ? 'dark' : 'light');
-    };
-
-    mediaQuery.addEventListener('change', handler);
-
-    // Return cleanup function
-    return () => mediaQuery.removeEventListener('change', handler);
-  },
 };

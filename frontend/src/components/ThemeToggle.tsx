@@ -8,21 +8,11 @@ const ThemeToggle: React.FC = () => {
   useEffect(() => {
     // Apply initial theme
     themeUtils.applyTheme(theme);
-
-    // Watch for system theme changes when using 'system' mode
-    if (theme === 'system') {
-      const cleanup = themeUtils.watchSystemTheme(() => {
-        // Re-apply theme when system preference changes
-        themeUtils.applyTheme('system');
-      });
-      return cleanup;
-    }
+    themeUtils.setStoredTheme(theme);
   }, [theme]);
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
-    themeUtils.setStoredTheme(newTheme);
-    themeUtils.applyTheme(newTheme);
   };
 
   const getThemeIcon = (themeOption: Theme) => {
