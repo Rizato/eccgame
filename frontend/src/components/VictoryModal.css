@@ -13,9 +13,9 @@
 }
 
 .victory-modal {
-  background: var(--background);
-  border-radius: 16px;
-  border: 2px solid var(--accent-color);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--primary);
   box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.3),
     0 0 0 1px rgba(255, 255, 255, 0.1),
@@ -59,7 +59,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #10b981 0%, var(--accent-color) 50%, #8b5cf6 100%);
+  background: linear-gradient(90deg, var(--success) 0%, var(--primary) 50%, var(--accent) 100%);
 }
 
 .victory-icon {
@@ -86,7 +86,7 @@
 
 .victory-title {
   margin: 0 0 12px 0;
-  color: var(--text-primary);
+  color: var(--text);
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -94,7 +94,7 @@
 
 .victory-message {
   margin: 0;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   font-size: 1rem;
   line-height: 1.5;
   max-width: 400px;
@@ -111,44 +111,44 @@
 .stat-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 16px;
-  background: var(--hover-background);
-  border-radius: 8px;
+  gap: var(--spacing-xs);
+  padding: var(--spacing);
+  background: var(--surface-variant);
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   transition: all 0.2s ease;
 }
 
 .stat-item:hover {
-  background: rgba(var(--accent-color-rgb, 59, 130, 246), 0.05);
-  border-color: var(--accent-color);
+  background: rgb(99 102 241 / 0.05);
+  border-color: var(--primary);
 }
 
 .stat-label {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 }
 
 .stat-value {
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   word-wrap: break-word;
 }
 
 .stat-value.address-value {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.9rem;
+  font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.875rem;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: var(--card-background);
-  padding: 8px 12px;
-  border-radius: 6px;
+  background: var(--surface);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   cursor: text;
   user-select: text;
@@ -162,11 +162,11 @@
 }
 
 .victory-close-button {
-  background: var(--accent-color);
-  color: white;
+  background: var(--primary);
+  color: var(--text-inverse);
   border: none;
-  padding: 12px 32px;
-  border-radius: 8px;
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border-radius: var(--radius);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -175,9 +175,9 @@
 }
 
 .victory-close-button:hover {
-  background: var(--accent-color-dark, var(--accent-color));
+  background: var(--primary-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(var(--accent-color-rgb, 59, 130, 246), 0.3);
+  box-shadow: 0 4px 12px rgb(99 102 241 / 0.3);
 }
 
 .victory-close-button:active {

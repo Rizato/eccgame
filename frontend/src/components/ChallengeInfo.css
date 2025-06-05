@@ -142,25 +142,26 @@
 
 .difficulty-selector label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: var(--spacing-xs);
   font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.9rem;
+  color: var(--text);
+  font-size: 0.875rem;
 }
 
 .difficulty-select {
   width: 100%;
-  padding: 8px 12px;
+  padding: var(--spacing-sm);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--card-background);
-  color: var(--text-primary);
-  font-size: 0.9rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
 }
 
 .difficulty-select:focus {
   outline: none;
-  border-color: var(--accent-color);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
 }
 
 .new-challenge-button {
@@ -196,10 +197,10 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--card-background);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
   overflow: hidden;
 }
@@ -207,13 +208,13 @@
 .difficulty-option {
   display: block;
   width: 100%;
-  padding: 8px 12px;
-  background: var(--card-background);
-  color: var(--text-primary);
+  padding: var(--spacing-sm);
+  background: var(--surface);
+  color: var(--text);
   border: none;
   text-align: left;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   transition: all 0.2s ease;
   border-bottom: 1px solid var(--border);
 }
@@ -223,7 +224,7 @@
 }
 
 .difficulty-option:hover {
-  background: var(--hover-background);
+  background: var(--surface-variant);
 }
 
 /* Private Key Input */
@@ -234,13 +235,13 @@
 }
 
 .private-key-display {
-  color: var(--text-primary);
-  background: var(--hover-background);
+  color: var(--text);
+  background: var(--surface-variant);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
+  border-radius: var(--radius);
+  padding: var(--spacing-sm);
+  font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.875rem;
   flex: 1;
   text-align: left;
   word-break: break-all;
@@ -256,9 +257,9 @@
 }
 
 .private-key-display.clickable:hover {
-  background: var(--accent-color);
-  color: white;
-  border-color: var(--accent-color);
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-color: var(--primary);
   transform: translateY(-1px);
 }
 

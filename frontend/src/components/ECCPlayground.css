@@ -119,13 +119,13 @@
 .toggle-button:hover,
 .save-button:hover,
 .reset-button:hover {
-  background: var(--hover-background);
+  background: var(--surface-variant);
 }
 
 .save-button {
-  background: var(--accent-color);
+  background: var(--primary);
   color: white;
-  border-color: var(--accent-color);
+  border-color: var(--primary);
 }
 
 .reset-button {
@@ -143,7 +143,7 @@
   color: var(--text-secondary);
   text-align: center;
   padding: 20px;
-  background: var(--hover-background);
+  background: var(--surface-variant);
   border-radius: 6px;
 }
 
@@ -168,7 +168,7 @@
 .hex-value {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.85rem;
-  background: var(--hover-background);
+  background: var(--surface-variant);
   padding: 4px 8px;
   border-radius: 4px;
   word-break: break-all;
@@ -180,7 +180,7 @@
   font-size: 0.9rem;
   color: var(--text-secondary);
   padding: 8px;
-  background: var(--hover-background);
+  background: var(--surface-variant);
   border-radius: 4px;
 }
 
@@ -225,7 +225,7 @@
   display: flex;
   gap: 4px;
   margin-bottom: 16px;
-  background: var(--hover-background);
+  background: var(--surface-variant);
   padding: 4px;
   border-radius: 8px;
 }
@@ -243,7 +243,7 @@
 }
 
 .operation-tabs .tab.active {
-  background: var(--accent-color);
+  background: var(--primary);
   color: white;
 }
 
@@ -280,12 +280,12 @@
 .scalar-input:focus,
 .point-select:focus {
   outline: none;
-  border-color: var(--accent-color);
+  border-color: var(--primary);
 }
 
 .operation-button {
   padding: 10px 16px;
-  background: var(--accent-color);
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 6px;
@@ -353,9 +353,9 @@
 }
 
 .load-button {
-  background: var(--accent-color);
+  background: var(--primary);
   color: white;
-  border-color: var(--accent-color);
+  border-color: var(--primary);
 }
 
 .delete-button {
@@ -388,7 +388,7 @@
 
 .operation-item {
   padding: 6px 10px;
-  background: var(--hover-background);
+  background: var(--surface-variant);
   border-radius: 4px;
   color: var(--text-secondary);
   font-size: 0.9rem;
@@ -554,20 +554,20 @@
   background: linear-gradient(
     45deg,
     transparent 20%,
-    var(--accent-color) 21%,
-    var(--accent-color) 22%,
+    var(--primary) 21%,
+    var(--primary) 22%,
     transparent 23%,
     transparent 40%,
-    var(--accent-color) 41%,
-    var(--accent-color) 42%,
+    var(--primary) 41%,
+    var(--primary) 42%,
     transparent 43%,
     transparent 60%,
-    var(--accent-color) 61%,
-    var(--accent-color) 62%,
+    var(--primary) 61%,
+    var(--primary) 62%,
     transparent 63%,
     transparent 80%,
-    var(--accent-color) 81%,
-    var(--accent-color) 82%,
+    var(--primary) 81%,
+    var(--primary) 82%,
     transparent 83%
   );
   opacity: 0.3;
@@ -584,7 +584,7 @@
 .point-dot {
   width: 12px;
   height: 12px;
-  background: var(--point-color, var(--accent-color));
+  background: var(--point-color, var(--primary));
   border: 2px solid var(--card-background);
   border-radius: 50%;
   display: block;
@@ -674,7 +674,7 @@
   font-size: 0.85rem;
   color: var(--text-secondary);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  background: var(--hover-background);
+  background: var(--surface-variant);
   padding: 4px 8px;
   border-radius: 4px;
 }
@@ -816,7 +816,7 @@
 
 .info-value.hex-value {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  background: var(--hover-background);
+  background: var(--surface-variant);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.8rem;
@@ -867,7 +867,7 @@
 
 .point-hover-info div:first-child {
   font-size: 0.8rem;
-  color: var(--accent-color);
+  color: var(--primary);
   font-weight: 600;
   margin-bottom: 2px;
 }

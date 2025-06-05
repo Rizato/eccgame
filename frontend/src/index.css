@@ -87,13 +87,13 @@
 
 a {
   font-weight: 500;
-  color: var(--text-link);
+  color: var(--primary);
   text-decoration: inherit;
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: var(--text-link-hover);
+  color: var(--primary-dark);
 }
 
 * {

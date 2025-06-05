@@ -75,7 +75,7 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.75rem;
   color: var(--text-secondary);
-  background: var(--hover-background);
+  background: var(--surface-variant);
   padding: 4px 8px;
   border-radius: 4px;
   overflow: hidden;
@@ -119,13 +119,13 @@
 
 .point-details-button:hover,
 .reset-point-button:hover {
-  background: var(--hover-background);
+  background: var(--surface-variant);
 }
 
 .point-details-button {
-  background: var(--accent-color);
+  background: var(--primary);
   color: white;
-  border-color: var(--accent-color);
+  border-color: var(--primary);
 }
 
 .reset-point-button {
@@ -174,7 +174,7 @@
 }
 
 .reset-dropdown-item:hover {
-  background: var(--hover-background);
+  background: var(--surface-variant);
 }
 
 .reset-dropdown-item:first-child {
@@ -235,7 +235,7 @@
   border: 1px solid var(--border);
   margin-bottom: 12px;
   font-size: 0.9rem;
-  color: var(--accent-color);
+  color: var(--primary);
   font-weight: 500;
   text-align: center;
 }
@@ -617,7 +617,7 @@
 
 /* Private Key Display */
 .point-private-key {
-  background: var(--hover-background);
+  background: var(--surface-variant);
   padding: 4px 8px;
   border-radius: 4px;
 }
@@ -650,7 +650,7 @@
 }
 
 .private-key-value.clickable:hover {
-  background: var(--accent-color);
+  background: var(--primary);
   color: white;
   transform: translateY(-1px);
 }
