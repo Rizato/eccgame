@@ -1,5 +1,5 @@
 /**
- * CRYPTO GUESSER API MODULE - TRANSPARENCY NOTICE
+ * ECC CRYPTO PLAYGROUND API MODULE - TRANSPARENCY NOTICE
  *
  * This file is intentionally unminified in production builds to allow
  * users to verify that private keys are NEVER transmitted to the server.

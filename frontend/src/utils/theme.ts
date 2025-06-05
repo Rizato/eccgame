@@ -1,6 +1,7 @@
 export type Theme = 'light' | 'dark' | 'system';
 
-const THEME_STORAGE_KEY = 'cryptoguesser_theme';
+const THEME_PREFIX = 'ecccryptoplayground_';
+const THEME_STORAGE_KEY = `${THEME_PREFIX}theme`;
 
 export const themeUtils = {
   // Get the current theme from localStorage or default to 'system'

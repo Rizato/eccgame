@@ -1,1 +1,1 @@
-# Crypto Guesser
+# ECC Crypto Playground

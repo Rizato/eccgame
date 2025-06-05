@@ -1,5 +1,5 @@
 /**
- * CRYPTO GUESSER CRYPTOGRAPHY MODULE - TRANSPARENCY NOTICE
+ * ECC CRYPTO PLAYGROUND CRYPTOGRAPHY MODULE - TRANSPARENCY NOTICE
  *
  * This file is intentionally unminified in production builds to allow
  * users to verify the security and privacy of all cryptographic operations.

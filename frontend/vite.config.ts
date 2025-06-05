@@ -12,7 +12,7 @@ const preserveSecurityTransparency = () => {
           if (chunk.facadeModuleId?.includes('api.ts')) {
             // Add transparency banner for API code
             chunk.code = `/*
- * CRYPTO GUESSER API - UNMINIFIED FOR TRANSPARENCY
+ * ECC CRYPTO PLAYGROUND API - UNMINIFIED FOR TRANSPARENCY
  * This file contains all API calls and is intentionally unminified
  * to allow users to verify that private keys are never transmitted
  * to the server. Only public keys and signatures are sent.
@@ -22,7 +22,7 @@ const preserveSecurityTransparency = () => {
           } else if (chunk.facadeModuleId?.includes('crypto.ts')) {
             // Add transparency banner for crypto operations
             chunk.code = `/*
- * CRYPTO GUESSER CRYPTOGRAPHY - UNMINIFIED FOR TRANSPARENCY
+ * ECC CRYPTO PLAYGROUND CRYPTOGRAPHY - UNMINIFIED FOR TRANSPARENCY
  * This file contains all cryptographic operations and is intentionally
  * unminified to allow users to verify that:
  * - Private keys never leave your browser

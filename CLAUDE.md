@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Structure
 
-This is a full-stack cryptocurrency guessing game called "Crypto Guesser" with a Django REST API backend and React
+This is a full-stack cryptocurrency guessing game called "ECC Crypto Playground" with a Django REST API backend and React
 TypeScript frontend.
 
 ### Backend Structure

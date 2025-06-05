@@ -1,4 +1,4 @@
-const STORAGE_PREFIX = 'cryptoguesser_';
+const STORAGE_PREFIX = 'ecccryptoplayground_';
 const DAILY_WINS_KEY = `${STORAGE_PREFIX}daily_wins`;
 const FIRST_VISIT_KEY = `${STORAGE_PREFIX}first_visit_complete`;
 

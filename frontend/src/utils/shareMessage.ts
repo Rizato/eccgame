@@ -24,19 +24,19 @@ export function generateShareMessage({
   const shortAddress = `${challengeAddress.slice(0, 8)}...${challengeAddress.slice(-6)}`;
 
   if (solved) {
-    return `🏆 Crypto Guesser ${gameType} ${shortAddress}
-Cracked in ${operationCount} operations!
+    return `ECC Crypto Playground ${gameType}
+${shortAddress}
+🏆 I solved the private key in just ${operationCount} steps!
 
-Think you can do better? 🔐
-https://cryptoguesser.com`;
+https://cryptoplayground.com`;
   }
 
-  // Unsolved/gave up - same message for both states
-  return `🤷 Crypto Guesser ${gameType} ${shortAddress}
-${operationCount} operations attempted
+  // Gave up
+  return `ECC Crypto Playground ${gameType}
+${shortAddress}
+🤷 I gave up after ${operationCount} steps!
 
-Can you crack the private key? 🔐
-https://cryptoguesser.com`;
+https://cryptoplayground.com`;
 }
 
 /**

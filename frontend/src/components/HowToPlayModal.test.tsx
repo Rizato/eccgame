@@ -6,7 +6,7 @@ describe('HowToPlayModal', () => {
   it('should render when open', () => {
     render(<HowToPlayModal isOpen={true} onClose={vi.fn()} />);
 
-    expect(screen.getByText('How to Play Crypto Guesser')).toBeInTheDocument();
+    expect(screen.getByText('How to Play!')).toBeInTheDocument();
     expect(
       screen.getByText('Master the ECC calculator and crack cryptographic challenges!')
     ).toBeInTheDocument();
