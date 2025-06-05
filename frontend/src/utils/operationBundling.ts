@@ -219,25 +219,3 @@ export function cleanupDanglingNodes(graph: PointGraph, savedPoints: SavedPoint[
     }
   }
 }
-
-// Legacy functions for backwards compatibility with existing tests
-// These are the old implementations that will be gradually phased out
-
-/**
- * @deprecated Use createBundledEdgeForSavedPoint instead
- */
-export function createBundledEdges(graph: PointGraph, savedPoints: SavedPoint[]): GraphEdge[] {
-  // Return empty array - this old approach is being phased out
-  return [];
-}
-
-/**
- * @deprecated Use addBundledEdgeForNewSave instead
- */
-export function optimizeGraphWithBundling(
-  graph: PointGraph,
-  savedPoints: SavedPoint[]
-): PointGraph {
-  // Return the graph unchanged - optimization now happens at save time
-  return graph;
-}

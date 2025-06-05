@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { createBundledEdges, optimizeGraphWithBundling, isPointSaved } from './operationBundling';
+import {
+  addBundledEdgeForNewSave,
+  cleanupDanglingNodes,
+  createBundledEdgeForSavedPoint,
+  isPointSaved,
+} from './operationBundling';
 import { createEmptyGraph, addNode, addEdge } from './pointGraph';
 import type { ECPoint, Operation, SavedPoint } from '../types/ecc';
 import { CURVE_N } from './ecc.ts';
@@ -27,7 +32,7 @@ describe('Operation Bundling', () => {
   it('should identify saved points correctly', () => {
     const savedPoints: SavedPoint[] = [
       {
-        id: 'saved1',
+        id: 'point1',
         point: mockPoint1,
         label: 'Saved Point 1',
         timestamp: Date.now(),
@@ -38,12 +43,12 @@ describe('Operation Bundling', () => {
     expect(isPointSaved(mockPoint2, savedPoints)).toBe(false);
   });
 
-  it('should create bundled edges between saved points', () => {
+  it('should create bundled edge between saved points', () => {
     // Create a graph with three nodes
     const graph = createEmptyGraph();
-    const node1 = addNode(graph, mockPoint1, { label: 'Point 1' });
-    const node2 = addNode(graph, mockPoint2, { label: 'Point 2' });
-    const node3 = addNode(graph, mockPoint3, { label: 'Point 3' });
+    const node1 = addNode(graph, mockPoint1, { id: 'point1', isGenerator: true });
+    const node2 = addNode(graph, mockPoint2, { id: 'point2' });
+    const node3 = addNode(graph, mockPoint3, { id: 'point3' });
 
     // Add edges: 1 -> 2 -> 3
     addEdge(graph, node1.id, node2.id, mockOperation1);
@@ -52,72 +57,31 @@ describe('Operation Bundling', () => {
     // Mark points 1 and 3 as saved
     const savedPoints: SavedPoint[] = [
       {
-        id: 'saved1',
+        id: 'point1',
         point: mockPoint1,
         label: 'Saved Point 1',
         timestamp: Date.now(),
       },
       {
-        id: 'saved3',
+        id: 'point3',
         point: mockPoint3,
         label: 'Saved Point 3',
         timestamp: Date.now(),
       },
     ];
 
-    const bundledEdges = createBundledEdges(graph, savedPoints);
-
     // Should have created a bundled edge from point 1 to point 3
-    expect(bundledEdges.length).toBeGreaterThan(0);
+    const bundledEdge = createBundledEdgeForSavedPoint(graph, 'point3', savedPoints);
 
-    const bundledEdge = bundledEdges.find(
-      edge => edge.fromNodeId === node1.id && edge.toNodeId === node3.id
-    );
-
-    expect(bundledEdge).toBeDefined();
+    expect(bundledEdge).toBeTruthy();
     expect(bundledEdge?.isBundled).toBe(true);
     // With scalar optimization, bundledOperations contains the computed scalar operation
   });
 
-  it('should optimize graph with bundling', () => {
-    // Create a graph with saved points
-    const graph = createEmptyGraph();
-    const node1 = addNode(graph, mockPoint1, { label: 'Point 1', isGenerator: true });
-    const node2 = addNode(graph, mockPoint2, { label: 'Point 2' });
-    const node3 = addNode(graph, mockPoint3, { label: 'Point 3' });
-
-    addEdge(graph, node1.id, node2.id, mockOperation1);
-    addEdge(graph, node2.id, node3.id, mockOperation2);
-
-    const savedPoints: SavedPoint[] = [
-      {
-        id: 'saved3',
-        point: mockPoint3,
-        label: 'Saved Point 3',
-        timestamp: Date.now(),
-      },
-    ];
-
-    const optimizedGraph = optimizeGraphWithBundling(graph, savedPoints);
-
-    // Should only preserve important nodes (generator + saved points)
-    expect(Object.keys(optimizedGraph.nodes).length).toBe(2); // generator + saved point
-
-    // Should have optimized edges
-    expect(Object.keys(optimizedGraph.edges).length).toBeGreaterThanOrEqual(1);
-
-    // Generator node should be preserved
-    expect(optimizedGraph.nodes[node1.id]).toBeDefined();
-    expect(optimizedGraph.nodes[node1.id].isGenerator).toBe(true);
-
-    // Saved point should be preserved
-    expect(optimizedGraph.nodes[node3.id]).toBeDefined();
-  });
-
   it('should create scalar operations for non-negation bundled operations', () => {
     const graph = createEmptyGraph();
-    const node1 = addNode(graph, mockPoint1, { label: 'Point 1', isGenerator: true });
-    const node2 = addNode(graph, mockPoint2, { label: 'Point 2' });
+    const node1 = addNode(graph, mockPoint1, { id: 'point1', isGenerator: true });
+    const node2 = addNode(graph, mockPoint2, { id: 'point2' });
 
     // Add multiply by 2 then add 3  = add 5
     const multiplyBy2: Operation = {
@@ -136,30 +100,25 @@ describe('Operation Bundling', () => {
 
     addEdge(graph, node1.id, node2.id, multiplyBy2);
     // Simulate intermediate node for second operation
-    const node3 = addNode(graph, mockPoint3, { label: 'Point 3' });
+    const node3 = addNode(graph, mockPoint3, { id: 'point3' });
     addEdge(graph, node2.id, node3.id, add3);
 
     const savedPoints: SavedPoint[] = [
       {
-        id: 'saved1',
+        id: 'point1',
         point: mockPoint1,
         label: 'Saved Point 1',
         timestamp: Date.now(),
       },
       {
-        id: 'saved3',
+        id: 'point3',
         point: mockPoint3,
         label: 'Saved Point 3',
         timestamp: Date.now(),
       },
     ];
 
-    const bundledEdges = createBundledEdges(graph, savedPoints);
-
-    // Should create a bundled edge between saved points
-    const bundledEdge = bundledEdges.find(
-      edge => edge.fromNodeId === node1.id && edge.toNodeId === node3.id
-    );
+    const bundledEdge = createBundledEdgeForSavedPoint(graph, 'point3', savedPoints);
 
     expect(bundledEdge).toBeDefined();
     expect(bundledEdge?.isBundled).toBe(true);
@@ -173,8 +132,8 @@ describe('Operation Bundling', () => {
 
   it('should create add operations for bundled operations with a negative combined scalar', () => {
     const graph = createEmptyGraph();
-    const node1 = addNode(graph, mockPoint1, { label: 'Point 1', isGenerator: true });
-    const node2 = addNode(graph, mockPoint2, { label: 'Point 2' });
+    const node1 = addNode(graph, mockPoint1, { id: 'point1', isGenerator: true });
+    const node2 = addNode(graph, mockPoint2, { id: 'point2' });
 
     // Add multiply by 2 then add 3  = add 5
     const multiplyBy2: Operation = {
@@ -200,32 +159,27 @@ describe('Operation Bundling', () => {
 
     addEdge(graph, node1.id, node2.id, multiplyBy2);
     // Simulate intermediate node for second operation
-    const node3 = addNode(graph, mockPoint3, { label: 'Point 3' });
+    const node3 = addNode(graph, mockPoint3, { id: 'point3' });
     addEdge(graph, node2.id, node3.id, add3);
-    const node4 = addNode(graph, mockPoint4, { label: 'Point 4' });
+    const node4 = addNode(graph, mockPoint4, { id: 'point4' });
     addEdge(graph, node3.id, node4.id, subtract10);
 
     const savedPoints: SavedPoint[] = [
       {
-        id: 'saved1',
+        id: 'point1',
         point: mockPoint1,
         label: 'Saved Point 1',
         timestamp: Date.now(),
       },
       {
-        id: 'saved4',
+        id: 'point4',
         point: mockPoint4,
         label: 'Saved Point 4',
         timestamp: Date.now(),
       },
     ];
 
-    const bundledEdges = createBundledEdges(graph, savedPoints);
-
-    // Should create a bundled edge between saved points
-    const bundledEdge = bundledEdges.find(
-      edge => edge.fromNodeId === node1.id && edge.toNodeId === node4.id
-    );
+    const bundledEdge = createBundledEdgeForSavedPoint(graph, 'point4', savedPoints);
 
     expect(bundledEdge).toBeDefined();
     expect(bundledEdge?.isBundled).toBe(true);
@@ -239,9 +193,13 @@ describe('Operation Bundling', () => {
 
   it('should include negated nodes in bundling', () => {
     const graph = createEmptyGraph();
-    const node1 = addNode(graph, mockPoint1, { label: 'Generator', isGenerator: true });
-    const node2 = addNode(graph, mockPoint2, { label: 'Point 2' });
-    const node3 = addNode(graph, mockPoint3, { label: 'Negated Point' });
+    const node1 = addNode(graph, mockPoint1, {
+      id: 'point1',
+      label: 'Generator',
+      isGenerator: true,
+    });
+    const node2 = addNode(graph, mockPoint2, { id: 'point2' });
+    const node3 = addNode(graph, mockPoint3, { id: 'point3', label: 'Negated Point' });
 
     const multiplyBy2: Operation = {
       id: 'mul2',
@@ -255,20 +213,16 @@ describe('Operation Bundling', () => {
     addEdge(graph, node2.id, node3.id, negate);
 
     const savedPoints: SavedPoint[] = [
-      { id: 'saved1', point: mockPoint1, label: 'Saved Generator', timestamp: Date.now() },
+      { id: 'point1', point: mockPoint1, label: 'Saved Generator', timestamp: Date.now() },
       {
-        id: 'saved3',
+        id: 'point3',
         point: mockPoint3,
         label: 'Saved Point 3',
         timestamp: Date.now(),
       },
     ];
 
-    const bundledEdges = createBundledEdges(graph, savedPoints);
-    // Should create a bundled edge between saved points
-    const bundledEdge = bundledEdges.find(
-      edge => edge.fromNodeId === node1.id && edge.toNodeId === node3.id
-    );
+    const bundledEdge = createBundledEdgeForSavedPoint(graph, 'point3', savedPoints);
 
     expect(bundledEdge).toBeDefined();
     expect(bundledEdge?.isBundled).toBe(true);
@@ -280,21 +234,67 @@ describe('Operation Bundling', () => {
     expect(bundledEdge?.operation.description).toContain(`+${CURVE_N - 2n}`);
   });
 
+  it('should optimize graph with bundling', () => {
+    // Create a graph with saved points
+    const graph = createEmptyGraph();
+    const node1 = addNode(graph, mockPoint1, { id: 'point1', isGenerator: true });
+    const node2 = addNode(graph, mockPoint2, { id: 'point2' });
+    const node3 = addNode(graph, mockPoint3, { id: 'point3' });
+
+    addEdge(graph, node1.id, node2.id, mockOperation1);
+    addEdge(graph, node2.id, node3.id, mockOperation2);
+
+    const savedPoints: SavedPoint[] = [
+      {
+        id: 'point1',
+        point: mockPoint1,
+        label: 'Saved Point 1',
+        timestamp: Date.now(),
+      },
+      {
+        id: 'point3',
+        point: mockPoint3,
+        label: 'Saved Point 3',
+        timestamp: Date.now(),
+      },
+    ];
+
+    // Optimize graph with bundling
+    addBundledEdgeForNewSave(graph, 'point3', savedPoints);
+    cleanupDanglingNodes(graph, savedPoints);
+
+    // Should only preserve important nodes (generator + saved points)
+    expect(Object.keys(graph.nodes).length).toBe(2); // generator + saved point
+
+    // Should have optimized edges
+    expect(Object.keys(graph.edges).length).toBe(1);
+
+    // Generator node should be preserved
+    expect(graph.nodes[node1.id]).toBeDefined();
+    expect(graph.nodes[node1.id].isGenerator).toBe(true);
+
+    // Saved point should be preserved
+    expect(graph.nodes[node3.id]).toBeDefined();
+  });
+
   it('should preserve correct private keys during bundling optimization', () => {
     // Test the specific scenario: correct private keys should not be overwritten by bundling
     const graph = createEmptyGraph();
 
     // Create nodes with correct private keys
     const node1 = addNode(graph, mockPoint1, {
+      id: 'point1',
       label: 'Generator',
       isGenerator: true,
       privateKey: 5n, // Correct private key
     });
     const node2 = addNode(graph, mockPoint2, {
+      id: 'point2',
       label: 'Intermediate Point',
       // No private key initially
     });
     const node3 = addNode(graph, mockPoint3, {
+      id: 'point3',
       label: 'Target Point',
       privateKey: 15n, // Correct private key for this point
     });
@@ -315,14 +315,14 @@ describe('Operation Bundling', () => {
 
     const savedPoints: SavedPoint[] = [
       {
-        id: 'saved1',
+        id: 'point1',
         point: mockPoint1,
         label: 'Saved Generator',
         timestamp: Date.now(),
         privateKey: 5n,
       },
       {
-        id: 'saved3',
+        id: 'point3',
         point: mockPoint3,
         label: 'Saved Target',
         timestamp: Date.now(),
@@ -335,11 +335,12 @@ describe('Operation Bundling', () => {
     const originalNode3Key = node3.privateKey;
 
     // Optimize graph with bundling
-    const optimizedGraph = optimizeGraphWithBundling(graph, savedPoints);
+    addBundledEdgeForNewSave(graph, 'point3', savedPoints);
+    cleanupDanglingNodes(graph, savedPoints);
 
     // Verify that correct private keys are preserved
-    const optimizedNode1 = optimizedGraph.nodes[node1.id];
-    const optimizedNode3 = optimizedGraph.nodes[node3.id];
+    const optimizedNode1 = graph.nodes[node1.id];
+    const optimizedNode3 = graph.nodes[node3.id];
 
     expect(optimizedNode1).toBeDefined();
     expect(optimizedNode3).toBeDefined();
@@ -349,6 +350,6 @@ describe('Operation Bundling', () => {
     expect(optimizedNode3.privateKey).toBe(originalNode3Key);
 
     // Bundled edges should still be created
-    expect(Object.keys(optimizedGraph.edges).length).toBeGreaterThan(0);
+    expect(Object.keys(graph.edges).length).toBe(1);
   });
 });

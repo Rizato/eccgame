@@ -354,9 +354,6 @@ const practiceCalculatorSlice = createSlice({
       // Update selected point to the result
       state.selectedPoint = toPoint;
     },
-    optimizeGraph: state => {
-      state.graph = optimizeGraphWithBundling(state.graph, state.savedPoints);
-    },
   },
   extraReducers: builder => {
     builder
@@ -385,7 +382,6 @@ export const {
   savePoint,
   loadSavedPoint,
   unsaveSavedPoint,
-  optimizeGraph,
   checkWinCondition,
   addOperationToGraph,
 } = practiceCalculatorSlice.actions;

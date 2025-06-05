@@ -400,9 +400,6 @@ const dailyCalculatorSlice = createSlice({
         logGraph(state.graph, `After ${operation.description}`);
       }
     },
-    optimizeGraph: state => {
-      state.graph = optimizeGraphWithBundling(state.graph, state.savedPoints);
-    },
   },
   extraReducers: builder => {
     builder
@@ -432,7 +429,6 @@ export const {
   savePoint,
   loadSavedPoint,
   unsaveSavedPoint,
-  optimizeGraph,
   checkWinCondition,
   addOperationToGraph,
 } = dailyCalculatorSlice.actions;

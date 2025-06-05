@@ -1,14 +1,4 @@
-import type { PointGraph, SavedPoint, GraphNode, GraphEdge } from '../types/ecc';
-
-/**
- * Custom BigInt serializer for console logging
- */
-function bigintReplacer(_key: string, value: any): any {
-  if (typeof value === 'bigint') {
-    return `0x${value.toString(16)}`;
-  }
-  return value;
-}
+import type { PointGraph, SavedPoint } from '../types/ecc';
 
 /**
  * Log graph state with readable BigInt formatting
