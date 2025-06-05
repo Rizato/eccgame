@@ -6,6 +6,7 @@ import type { Challenge, GuessRequest, GuessResponse } from '../types/api';
 vi.mock('axios');
 const mockedAxios = vi.mocked(axios);
 
+// Mock API object that will be returned by axios.create
 const mockApi = {
   get: vi.fn(),
   post: vi.fn(),
@@ -15,12 +16,6 @@ const mockApi = {
     },
   },
 };
-
-// Set up the mock before importing the module
-mockedAxios.create.mockReturnValue(mockApi as any);
-
-// Now import the module after mocking is set up
-const { challengeApi } = await import('./api');
 
 const mockChallenge: Challenge = {
   uuid: 'challenge-123',
@@ -58,8 +53,14 @@ const mockDocument = {
 };
 
 describe('api service', () => {
-  beforeEach(() => {
+  let challengeApi: any;
+
+  beforeEach(async () => {
     vi.clearAllMocks();
+    vi.resetModules();
+
+    // Mock timers to handle rate limiting
+    vi.useFakeTimers();
 
     // Mock axios.create
     mockedAxios.create.mockReturnValue(mockApi as any);
@@ -72,17 +73,25 @@ describe('api service', () => {
 
     // Mock environment variables
     import.meta.env.VITE_API_URL = 'http://test-api.example.com';
+
+    // Import the module fresh for each test
+    const apiModule = await import('./api');
+    challengeApi = apiModule.challengeApi;
+
+    // Clear cache and rate limiter state
+    challengeApi.clearCache();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   describe('API configuration', () => {
-    it('should create axios instance with correct configuration', () => {
+    it('should create axios instance with correct configuration', async () => {
       // Re-import to trigger axios.create
       vi.resetModules();
-      require('./api');
+      await import('./api');
 
       expect(mockedAxios.create).toHaveBeenCalledWith({
         baseURL: 'http://test-api.example.com',
@@ -93,10 +102,10 @@ describe('api service', () => {
       });
     });
 
-    it('should use default URL when VITE_API_URL is not set', () => {
+    it('should use default URL when VITE_API_URL is not set', async () => {
       delete import.meta.env.VITE_API_URL;
       vi.resetModules();
-      require('./api');
+      await import('./api');
 
       expect(mockedAxios.create).toHaveBeenCalledWith({
         baseURL: 'http://localhost:8000',
@@ -107,16 +116,16 @@ describe('api service', () => {
       });
     });
 
-    it('should setup CSRF token interceptor', () => {
+    it('should setup CSRF token interceptor', async () => {
       vi.resetModules();
-      require('./api');
+      await import('./api');
 
       expect(mockApi.interceptors.request.use).toHaveBeenCalledWith(expect.any(Function));
     });
   });
 
   describe('CSRF token handling', () => {
-    it('should add CSRF token to request headers when token exists', () => {
+    it('should add CSRF token to request headers when token exists', async () => {
       const mockCsrfInput = {
         value: 'test-csrf-token',
       };
@@ -124,7 +133,7 @@ describe('api service', () => {
       mockDocument.querySelector.mockReturnValue(mockCsrfInput);
 
       vi.resetModules();
-      require('./api');
+      await import('./api');
 
       const interceptorFn = mockApi.interceptors.request.use.mock.calls[0][0];
       const config = { headers: {} };
@@ -135,11 +144,11 @@ describe('api service', () => {
       expect(result.headers['X-CSRFToken']).toBe('test-csrf-token');
     });
 
-    it('should not add CSRF token when token element does not exist', () => {
+    it('should not add CSRF token when token element does not exist', async () => {
       mockDocument.querySelector.mockReturnValue(null);
 
       vi.resetModules();
-      require('./api');
+      await import('./api');
 
       const interceptorFn = mockApi.interceptors.request.use.mock.calls[0][0];
       const config = { headers: {} };
@@ -164,6 +173,9 @@ describe('api service', () => {
       const error = new Error('Network error');
       mockApi.get.mockRejectedValue(error);
 
+      // Clear cache to ensure error is thrown
+      challengeApi.clearCache();
+
       await expect(challengeApi.getDailyChallenge()).rejects.toThrow('Network error');
     });
 
@@ -175,6 +187,9 @@ describe('api service', () => {
         },
       };
       mockApi.get.mockRejectedValue(error);
+
+      // Clear cache to ensure error is thrown
+      challengeApi.clearCache();
 
       await expect(challengeApi.getDailyChallenge()).rejects.toEqual(error);
     });
@@ -298,6 +313,9 @@ describe('api service', () => {
       const networkError = new Error('Network Error');
       networkError.name = 'NetworkError';
       mockApi.get.mockRejectedValue(networkError);
+
+      // Clear cache to ensure error is thrown
+      challengeApi.clearCache();
 
       await expect(challengeApi.getDailyChallenge()).rejects.toThrow('Network Error');
     });
