@@ -94,7 +94,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
                         }}
                         className="difficulty-option"
                       >
-                        New Easy Challenge
+                        Easy
                       </button>
                       <button
                         onClick={() => {
@@ -104,7 +104,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
                         }}
                         className="difficulty-option"
                       >
-                        New Medium Challenge
+                        Medium
                       </button>
                       <button
                         onClick={() => {
@@ -114,7 +114,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
                         }}
                         className="difficulty-option"
                       >
-                        New Hard Challenge
+                        Hard
                       </button>
                     </div>
                   )}
