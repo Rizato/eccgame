@@ -7,6 +7,8 @@ import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
 import { calculateNodePrivateKey } from '../../utils/pointGraph';
 import { logGraph, logSavedPoints, logNodeConnections } from '../../utils/debugHelpers';
+import { submitGuess } from '../../utils/submitGuess.ts';
+import { submitSaveIfDaily } from '../../utils/submitSaves';
 
 interface DailyCalculatorState {
   selectedPoint: ECPoint;
@@ -23,6 +25,7 @@ interface DailyCalculatorState {
   showVictoryModal: boolean;
   savedPoints: SavedPoint[];
   challengePublicKey: string;
+  shouldSubmitGuess: boolean;
 }
 
 const generatorPoint = getGeneratorPoint();
@@ -56,6 +59,7 @@ const initialState: DailyCalculatorState = {
   showVictoryModal: false,
   savedPoints: [],
   challengePublicKey: '',
+  shouldSubmitGuess: false,
 };
 
 export const calculateDailyCurrentAddress = createAsyncThunk(
@@ -71,6 +75,61 @@ export const calculateDailyCurrentAddress = createAsyncThunk(
       return address;
     } catch {
       return 'Invalid';
+    }
+  }
+);
+
+export const submitDailyGameGuess = createAsyncThunk(
+  'dailyCalculator/submitDailyGameGuess',
+  async (_arg: void, { getState }) => {
+    const state = getState() as {
+      dailyCalculator: DailyCalculatorState;
+      game: { challenge: { uuid: string } | null };
+    };
+
+    const { graph, challengeNodeId } = state.dailyCalculator;
+    const challengeUuid = state.game.challenge?.uuid;
+
+    if (!challengeUuid || !challengeNodeId) {
+      console.warn('Cannot submit guess - missing challenge UUID or node ID');
+      return null;
+    }
+
+    try {
+      const results = await submitGuess(graph, challengeUuid, challengeNodeId);
+
+      console.log('Successfully submitted daily game guess:', results);
+      return results;
+    } catch (error) {
+      console.error('Failed to submit daily game guess:', error);
+      // Don't reject - we don't want to prevent the victory modal from showing
+      return null;
+    }
+  }
+);
+
+export const submitSaveToBackend = createAsyncThunk(
+  'dailyCalculator/submitSaveToBackend',
+  async ({ point, label }: { point: ECPoint; label: string }, { getState }) => {
+    const state = getState() as {
+      dailyCalculator: DailyCalculatorState;
+      game: { challenge: { uuid: string } | null; gameMode: string };
+    };
+
+    const challengeUuid = state.game.challenge?.uuid;
+    const gameMode = state.game.gameMode;
+
+    if (!challengeUuid) {
+      console.warn('Cannot submit save - no challenge UUID');
+      return null;
+    }
+
+    try {
+      const result = await submitSaveIfDaily(challengeUuid, gameMode, point, label);
+      return result;
+    } catch (error) {
+      console.error('Failed to submit save to backend:', error);
+      return null;
     }
   }
 );
@@ -336,8 +395,12 @@ const dailyCalculatorSlice = createSlice({
 
           state.hasWon = true;
           state.showVictoryModal = true;
+          state.shouldSubmitGuess = true; // Trigger guess submission
         }
       }
+    },
+    clearShouldSubmitGuess: state => {
+      state.shouldSubmitGuess = false;
     },
     addOperationToGraph: (
       state,
@@ -400,6 +463,7 @@ export const {
   loadSavedPoint,
   unsaveSavedPoint,
   checkWinCondition,
+  clearShouldSubmitGuess,
   addOperationToGraph,
 } = dailyCalculatorSlice.actions;
 

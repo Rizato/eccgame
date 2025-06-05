@@ -331,6 +331,68 @@ describe('api service', () => {
     });
   });
 
+  describe('challengeApi.submitSave', () => {
+    it('should submit save successfully', async () => {
+      const mockSaveRequest = {
+        public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+      };
+      const mockSaveResponse = {
+        uuid: 'save-123',
+        public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+        created_at: '2023-01-01T00:00:00Z',
+        challenge: 'challenge-123',
+      };
+
+      mockApi.post.mockResolvedValue({ data: mockSaveResponse });
+
+      const result = await challengeApi.submitSave('challenge-123', mockSaveRequest);
+
+      expect(mockApi.post).toHaveBeenCalledWith(
+        '/api/challenges/challenge-123/save/',
+        mockSaveRequest
+      );
+      expect(result).toEqual(mockSaveResponse);
+    });
+
+    it('should handle save validation errors', async () => {
+      const mockSaveRequest = {
+        public_key: 'invalid-key',
+      };
+      const error = {
+        response: {
+          status: 400,
+          data: {
+            public_key: ['Invalid public key format'],
+          },
+        },
+      };
+
+      mockApi.post.mockRejectedValue(error);
+
+      await expect(challengeApi.submitSave('challenge-123', mockSaveRequest)).rejects.toEqual(
+        error
+      );
+    });
+
+    it('should handle rate limiting for saves', async () => {
+      const mockSaveRequest = {
+        public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+      };
+      const error = {
+        response: {
+          status: 429,
+          data: { detail: 'Rate limit exceeded' },
+        },
+      };
+
+      mockApi.post.mockRejectedValue(error);
+
+      await expect(challengeApi.submitSave('challenge-123', mockSaveRequest)).rejects.toEqual(
+        error
+      );
+    });
+  });
+
   describe('response data validation', () => {
     it('should return challenge data with correct structure', async () => {
       mockApi.get.mockResolvedValue({ data: mockChallenge });

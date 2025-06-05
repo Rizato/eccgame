@@ -16,17 +16,24 @@ import {
   checkWinCondition,
   calculateDailyCurrentAddress,
   setChallengePublicKey,
+  submitDailyGameGuess,
+  submitSaveToBackend,
+  clearShouldSubmitGuess,
 } from '../store/slices/eccCalculatorSlice';
+import { clearSubmittedSaves } from '../utils/submitSaves';
 import type { ECPoint, SavedPoint } from '../types/ecc';
 
 export function useDailyCalculatorRedux(challengePublicKey: string) {
   const dispatch = useAppDispatch();
   const dailyState = useAppSelector(state => state.dailyCalculator);
+  const gameState = useAppSelector(state => state.game);
 
   // Update challenge public key when it changes
   useEffect(() => {
     if (challengePublicKey !== dailyState.challengePublicKey) {
       dispatch(setChallengePublicKey(challengePublicKey));
+      // Clear submitted saves tracking for new challenge
+      clearSubmittedSaves();
     }
   }, [challengePublicKey, dailyState.challengePublicKey, dispatch]);
 
@@ -39,6 +46,15 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
   useEffect(() => {
     dispatch(checkWinCondition());
   }, [dailyState.selectedPoint, dispatch]);
+
+  // Submit guess when shouldSubmitGuess is true (only for daily mode)
+  useEffect(() => {
+    if (dailyState.shouldSubmitGuess && gameState.gameMode === 'daily') {
+      console.log('🎯 Submitting daily game guess to backend...');
+      dispatch(submitDailyGameGuess());
+      dispatch(clearShouldSubmitGuess());
+    }
+  }, [dailyState.shouldSubmitGuess, gameState.gameMode, dispatch]);
 
   return {
     // State
@@ -53,6 +69,7 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
     hasWon: dailyState.hasWon,
     showVictoryModal: dailyState.showVictoryModal,
     savedPoints: dailyState.savedPoints,
+    shouldSubmitGuess: dailyState.shouldSubmitGuess,
     // Actions
     setCurrentPoint: (point: ECPoint) => dispatch(setSelectedPoint(point)),
     setError: (error: string | null) => dispatch(setError(error)),
@@ -67,7 +84,16 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
       dispatch(resetToChallenge(challengePublicKey));
     },
     resetToGenerator: () => dispatch(resetToGenerator()),
-    savePoint: (label?: string) => dispatch(savePoint({ label })),
+    savePoint: (label?: string) => {
+      dispatch(savePoint({ label }));
+      // Also submit to backend for daily mode
+      dispatch(
+        submitSaveToBackend({
+          point: dailyState.selectedPoint,
+          label: label || `Point ${dailyState.savedPoints.length + 1}`,
+        })
+      );
+    },
     loadSavedPoint: (savedPoint: SavedPoint) => dispatch(loadSavedPoint(savedPoint)),
   };
 }

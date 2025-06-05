@@ -13,7 +13,13 @@
  * that no private key data is included in any API requests.
  */
 import axios from 'axios';
-import type { Challenge, GuessRequest, GuessResponse } from '../types/api';
+import type {
+  Challenge,
+  GuessRequest,
+  GuessResponse,
+  SaveRequest,
+  SaveResponse,
+} from '../types/api';
 
 // Rate limiter configuration
 const RATE_LIMIT_CONFIG = {
@@ -176,6 +182,24 @@ export const challengeApi = {
     // Rate limit POST requests but don't cache them
     return rateLimitedRequest(async () => {
       const response = await api.post(`/api/challenges/${challengeUuid}/guess/`, guess);
+      return response.data;
+    });
+  },
+
+  // Submit a save for a challenge
+  // TRANSPARENCY: This only sends public_key - NO private key data
+  submitSave: async (challengeUuid: string, save: SaveRequest): Promise<SaveResponse> => {
+    /*
+     * PRIVACY VERIFICATION:
+     * The 'save' object only contains:
+     * - public_key: string (derived from private key, safe to transmit)
+     *
+     * Private keys are NEVER included in this request
+     */
+
+    // Rate limit POST requests but don't cache them
+    return rateLimitedRequest(async () => {
+      const response = await api.post(`/api/challenges/${challengeUuid}/save/`, save);
       return response.data;
     });
   },

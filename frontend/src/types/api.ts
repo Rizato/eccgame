@@ -33,3 +33,17 @@ export interface GuessRequest {
 export interface GuessResponse extends Guess {
   challenge: string; // UUID
 }
+
+export interface Save {
+  public_key: string;
+}
+
+export interface SaveRequest {
+  public_key: string;
+}
+
+export interface SaveResponse extends Save {
+  uuid: string;
+  challenge: string; // UUID
+  created_at: string;
+}
