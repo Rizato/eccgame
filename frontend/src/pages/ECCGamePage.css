@@ -1,17 +1,19 @@
 .ecc-game-page {
-  min-height: 100vh;
-  background: var(--background);
+  height: 100vh;
+  width: 100vw;
+  background: var(--surface);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .game-header {
-  background: var(--card-background);
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 16px 24px;
-  position: sticky;
-  top: 0;
+  padding: var(--spacing) var(--spacing-lg);
+  flex-shrink: 0;
   z-index: 100;
+  box-shadow: var(--shadow);
 }
 
 .header-content {
@@ -24,9 +26,10 @@
 
 .header-content h1 {
   margin: 0;
-  color: var(--text-primary);
-  font-size: 1.8rem;
+  color: var(--text);
+  font-size: 1.5rem;
   font-weight: 700;
+  letter-spacing: -0.025em;
 }
 
 .mode-controls {
@@ -37,32 +40,32 @@
 
 .mode-selector {
   display: flex;
-  background: var(--hover-background);
-  border-radius: 8px;
-  padding: 4px;
-  gap: 4px;
+  background: var(--surface-variant);
+  border-radius: var(--radius);
+  padding: var(--spacing-xs);
+  gap: var(--spacing-xs);
 }
 
 .mode-button {
-  padding: 8px 16px;
+  padding: var(--spacing-sm) var(--spacing);
   border: none;
   background: transparent;
-  color: var(--text-secondary);
-  border-radius: 6px;
+  color: var(--text-dim);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 500;
+  font-size: 0.875rem;
 }
 
 .mode-button.active {
-  background: var(--accent-color);
-  color: white;
+  background: var(--primary);
+  color: var(--text-inverse);
 }
 
 .mode-button:hover:not(.active) {
-  background: var(--card-background);
-  color: var(--text-primary);
+  background: var(--surface);
+  color: var(--text);
 }
 
 .error-banner {
@@ -86,10 +89,10 @@
 
 .game-main {
   flex: 1;
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+  overflow: hidden;
+  padding: var(--spacing);
+  display: flex;
+  flex-direction: column;
 }
 
 .loading-state,
@@ -150,41 +153,44 @@
   background: var(--accent-color-dark);
 }
 
-/* Challenge Info Row Layout */
-.challenge-info-row {
-  max-width: 900px;
-  margin: 0 auto auto auto;
-  background: var(--card-background);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.playground-container {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-/* Daily Challenge Layout */
-.daily-challenge-layout {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 24px;
+/* Single Page Layout - No Scrolling */
+.daily-challenge-container {
+  display: flex;
   height: 100%;
+  gap: var(--spacing);
+  overflow: hidden;
 }
 
-.challenge-sidebar {
+.challenge-info-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.challenge-info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing);
+  flex: 1;
+  overflow: auto;
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
 }
 
-.challenge-info-card {
-  background: var(--card-background);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  position: sticky;
-  top: 20px;
+.playground-container {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide old scrollable layout */
+.challenge-info-row {
+  display: none;
 }
 
 .challenge-info-card h3 {
@@ -223,40 +229,49 @@
 }
 
 .playground-main {
-  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Mobile responsive */
 @media (max-width: 1024px) {
-  .daily-challenge-layout {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .daily-challenge-container {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .challenge-info-sidebar {
+    width: 100%;
+    flex-shrink: 1;
+    max-height: 30%;
   }
 
   .challenge-info-card {
-    position: static;
+    overflow: auto;
   }
 }
 
 @media (max-width: 768px) {
   .game-header {
-    padding: 8px 12px;
+    padding: var(--spacing-sm);
   }
 
   .header-content {
     flex-direction: column;
-    gap: 8px;
+    gap: var(--spacing-sm);
     align-items: stretch;
   }
 
   .header-content h1 {
     text-align: center;
-    font-size: 1.3rem;
+    font-size: 1.25rem;
   }
 
   .mode-controls {
     justify-content: center;
-    gap: 16px;
+    gap: var(--spacing);
   }
 
   .mode-selector {
@@ -265,51 +280,24 @@
   }
 
   .game-main {
-    padding: 8px;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    overflow-x: hidden;
+    padding: var(--spacing-sm);
   }
 
   .mode-button {
-    font-size: 0.8rem;
-    padding: 6px 10px;
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
     flex: 1;
   }
 
   .challenge-info-card {
-    padding: 12px;
+    padding: var(--spacing);
   }
 
-  .challenge-info-card h3 {
-    font-size: 1.1rem;
+  .challenge-info-sidebar {
+    max-height: 35%;
   }
 
-  .victory-banner {
-    padding: 10px;
-    flex-direction: column;
-    text-align: center;
-    gap: 6px;
-  }
-
-  .victory-text strong {
-    font-size: 1rem;
-  }
-
-  .victory-text p {
-    font-size: 0.85rem;
-  }
-
-  .challenge-info-row {
-    margin: 0;
-    border-radius: 8px;
-  }
-
-  .playground-container {
-    max-width: 100%;
-    width: 100%;
-    box-sizing: border-box;
-    overflow-x: hidden;
+  .daily-challenge-container {
+    gap: var(--spacing-xs);
   }
 }

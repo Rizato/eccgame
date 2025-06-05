@@ -44,8 +44,8 @@ const PracticeMode: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="challenge-info-row">
+    <div className="daily-challenge-container">
+      <div className="challenge-info-sidebar">
         <div className="challenge-info-card">
           <ChallengeInfo />
         </div>
@@ -59,7 +59,7 @@ const PracticeMode: React.FC = () => {
           practicePrivateKey={practicePrivateKey}
         />
       </div>
-    </>
+    </div>
   );
 };
 

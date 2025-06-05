@@ -1,11 +1,13 @@
 .ecc-playground {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 0 20px 20px 20px;
-  background: var(--card-background);
-  border-radius: 12px;
+  gap: var(--spacing);
+  padding: var(--spacing);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
+  height: 100%;
+  overflow: hidden;
 }
 
 .playground-header {
@@ -17,8 +19,9 @@
 
 .playground-header h3 {
   margin: 0;
-  color: var(--text-primary);
-  font-size: 1.5rem;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
 .practice-indicator {
@@ -28,11 +31,11 @@
 }
 
 .practice-badge {
-  background: var(--accent-color);
-  color: white;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 0.8rem;
+  background: var(--primary);
+  color: var(--text-inverse);
+  padding: var(--spacing-xs) var(--spacing);
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -49,11 +52,11 @@
 }
 
 .mode-badge {
-  background: #8b5cf6;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 16px;
-  font-size: 0.8rem;
+  background: var(--accent);
+  color: var(--text-inverse);
+  padding: var(--spacing-xs) var(--spacing);
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -69,7 +72,9 @@
 .playground-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--spacing);
+  flex: 1;
+  overflow: hidden;
 }
 
 /* Current Point Section */
@@ -401,29 +406,29 @@
 /* Integrated Graph-Calculator Layout */
 .graph-calculator-integrated {
   display: grid;
-  grid-template-columns: 500px 400px;
+  grid-template-columns: 1fr 400px;
   gap: 0;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: var(--card-background);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  max-width: 1000px;
-  margin: 0 auto;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
   width: 100%;
+  height: 100%;
   box-sizing: border-box;
+  flex: 1;
 }
 
 /* Graph Section as Display */
 .graph-section.graph-display {
-  background: var(--background);
-  padding: 16px;
+  background: var(--surface-dim);
+  padding: var(--spacing);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  min-height: 500px;
+  height: 100%;
   align-items: flex-start;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .graph-content {
@@ -469,15 +474,16 @@
   width: 100%;
   max-width: 100%;
   aspect-ratio: 1;
-  background: #ffffff;
-  border-radius: 6px;
+  background: var(--surface);
+  border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.1);
+  flex: 1;
 }
 
 [data-theme='dark'] .ecc-graph {
-  background: #1e293b;
+  background: var(--surface);
 }
 
 .graph-axes {
@@ -646,7 +652,9 @@
 .calculator-section {
   display: flex;
   flex-direction: column;
-  background: var(--card-background);
+  background: var(--surface);
+  height: 100%;
+  overflow: hidden;
 }
 
 .operations-header {
@@ -876,12 +884,12 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .ecc-playground {
-    padding: 8px;
-    gap: 12px;
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    overflow-x: hidden;
+    overflow: hidden;
   }
 
   .playground-header {
@@ -953,16 +961,17 @@
     max-width: 100%;
     width: 100%;
     margin: 0;
-    border-radius: 8px;
+    border-radius: var(--radius);
     box-sizing: border-box;
+    height: 100%;
   }
 
   .graph-section.graph-display {
     border-right: none;
     border-bottom: 1px solid var(--border);
-    min-height: 300px;
+    height: 50%;
     order: 1;
-    padding: 12px;
+    padding: var(--spacing-sm);
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -970,11 +979,12 @@
 
   .calculator-section {
     order: 2;
-    padding: 8px;
+    padding: var(--spacing-sm);
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    overflow-x: hidden;
+    overflow: hidden;
+    height: 50%;
   }
 
   .quick-buttons-vertical {

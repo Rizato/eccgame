@@ -1,24 +1,24 @@
 .theme-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-sm);
   margin-left: auto;
 }
 
 .theme-toggle-label {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   white-space: nowrap;
 }
 
 .theme-select {
-  padding: 6px 10px;
-  border: 1px solid var(--border-input);
-  border-radius: 6px;
-  background-color: var(--bg-input);
-  color: var(--text-primary);
-  font-size: 14px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
   cursor: pointer;
   min-width: 120px;
   transition: all 0.2s ease;
@@ -27,7 +27,7 @@
 .theme-select:focus {
   outline: none;
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
 }
 
 .theme-select:hover {
