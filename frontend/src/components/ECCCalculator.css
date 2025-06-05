@@ -201,7 +201,7 @@
   border: none;
   background: transparent;
   color: var(--text-primary);
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   font-size: 0.85rem;
   transition: background 0.2s ease;
@@ -549,7 +549,7 @@
 }
 
 .operation-help {
-  margin-top: 8px;
+  padding: var(--spacing);
 }
 
 .operation-help small {
