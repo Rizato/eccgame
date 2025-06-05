@@ -204,7 +204,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
               sp.point.isInfinity === modalPoint.isInfinity
           );
           if (savedPoint) {
-            return `${savedPoint.label} (Saved Point)`;
+            return savedPoint.label;
           }
 
           // Check if this is the current point
