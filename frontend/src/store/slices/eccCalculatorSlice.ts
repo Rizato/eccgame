@@ -328,6 +328,11 @@ const dailyCalculatorSlice = createSlice({
         console.log('🔗 Adding bundled edge for saved point');
         addBundledEdgeForNewSave(state.graph, currentNode.id, state.savedPoints);
         logGraph(state.graph, 'After Bundling');
+        // Clean up dangling nodes and edges when saving a point
+        console.log('🧹 Cleaning up dangling nodes');
+        cleanupDanglingNodes(state.graph, state.savedPoints);
+        console.log('After saving and cleanup:');
+        logGraph(state.graph, 'After Saving and Cleanup');
       }
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
@@ -355,13 +360,6 @@ const dailyCalculatorSlice = createSlice({
           node.privateKey = calculatedKey;
         }
       }
-
-      // Clean up dangling nodes and edges when loading a saved point
-      console.log('🧹 Cleaning up dangling nodes');
-      cleanupDanglingNodes(state.graph, state.savedPoints);
-
-      console.log('After loading and cleanup:');
-      logGraph(state.graph, 'After Loading and Cleanup');
 
       state.error = null;
       state.calculatorDisplay = '';

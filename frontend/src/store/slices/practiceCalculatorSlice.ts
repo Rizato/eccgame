@@ -6,6 +6,7 @@ import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
 import { calculateNodePrivateKey } from '../../utils/pointGraph';
+import { logGraph } from '../../utils/debugHelpers.ts';
 
 interface PracticeCalculatorState {
   selectedPoint: ECPoint;
@@ -265,7 +266,13 @@ const practiceCalculatorSlice = createSlice({
 
       // Create bundled edge for the saved point path (only if currentNode exists)
       if (currentNode) {
+        console.log('🔗 Adding bundled edge for saved point');
         addBundledEdgeForNewSave(state.graph, currentNode.id, state.savedPoints);
+        // Clean up dangling nodes and edges when saving a point
+        console.log('🧹 Cleaning up dangling nodes');
+        cleanupDanglingNodes(state.graph, state.savedPoints);
+        console.log('After saving and cleanup:');
+        logGraph(state.graph, 'After Saving and Cleanup');
       }
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
@@ -286,9 +293,6 @@ const practiceCalculatorSlice = createSlice({
           node.privateKey = calculatedKey;
         }
       }
-
-      // Clean up dangling nodes and edges when loading a saved point
-      cleanupDanglingNodes(state.graph, state.savedPoints);
 
       state.error = null;
       state.calculatorDisplay = '';
