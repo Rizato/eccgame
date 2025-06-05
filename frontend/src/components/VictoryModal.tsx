@@ -29,17 +29,17 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
 
   const getVictoryTitle = () => {
     if (gaveUp) {
-      return 'Challenge Complete! 🤷';
+      return 'Gave Up.';
     }
     if (isPracticeMode) {
-      return 'Practice Complete! 🎉';
+      return 'Practice Complete!';
     }
-    return 'Private Key Found! 🎉';
+    return 'Private Key Found!';
   };
 
   const getVictoryMessage = () => {
     if (gaveUp) {
-      return 'No worries! Even the experts take many attempts. Better luck next time!';
+      return "Don't feel bad, this is literally impossible.";
     }
     if (isPracticeMode) {
       return 'Great work! You successfully solved the practice challenge.';

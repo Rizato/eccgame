@@ -102,7 +102,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
             <h3>🤷 Giving Up</h3>
             <p>
               Stuck on the daily challenge? After making several attempts, you can click the red
-              <strong> "I Give Up"</strong> button. This will:
+              <strong> "Give Up"</strong> button. This will:
             </p>
             <ul>
               <li>End your current attempt</li>

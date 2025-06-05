@@ -169,7 +169,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
             <div className="info-section">
               <div className="give-up-button-container">
                 <button onClick={handleGiveUp} className="give-up-button">
-                  I Give Up
+                  Give Up
                 </button>
               </div>
             </div>
