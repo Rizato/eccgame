@@ -298,6 +298,37 @@ const practiceCalculatorSlice = createSlice({
       state.hasWon = false;
       state.showVictoryModal = false;
     },
+    unsaveSavedPoint: (state, action: PayloadAction<string>) => {
+      const pointId = action.payload;
+
+      // Remove from saved points
+      state.savedPoints = state.savedPoints.filter(point => point.id !== pointId);
+
+      // Remove the node from the graph if it exists and is not connected to the main path
+      const nodeToRemove = state.graph.nodes[pointId];
+      if (nodeToRemove) {
+        // Check if this node is part of the challenge-to-generator path
+        const isPartOfMainPath =
+          state.challengeNodeId &&
+          state.generatorNodeId &&
+          hasPath(state.graph, state.challengeNodeId, pointId) &&
+          hasPath(state.graph, pointId, state.generatorNodeId);
+
+        if (!isPartOfMainPath) {
+          // Safe to remove - it's not part of the main solution path
+          delete state.graph.nodes[pointId];
+          // Remove all edges involving this node
+          Object.keys(state.graph.edges).forEach(edgeKey => {
+            if (edgeKey.includes(pointId)) {
+              delete state.graph.edges[edgeKey];
+            }
+          });
+        }
+      }
+
+      // Clean up dangling nodes after removal
+      cleanupDanglingNodes(state.graph, state.savedPoints);
+    },
     checkWinCondition: state => {
       // Win condition: there's a path from challenge to generator in the graph
       if (state.challengeNodeId && state.generatorNodeId) {
@@ -353,6 +384,7 @@ export const {
   clearPracticeState,
   savePoint,
   loadSavedPoint,
+  unsaveSavedPoint,
   optimizeGraph,
   checkWinCondition,
   addOperationToGraph,

@@ -17,14 +17,13 @@ import {
 import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
 import './ECCCalculator.css';
 import { SavePointModal } from './SavePointModal';
-import type { SavedPoint, ECPoint, Operation } from '../types/ecc.ts';
+import type { ECPoint, Operation } from '../types/ecc.ts';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
 import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
-  savedPoints: SavedPoint[];
   challengePublicKey: string; // Challenge public key for private key calculations
   onPointChange: (point: ECPoint, operation: Operation) => void;
   onError: (error: string | null) => void;
@@ -35,7 +34,6 @@ interface ECCCalculatorProps {
 
 const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   currentPoint,
-  savedPoints,
   challengePublicKey,
   onPointChange,
   onError,
@@ -44,7 +42,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   calculatorDisplayRef,
 }) => {
   const gameMode = useAppSelector(state => state.game.gameMode);
-  const { graph } = useAppSelector(state =>
+  const { graph, savedPoints } = useAppSelector(state =>
     gameMode === 'practice' ? state.practiceCalculator : state.dailyCalculator
   );
   const dispatch = useAppDispatch();
@@ -85,6 +83,18 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const currentPrivateKey = useMemo(() => {
     return calculatePrivateKeyFromGraph(currentPoint, graph);
   }, [currentPoint, graph]);
+
+  // Check if current point is already saved
+  const currentPointSavedInfo = useMemo(() => {
+    if (currentPoint.isInfinity) return null;
+
+    return savedPoints.find(
+      saved =>
+        !saved.point.isInfinity &&
+        saved.point.x === currentPoint.x &&
+        saved.point.y === currentPoint.y
+    );
+  }, [currentPoint, savedPoints]);
 
   // Calculate current address asynchronously
   useEffect(() => {
@@ -588,14 +598,36 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           <h5>Current Point</h5>
           <div className="point-display-actions">
             <button
-              onClick={() => setShowSaveModal(true)}
-              className="save-point-button"
+              onClick={() => {
+                if (currentPointSavedInfo) {
+                  // Unsave the point
+                  if (gameMode === 'practice') {
+                    dispatch({
+                      type: 'practiceCalculator/unsaveSavedPoint',
+                      payload: currentPointSavedInfo.id,
+                    });
+                  } else {
+                    dispatch({
+                      type: 'dailyCalculator/unsaveSavedPoint',
+                      payload: currentPointSavedInfo.id,
+                    });
+                  }
+                } else {
+                  // Save the point
+                  setShowSaveModal(true);
+                }
+              }}
+              className={`save-point-button ${currentPointSavedInfo ? 'saved' : ''}`}
               disabled={isLocked || isAtBasePoint}
               title={
-                isAtBasePoint ? 'Cannot save at generator or challenge point' : 'Save current point'
+                isAtBasePoint
+                  ? 'Cannot save at generator or challenge point'
+                  : currentPointSavedInfo
+                    ? `Unsave point "${currentPointSavedInfo.label}"`
+                    : 'Save current point'
               }
             >
-              Save Point
+              {currentPointSavedInfo ? '★' : '☆'}
             </button>
           </div>
         </div>

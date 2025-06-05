@@ -106,36 +106,70 @@
 }
 
 .point-details-button,
-.reset-point-button {
-  padding: 6px 12px;
+.reset-point-button,
+.save-point-button {
+  padding: var(--spacing-xs) var(--spacing-sm);
   border: 1px solid var(--border);
-  background: var(--card-background);
-  color: var(--text-primary);
-  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
 }
 
 .point-details-button:hover,
-.reset-point-button:hover {
+.reset-point-button:hover,
+.save-point-button:hover {
   background: var(--surface-variant);
+  transform: translateY(-1px);
 }
 
 .point-details-button {
   background: var(--primary);
-  color: white;
+  color: var(--text-inverse);
   border-color: var(--primary);
 }
 
 .reset-point-button {
-  background: #f59e0b;
-  color: white;
-  border-color: #f59e0b;
+  background: var(--warning);
+  color: var(--text-inverse);
+  border-color: var(--warning);
 }
 
 .reset-point-button:hover {
-  background: #d97706;
+  background: var(--warning);
+  opacity: 0.9;
+}
+
+.save-point-button {
+  background: var(--surface-variant);
+  color: var(--text-dim);
+  border-color: var(--border);
+  font-size: 1.125rem;
+  font-weight: normal;
+}
+
+.save-point-button:hover {
+  color: var(--warning);
+  border-color: var(--warning);
+}
+
+.save-point-button.saved {
+  color: var(--warning);
+  border-color: var(--warning);
+  background: rgb(245 158 11 / 0.1);
+}
+
+.save-point-button.saved:hover {
+  color: var(--text-dim);
+  border-color: var(--border);
+  background: var(--surface-variant);
 }
 
 .reset-dropdown {
@@ -226,15 +260,16 @@
   padding: var(--spacing);
   flex: 1;
   overflow: hidden;
+  height: 100%;
 }
 
 .calculator-status {
-  background: var(--card-background);
-  padding: 12px 16px;
-  border-radius: 6px;
+  background: var(--surface-variant);
+  padding: var(--spacing-sm) var(--spacing);
+  border-radius: var(--radius);
   border: 1px solid var(--border);
-  margin-bottom: 12px;
-  font-size: 0.9rem;
+  margin-bottom: var(--spacing-sm);
+  font-size: 0.875rem;
   color: var(--primary);
   font-weight: 500;
   text-align: center;
@@ -242,13 +277,9 @@
 
 .calculator-display {
   width: 100%;
-  max-width: 290px; /* Match calculator button grid width */
-}
-
-@media (max-width: 768px) {
-  .calculator-display {
-    max-width: 100%;
-  }
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .calculator-input {
@@ -278,27 +309,32 @@
 .calculator-buttons {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-sm);
+  flex: 1;
 }
 
 /* Main calculator grid */
 .calculator-main-grid {
   display: grid;
-  grid-template-columns: max-content max-content;
-  gap: 16px;
+  grid-template-columns: 1fr auto;
+  gap: var(--spacing);
+  flex: 1;
+  height: 100%;
 }
 
 /* Number section with uniform button grid */
 .number-section {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--spacing-xs);
+  flex: 1;
 }
 
 .button-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 3px;
+  gap: var(--spacing-xs);
+  flex: 1;
 }
 
 .button-row.top-row {
@@ -309,7 +345,8 @@
 .operations-column {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--spacing-xs);
+  width: 90px;
 }
 
 .operations-column .backspace {
@@ -320,13 +357,14 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: 3px;
+  gap: var(--spacing-xs);
+  flex: 1;
 }
 
 .equals-square {
-  width: 83px !important;
-  height: 83px !important;
-  margin-top: 3px;
+  aspect-ratio: 1;
+  margin-top: var(--spacing-xs);
+  grid-column: span 2;
 }
 
 .calc-button {
@@ -334,17 +372,18 @@
   border-radius: var(--radius);
   cursor: pointer;
   font-weight: 500;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   transition: all 0.2s ease;
   background: var(--surface);
   color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
-  width: 40px;
+  aspect-ratio: 1;
   padding: 0;
   box-shadow: var(--shadow);
+  min-height: 32px;
+  min-width: 32px;
 }
 
 .calc-button:hover {
@@ -521,8 +560,8 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .calculator-container {
-    padding: 8px;
-    gap: 6px;
+    padding: var(--spacing-sm);
+    gap: var(--spacing-xs);
     width: 100%;
     max-width: 100%;
     overflow: hidden;
@@ -530,7 +569,7 @@
 
   .calculator-main-grid {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: var(--spacing-sm);
     max-width: 100%;
     width: 100%;
   }
@@ -538,48 +577,46 @@
   .number-section {
     width: 100%;
     max-width: 100%;
+    order: 2;
   }
 
   .button-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 2px;
+    gap: var(--spacing-xs);
     width: 100%;
     max-width: 100%;
   }
 
-  .button-row.top-row {
-    margin-bottom: 3px;
-  }
-
   .operations-column {
     order: 1;
-    gap: 2px;
+    gap: var(--spacing-xs);
     width: 100%;
+    flex-direction: row;
+    align-items: stretch;
   }
 
   .operations-column .backspace {
-    margin-bottom: 3px;
-    width: 100%;
+    margin-bottom: 0;
+    flex: 1;
   }
 
   .operators-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px;
-    width: 100%;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-xs);
+    flex: 2;
   }
 
   .equals-square {
-    width: 100% !important;
-    height: 50px !important;
-    margin-top: 2px;
-    grid-column: span 2;
+    margin-top: 0;
+    grid-column: span 1;
+    aspect-ratio: 2;
   }
 
   .calc-button {
-    font-size: 0.65rem;
-    height: 28px;
+    font-size: 0.75rem;
+    min-height: 40px;
     width: 100%;
     padding: 0;
     min-width: 0;

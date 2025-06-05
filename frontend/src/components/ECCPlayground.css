@@ -546,32 +546,7 @@
 }
 
 .curve-line {
-  position: absolute;
-  top: 20%;
-  left: 10%;
-  right: 10%;
-  height: 60%;
-  background: linear-gradient(
-    45deg,
-    transparent 20%,
-    var(--primary) 21%,
-    var(--primary) 22%,
-    transparent 23%,
-    transparent 40%,
-    var(--primary) 41%,
-    var(--primary) 42%,
-    transparent 43%,
-    transparent 60%,
-    var(--primary) 61%,
-    var(--primary) 62%,
-    transparent 63%,
-    transparent 80%,
-    var(--primary) 81%,
-    var(--primary) 82%,
-    transparent 83%
-  );
-  opacity: 0.3;
-  border-radius: 50px;
+  display: none;
 }
 
 /* ECC Points */
@@ -604,10 +579,10 @@
   text-overflow: clip;
   font-weight: 600;
   padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
 }
 
 .point-label {

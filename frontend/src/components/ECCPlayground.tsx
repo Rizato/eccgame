@@ -178,7 +178,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           {/* Calculator Section */}
           <ECCCalculator
             currentPoint={currentPoint}
-            savedPoints={savedPoints}
             challengePublicKey={challenge.public_key}
             onPointChange={(point, _operation) => {
               setCurrentPoint(point);
