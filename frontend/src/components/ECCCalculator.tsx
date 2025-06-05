@@ -508,8 +508,9 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     const handleKeyPress = (event: KeyboardEvent) => {
       // Don't handle if user is typing in an input field (except our calculator)
       if (
-        event.target instanceof HTMLInputElement &&
-        !event.target.classList.contains('calculator-input')
+        event.ctrlKey ||
+        (event.target instanceof HTMLInputElement &&
+          !event.target.classList.contains('calculator-input'))
       ) {
         return;
       }
