@@ -51,7 +51,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const [pendingOperation, setPendingOperation] = useState<
     'multiply' | 'divide' | 'add' | 'subtract' | null
   >(null);
-  const [lastOperationValue, setLastOperationValue] = useState<string | null>(null);
   const [lastOperationType, setLastOperationType] = useState<
     'multiply' | 'divide' | 'add' | 'subtract' | null
   >(null);
@@ -120,7 +119,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   const clearCalculator = useCallback(() => {
     setCalculatorDisplay('');
     setPendingOperation(null);
-    setLastOperationValue(null);
     setLastOperationType(null);
     setHexMode(false);
   }, []);
@@ -202,20 +200,17 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
       // If there's a value in the display, set pending operation
       if (calculatorDisplay.trim()) {
+        // If same operator is clicked, and it's already highlighted, then repeat the operation
+        if (lastOperationType === operation && pendingOperation === operation) {
+          executeCalculatorOperationRef.current?.(operation, calculatorDisplay.trim());
+        }
         setPendingOperation(operation);
-      } else if (
-        lastOperationValue &&
-        lastOperationType === operation &&
-        pendingOperation === operation
-      ) {
-        // If same operator is clicked and we have last operation value and it's already highlighted, repeat the operation
-        executeCalculatorOperationRef.current?.(operation, lastOperationValue);
       } else {
         // Set the pending operation to highlight the operator
         setPendingOperation(operation);
       }
     },
-    [calculatorDisplay, pendingOperation, lastOperationValue, lastOperationType, isLocked]
+    [calculatorDisplay, pendingOperation, lastOperationType, isLocked]
   );
 
   // Quick operation functions
@@ -476,8 +471,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         onPointChange(newPoint, operationObj);
         // Keep the value in display for potential chaining
         setCalculatorDisplay(value);
-        // Store the value and operation type for potential repeat operations
-        setLastOperationValue(value);
         setLastOperationType(operation);
         // Keep the operation highlighted so user can see what was just executed
         setPendingOperation(operation);
@@ -563,8 +556,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           event.preventDefault();
           if (pendingOperation && calculatorDisplay.trim()) {
             executeCalculatorOperationRef.current?.(pendingOperation, calculatorDisplay.trim());
-          } else if (lastOperationValue && pendingOperation) {
-            executeCalculatorOperationRef.current?.(pendingOperation, lastOperationValue);
           }
           break;
         case 'Backspace':
@@ -587,7 +578,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     clearCalculator,
     pendingOperation,
     calculatorDisplay,
-    lastOperationValue,
   ]);
 
   return (
@@ -820,8 +810,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                       pendingOperation,
                       calculatorDisplay.trim()
                     );
-                  } else if (lastOperationValue && pendingOperation) {
-                    executeCalculatorOperationRef.current?.(pendingOperation, lastOperationValue);
                   }
                 }}
                 className="calc-button equals equals-square"
