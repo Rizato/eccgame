@@ -281,7 +281,7 @@ export async function createSignature(
   }
 
   // Generate public key from private key
-  const publicKeyBytes = secp256k1.publicKeyCreate(privateKeyBytes, false); // Uncompressed format
+  const publicKeyBytes = secp256k1.publicKeyCreate(privateKeyBytes, true); // Compressed format
 
   // Convert UUID to bytes (remove hyphens)
   const uuidBytes = hexToBytes(challengeUuid.replace(/-/g, ''));
@@ -296,7 +296,6 @@ export async function createSignature(
   const hashBytes = new Uint8Array(hashBuffer);
 
   // Create signature
-  // TODO Verify this is correct
   const signature = secp256k1.ecdsaSign(hashBytes, privateKeyBytes);
 
   return bytesToHex(signature.signature);
