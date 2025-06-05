@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import './VictoryModal.css';
+import { generateShareMessage, shareMessage } from '../utils/shareMessage';
 import type { SavedPoint } from '../types/ecc.ts';
 
 interface VictoryModalProps {
@@ -21,6 +22,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   victoryPrivateKey,
   isPracticeMode,
 }) => {
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
   if (!isOpen) return null;
 
   const getVictoryTitle = () => {
@@ -38,10 +40,37 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
     return 'Incredible! You successfully found the private key from the public key.';
   };
 
+  const handleShare = async () => {
+    const message = generateShareMessage({
+      gameMode: isPracticeMode ? 'practice' : 'daily',
+      solved: true,
+      operationCount,
+      challengeAddress,
+    });
+
+    try {
+      const result = await shareMessage(message);
+      if (result.success) {
+        setShareStatus(result.method === 'share' ? 'Shared!' : 'Copied to clipboard!');
+        setTimeout(() => setShareStatus(null), 2000);
+      } else {
+        setShareStatus('Failed to share');
+        setTimeout(() => setShareStatus(null), 2000);
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      setShareStatus('Share failed');
+      setTimeout(() => setShareStatus(null), 2000);
+    }
+  };
+
   return createPortal(
     <div className="victory-modal-overlay" onClick={onClose}>
       <div className="victory-modal" onClick={e => e.stopPropagation()}>
         <div className="victory-header">
+          <button className="victory-close-x" onClick={onClose} aria-label="Close">
+            ×
+          </button>
           <div className="victory-icon">🏆</div>
           <h2 className="victory-title">{getVictoryTitle()}</h2>
           <p className="victory-message">{getVictoryMessage()}</p>
@@ -71,8 +100,8 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
         </div>
 
         <div className="victory-actions">
-          <button onClick={onClose} className="victory-close-button" autoFocus>
-            {isPracticeMode ? 'Continue' : 'Close'}
+          <button onClick={handleShare} className="victory-share-button" autoFocus>
+            {shareStatus || 'Share Result'}
           </button>
         </div>
       </div>

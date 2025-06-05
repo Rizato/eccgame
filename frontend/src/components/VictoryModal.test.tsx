@@ -51,7 +51,7 @@ describe('VictoryModal', () => {
       screen.getByText('Great work! You successfully solved the practice challenge.')
     ).toBeInTheDocument();
     expect(screen.getByText('Practice Wallet')).toBeInTheDocument();
-    expect(screen.getByText('Continue')).toBeInTheDocument();
+    expect(screen.getByText('Share Result')).toBeInTheDocument();
   });
 
   it('should show challenge mode content when isPracticeMode is false', () => {
@@ -62,7 +62,7 @@ describe('VictoryModal', () => {
       screen.getByText('Incredible! You successfully found the private key from the public key.')
     ).toBeInTheDocument();
     expect(screen.getByText('Challenge Wallet')).toBeInTheDocument();
-    expect(screen.getByText('Close')).toBeInTheDocument();
+    expect(screen.getByText('Share Result')).toBeInTheDocument();
   });
 
   it('should call onClose when close button is clicked', () => {
@@ -70,7 +70,7 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), onClose: onCloseMock };
     render(<VictoryModal {...props} />);
 
-    const closeButton = screen.getByText('Close');
+    const closeButton = screen.getByLabelText('Close');
     closeButton.click();
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);
@@ -81,7 +81,7 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), onClose: onCloseMock };
     render(<VictoryModal {...props} />);
 
-    const overlay = document.querySelector('.victory-modal-overlay');
+    const overlay = document.querySelector('.victory-modal-overlay') as HTMLElement;
     overlay?.click();
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);
@@ -92,9 +92,17 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), onClose: onCloseMock };
     render(<VictoryModal {...props} />);
 
-    const modal = document.querySelector('.victory-modal');
+    const modal = document.querySelector('.victory-modal') as HTMLElement;
     modal?.click();
 
     expect(onCloseMock).not.toHaveBeenCalled();
+  });
+
+  it('should render share button with correct initial text', () => {
+    render(<VictoryModal {...createDefaultProps()} />);
+
+    const shareButton = screen.getByText('Share Result');
+    expect(shareButton).toBeInTheDocument();
+    expect(shareButton).toHaveClass('victory-share-button');
   });
 });
