@@ -17,24 +17,63 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
           <button className="how-to-play-close-x" onClick={onClose} aria-label="Close">
             ×
           </button>
-          <h2 className="how-to-play-title">How to Play Crypto Guesser</h2>
-          <p className="how-to-play-subtitle">
-            Master the ECC calculator and crack cryptographic challenges!
-          </p>
+          <h2 className="how-to-play-title">How to Use ECC Crypto Playground</h2>
+          <p className="how-to-play-subtitle">Try your luck at solving the impossible!</p>
         </div>
 
         <div className="how-to-play-content">
           <section className="how-to-play-section">
-            <h3>🎯 Your Mission</h3>
+            <h3>Daily Challenges</h3>
             <p>
-              Every day, we present you with a Bitcoin wallet address. Your challenge is to find the
-              private key that controls this wallet using elliptic curve cryptography (ECC)
-              operations.
+              Every day, we present you with an Bitcoin wallet address that mined a block during the
+              50 bitcoin block reward, but has never spent it (with some exceptions for notable
+              Satoshi addresses).
+            </p>
+
+            <p>
+              Your challenge is to find the private key for the wallet from the public key using an
+              elliptic curve cryptography (ECC) calculator.
+            </p>
+
+            <p>
+              The game is quite literally impossible, and the only way to win is to already have the
+              private key. If you have struggled to grasp the reality of how large 2^256 really is,
+              this game will help you.
             </p>
           </section>
 
           <section className="how-to-play-section">
-            <h3>🧮 The ECC Calculator</h3>
+            <h3>Game Modes</h3>
+            <div className="game-modes">
+              <div className="mode-item">
+                <h4>Daily Challenge</h4>
+                <p>
+                  The main challenge - a new cryptographic puzzle every day. Find the private key to
+                  win, but that isn't ever going to happen.
+                </p>
+              </div>
+              <div className="mode-item">
+                <h4>Practice Mode</h4>
+
+                <p>
+                  Practice mode gives you private key ahead of time, so you can understand how the
+                  operations work, and devise a strategy to use in the{' '}
+                  <strong>Daily Challenge</strong>.
+                </p>
+                <p>Plus, it lets you actually get a win, which feels nice.</p>
+              </div>
+            </div>
+            <div className="tip-box">
+              <strong>💡 Pro tip:</strong> Try hard mode in Practice and invert the{' '}
+              <a href="https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Double-and-add">
+                double and add
+              </a>{' '}
+              algorithm to really see how impossible this is.
+            </div>
+          </section>
+
+          <section className="how-to-play-section">
+            <h3>The ECC Calculator</h3>
             <p>
               You have access to a powerful ECC calculator that can perform unlimited operations:
             </p>
@@ -70,7 +109,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
           </section>
 
           <section className="how-to-play-section">
-            <h3>💾 Save Points</h3>
+            <h3>Save Points</h3>
             <p>
               Click the <strong>save button (☆)</strong> to save interesting points during your
               exploration. You can load these saved points later to continue from where you left
@@ -79,49 +118,13 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
           </section>
 
           <section className="how-to-play-section">
-            <h3>🎮 Game Modes</h3>
-            <div className="game-modes">
-              <div className="mode-item">
-                <h4>Daily Challenge</h4>
-                <p>
-                  The main challenge - a new cryptographic puzzle every day. Find the private key to
-                  win and share your victory with friends!
-                </p>
-              </div>
-              <div className="mode-item">
-                <h4>Practice Mode</h4>
-                <p>
-                  Perfect your skills with unlimited practice challenges. The private key is shown
-                  so you can verify your solution.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="how-to-play-section">
-            <h3>🤷 Giving Up</h3>
+            <h3>Winning & Sharing</h3>
             <p>
-              Stuck on the daily challenge? After making several attempts, you can click the red
-              <strong> "Give Up"</strong> button. This will:
+              If you already have the private key, and for some reason put it into this site like a
+              psychopath, you will see:
             </p>
             <ul>
-              <li>End your current attempt</li>
-              <li>Show you the challenge summary</li>
-              <li>
-                Let you <strong>share your progress</strong> with friends
-              </li>
-            </ul>
-            <div className="tip-box">
-              <strong>💡 Pro tip:</strong> Sharing your attempts helps others discover Crypto
-              Guesser and creates friendly competition!
-            </div>
-          </section>
-
-          <section className="how-to-play-section">
-            <h3>🏆 Winning & Sharing</h3>
-            <p>When you successfully find the private key, you'll see a victory screen with:</p>
-            <ul>
-              <li>Your total number of operations</li>
+              <li>The number of operations to solver</li>
               <li>The challenge wallet address</li>
               <li>The discovered private key</li>
               <li>
@@ -135,17 +138,18 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
           </section>
 
           <section className="how-to-play-section">
-            <h3>🔧 Tips for Success</h3>
-            <ul>
-              <li>Start with small operations to understand the patterns</li>
-              <li>Use the save feature liberally to mark interesting discoveries</li>
-              <li>Practice mode is perfect for learning without pressure</li>
-              <li>The graph visualization shows your path through the elliptic curve</li>
-              <li>Remember: every operation is reversible, so you can always backtrack</li>
-            </ul>
+            <h3>Throwing in the towel</h3>
+            <p>
+              When you have hit that moment of clarity where you realize this is impossible, hit the{' '}
+              <strong> "Give Up"</strong> button. It will let you share the word about ECC Crypto
+              Playground, and your failures.
+            </p>
+            <div className="tip-box">
+              <strong>💡 Pro tip:</strong> Sharing your attempts helps others discover ECC Crypto
+              Playground to waste their time too!
+            </div>
           </section>
         </div>
-
         <div className="how-to-play-footer">
           <button onClick={onClose} className="how-to-play-got-it-button">
             Got it! Let's Play
