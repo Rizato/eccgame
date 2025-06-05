@@ -109,7 +109,6 @@ class SaveSerializer(serializers.ModelSerializer):
             "uuid",
             "public_key",
             "challenge",
-            "created_at",
         )
         read_only_fields = (
             "uuid",

@@ -4,7 +4,7 @@ import uuid
 import pytest
 from ecdsa import SECP256k1, SigningKey
 
-from game.models import Challenge, ChallengeSentinel, Guess, Metadata
+from game.models import Challenge, ChallengeSentinel, Guess, Metadata, Save
 
 
 @pytest.fixture
@@ -149,3 +149,89 @@ def test_verify_invalid_signature(guess_test_data):
     guess.verify()
     assert not guess.is_signature_valid
     assert guess.validated_at is not None
+
+
+@pytest.mark.django_db
+def test_save_creation(sample_challenge):
+    """Test basic Save model creation"""
+    save = Save.objects.create(
+        public_key="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+        challenge=sample_challenge,
+    )
+    assert isinstance(save.uuid, uuid.UUID)
+    assert (
+        save.public_key
+        == "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+    )
+    assert save.challenge == sample_challenge
+    assert save.created_at is not None
+
+
+@pytest.mark.django_db
+def test_save_relationship_with_challenge(sample_challenge):
+    """Test the relationship between Save and Challenge"""
+    save1 = Save.objects.create(
+        public_key="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+        challenge=sample_challenge,
+    )
+    save2 = Save.objects.create(
+        public_key="03c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+        challenge=sample_challenge,
+    )
+
+    # Test that saves are accessible through the challenge
+    assert save1 in sample_challenge.saves.all()
+    assert save2 in sample_challenge.saves.all()
+    assert sample_challenge.saves.count() == 2
+
+
+@pytest.mark.django_db
+def test_save_duplicate_public_keys_allowed(sample_challenge):
+    """Test that duplicate public keys are allowed (for pattern analysis)"""
+    public_key = "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+
+    # Create multiple saves with same public key
+    save1 = Save.objects.create(
+        public_key=public_key,
+        challenge=sample_challenge,
+    )
+    save2 = Save.objects.create(
+        public_key=public_key,
+        challenge=sample_challenge,
+    )
+
+    # Both should be created successfully
+    assert save1.public_key == save2.public_key
+    assert save1.uuid != save2.uuid  # Different UUIDs
+    assert Save.objects.filter(public_key=public_key).count() == 2
+
+
+@pytest.mark.django_db
+def test_save_str_representation(sample_challenge):
+    """Test the string representation of Save model"""
+    save = Save.objects.create(
+        public_key="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+        challenge=sample_challenge,
+    )
+
+    expected_str = f"Save: 0279be667e... for {sample_challenge.uuid}"
+    assert str(save) == expected_str
+
+
+@pytest.mark.django_db
+def test_save_cascade_delete(sample_challenge):
+    """Test that saves are deleted when challenge is deleted"""
+    save = Save.objects.create(
+        public_key="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+        challenge=sample_challenge,
+    )
+
+    save_id = save.id
+    challenge_id = sample_challenge.id
+
+    # Delete the challenge
+    sample_challenge.delete()
+
+    # Save should also be deleted
+    assert not Save.objects.filter(id=save_id).exists()
+    assert not Challenge.objects.filter(id=challenge_id).exists()
