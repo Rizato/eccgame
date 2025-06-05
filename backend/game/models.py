@@ -116,3 +116,17 @@ class Guess(models.Model):
         finally:
             self.validated_at = timezone.now()
             self.save(update_fields=["is_signature_valid", "validated_at"])
+
+
+class Save(models.Model):
+    """
+    Represents a saved point during challenge solving
+    Used for analysis of user solving patterns
+    """
+
+    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
+    public_key = models.CharField(max_length=66)  # Compressed public key
+    challenge = models.ForeignKey(
+        Challenge, on_delete=models.CASCADE, related_name="saves"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)

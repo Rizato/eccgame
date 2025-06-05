@@ -127,17 +127,9 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.AnonRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "24/min",
+        "anon": "5/sec",
     },
 }
-
-MAX_GUESSES = 6
-
-PUBKEY_GUESS_THRESHOLD = 1
-GRAPH_GUESS_THRESHOLD = 2
-HALF_GUESS_THRESHOLD = 3
-DOUBLE_GUESS_THRESHOLD = 4
-PLAYPEN_GUESS_THRESHOLD = 5
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [

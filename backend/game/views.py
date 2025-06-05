@@ -1,6 +1,5 @@
 import datetime
 
-from django.conf import settings
 from django.db import transaction
 from rest_framework import status, views, viewsets
 from rest_framework.exceptions import PermissionDenied
@@ -9,8 +8,8 @@ from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from game.models import Challenge, ChallengeSentinel, Guess
-from game.serializers import ChallengeSerializer, GuessSerializer
+from game.models import Challenge, ChallengeSentinel, Guess, Save
+from game.serializers import ChallengeSerializer, GuessSerializer, SaveSerializer
 
 
 class DailyChallengeView(views.APIView):
@@ -66,8 +65,6 @@ class DailyChallengeView(views.APIView):
         return challenge
 
 
-# TODO Drip feed information with each guess client side
-# Order: p2pkh, public key, half, double, graph, playpen
 class ChallengeViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     """
     A Challenge Wallet
@@ -95,9 +92,6 @@ class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Enforce guess limits per user per challenge
-        self.enforce_guess_limit(request, self.kwargs["challenge_uuid"])
-
         # Calls perform_create, and update
         self.perform_create(serializer)
         # Serializer instance is set by serializer.save(), which is before we update fields
@@ -108,17 +102,6 @@ class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
-
-    def enforce_guess_limit(self, request, challenge_uuid):
-        request.session.setdefault("guesses", {})
-        guesses = request.session["guesses"].get(challenge_uuid, 0)
-        if guesses >= settings.MAX_GUESSES:
-            raise PermissionDenied(
-                "You have already submitted the maximum number of guesses for this challenge."
-            )
-        # Update count and mark modified
-        request.session["guesses"][challenge_uuid] = guesses + 1
-        request.session.modified = True
 
     def perform_create(self, serializer):
         challenge_uuid = self.kwargs["challenge_uuid"]
@@ -132,3 +115,23 @@ class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin
         guess.evaluate_key()
         # TODO Defer verification until later
         guess.verify()
+
+
+class SaveViewSet(viewsets.GenericViewSet, CreateModelMixin):
+    """
+    Saves for any challenge - create-only endpoint for analysis
+    """
+
+    serializer_class = SaveSerializer
+    throttle_classes = [AnonRateThrottle]
+
+    def get_queryset(self):
+        return Save.objects.filter(challenge=self.kwargs["challenge_uuid"])
+
+    def perform_create(self, serializer):
+        challenge_uuid = self.kwargs["challenge_uuid"]
+        challenge = get_object_or_404(Challenge, uuid=challenge_uuid)
+
+        # Allow saves for any challenge (active or inactive)
+        # No additional validation needed beyond public key format
+        serializer.save(challenge=challenge)

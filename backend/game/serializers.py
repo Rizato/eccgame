@@ -1,7 +1,7 @@
 from ecdsa import MalformedPointError, SECP256k1, VerifyingKey
 from rest_framework import serializers
 
-from game.models import Challenge, Guess, Metadata
+from game.models import Challenge, Guess, Metadata, Save
 
 
 class MetaDataSerializer(serializers.ModelSerializer):
@@ -83,5 +83,36 @@ class GuessSerializer(serializers.ModelSerializer):
             "is_signature_valid",
             "is_key_valid",
             "validated_at",
+            "created_at",
+        )
+
+
+class SaveSerializer(serializers.ModelSerializer):
+    public_key = serializers.CharField(max_length=66)  # 9.62 compressed
+    challenge = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    def validate_public_key(self, value):
+        """Validate public key format - same validation as GuessSerializer"""
+        try:
+            VerifyingKey.from_string(
+                bytearray.fromhex(value), curve=SECP256k1, validate_point=True
+            )
+        except (ValueError, MalformedPointError):
+            raise serializers.ValidationError(
+                "Public Key must be valid a ANSI x9.62 public key as a hexadecimal string"
+            )
+        return value
+
+    class Meta:
+        model = Save
+        fields = (
+            "uuid",
+            "public_key",
+            "challenge",
+            "created_at",
+        )
+        read_only_fields = (
+            "uuid",
+            "challenge",
             "created_at",
         )
