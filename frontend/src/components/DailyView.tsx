@@ -5,12 +5,20 @@ import ErrorState from './ErrorState';
 import GameHeader from './GameHeader';
 import LoadingState from './LoadingState';
 
-const DailyView: React.FC = () => {
+interface DailyViewProps {
+  onOpenHowToPlay?: () => void;
+}
+
+const DailyView: React.FC<DailyViewProps> = ({ onOpenHowToPlay }) => {
   const { loading, challenge } = useGameStateRedux();
 
   return (
     <div className="ecc-game-page">
-      <GameHeader showModeSelector={true} showErrorBanner={true} />
+      <GameHeader
+        showModeSelector={true}
+        showErrorBanner={true}
+        onOpenHowToPlay={onOpenHowToPlay}
+      />
       <main className="game-main">
         {loading && <LoadingState />}
         {!loading && !challenge && <ErrorState />}

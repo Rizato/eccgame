@@ -14,6 +14,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
   const gameMode = useAppSelector(state => state.game.gameMode);
   const challenge = useAppSelector(state => state.game.challenge);
   const practiceChallenge = useAppSelector(state => state.practiceMode.practiceChallenge);
+  const hasWon = useAppSelector(state => state.game.hasWon);
 
   const { difficulty, practicePrivateKey, setDifficulty, generatePracticeChallenge } =
     usePracticeModeRedux();
@@ -24,8 +25,8 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Show give up button after 3 operations in daily mode only
-  const showGiveUpButton = !isPracticeMode && operationCount >= 3;
+  // Show give up button after 3 operations in daily mode only, but hide it after winning
+  const showGiveUpButton = !isPracticeMode && operationCount >= 3 && !hasWon;
 
   const handleGiveUp = () => {
     dispatch(setGaveUp(true));

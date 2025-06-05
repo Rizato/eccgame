@@ -5,11 +5,13 @@ import ThemeToggle from './ThemeToggle';
 interface GameHeaderProps {
   showModeSelector?: boolean;
   showErrorBanner?: boolean;
+  onOpenHowToPlay?: () => void;
 }
 
 const GameHeader: React.FC<GameHeaderProps> = ({
   showModeSelector = false,
   showErrorBanner = false,
+  onOpenHowToPlay,
 }) => {
   const { gameMode, error, setGameMode, clearError } = useGameStateRedux();
 
@@ -33,6 +35,11 @@ const GameHeader: React.FC<GameHeaderProps> = ({
                 Practice Mode
               </button>
             </div>
+          )}
+          {onOpenHowToPlay && (
+            <button className="how-to-play-button" onClick={onOpenHowToPlay} title="How to Play">
+              ?
+            </button>
           )}
           <ThemeToggle />
         </div>
