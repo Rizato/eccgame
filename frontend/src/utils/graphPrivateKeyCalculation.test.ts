@@ -1,13 +1,13 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { getGeneratorPoint, pointMultiply, pointToPublicKey } from './ecc';
-import { createEmptyGraph, addNode, addEdge, findPath } from './pointGraph';
-import type { PointGraph } from '../types/ecc';
-import type { Challenge } from '../types/api';
 import {
   calculateChallengePrivateKeyFromGraph,
   canSolveChallenge,
   getSolutionPath,
 } from './graphPrivateKeyCalculation';
+import { createEmptyGraph, addNode, addEdge, findPath } from './pointGraph';
+import type { Challenge } from '../types/api';
+import type { PointGraph } from '../types/ecc';
 
 describe('Graph Private Key Calculation Tests', () => {
   const generatorPoint = getGeneratorPoint();

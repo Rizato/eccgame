@@ -1,5 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { storageUtils } from './storage';
+import { beforeEach, describe, vi } from 'vitest';
 import type { GuessResponse } from '../types/api';
 
 // Mock localStorage

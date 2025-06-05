@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
 import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
+import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
 import './ChallengeInfo.css';
 
 interface ChallengeInfoProps {

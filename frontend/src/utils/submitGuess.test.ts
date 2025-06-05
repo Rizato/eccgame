@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createEmptyGraph, addNode } from './pointGraph';
 import { getGeneratorPoint } from './ecc';
+import { createEmptyGraph, addNode } from './pointGraph';
 import { submitChallengePointAsGuess } from './submitGuess.ts';
 
 // Mock the API and crypto functions

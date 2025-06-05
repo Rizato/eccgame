@@ -1,5 +1,5 @@
-import { calculateKeyFromOperations } from './privateKeyCalculation';
 import { pointToHash } from './pointGraph';
+import { calculateKeyFromOperations } from './privateKeyCalculation';
 import type {
   Operation,
   GraphEdge,

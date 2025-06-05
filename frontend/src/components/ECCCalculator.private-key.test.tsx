@@ -1,5 +1,5 @@
-import { act, render, screen } from '@testing-library/react';
 import { configureStore } from '@reduxjs/toolkit';
+import { act, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';

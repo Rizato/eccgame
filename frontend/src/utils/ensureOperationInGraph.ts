@@ -1,4 +1,4 @@
-import type { ECPoint, Operation, PointGraph, GraphNode } from '../types/ecc';
+import { pointMultiply, getGeneratorPoint } from './ecc';
 import {
   addNode,
   addEdge,
@@ -7,7 +7,7 @@ import {
   reverseOperation,
 } from './pointGraph';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
-import { pointMultiply, getGeneratorPoint } from './ecc';
+import type { ECPoint, Operation, PointGraph, GraphNode } from '../types/ecc';
 
 /**
  * Ensure an operation (and its result) are added to the graph

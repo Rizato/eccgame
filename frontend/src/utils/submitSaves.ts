@@ -6,8 +6,8 @@
  */
 import { challengeApi } from '../services/api';
 import { pointToPublicKey } from './ecc';
-import type { ECPoint } from '../types/ecc';
 import type { SaveResponse } from '../types/api';
+import type { ECPoint } from '../types/ecc';
 
 // Track submitted saves to avoid re-submission
 // Key format: `{challengeUuid}::{publicKey}`

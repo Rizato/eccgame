@@ -1,7 +1,7 @@
-import type { PointGraph } from '../types/ecc';
-import type { Challenge } from '../types/api';
 import { publicKeyToPoint } from './ecc';
 import { findNodeByPoint, hasPath, findPath, calculateNodePrivateKey } from './pointGraph';
+import type { Challenge } from '../types/api';
+import type { PointGraph } from '../types/ecc';
 
 /**
  * Calculate the challenge point's private key using graph traversal

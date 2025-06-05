@@ -1,8 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
 import dailyCalculatorReducer from './slices/eccCalculatorSlice';
-import practiceCalculatorReducer from './slices/practiceCalculatorSlice';
 import gameReducer from './slices/gameSlice';
+import practiceCalculatorReducer from './slices/practiceCalculatorSlice';
 import practiceModeReducer from './slices/practiceModeSlice';
+import statsReducer from './slices/statsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     dailyCalculator: dailyCalculatorReducer,
     practiceCalculator: practiceCalculatorReducer,
     practiceMode: practiceModeReducer,
+    stats: statsReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getP2PKHAddress } from '../../utils/crypto';
+import { logGraph } from '../../utils/debugHelpers.ts';
 import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
-import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
-import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
+import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { calculateNodePrivateKey } from '../../utils/pointGraph';
-import { logGraph } from '../../utils/debugHelpers.ts';
+import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
 interface PracticeCalculatorState {
   selectedPoint: ECPoint;

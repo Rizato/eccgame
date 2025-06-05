@@ -1,5 +1,5 @@
-import type { ECPoint, PointGraph } from '../types/ecc';
 import { findNodeByPoint, calculateNodePrivateKey } from './pointGraph';
+import type { ECPoint, PointGraph } from '../types/ecc';
 
 /**
  * Calculate the private key for any point using graph connectivity

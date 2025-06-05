@@ -5,15 +5,15 @@ import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux'
 import { useAppSelector } from '../store/hooks';
 import { getP2PKHAddress } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
-import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
+import './ECCPlayground.css';
+import { calculateChallengePrivateKeyFromGraph } from '../utils/graphPrivateKeyCalculation';
 import { findNodeByPoint } from '../utils/pointGraph';
+import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
 import ECCCalculator from './ECCCalculator';
 import ECCGraph from './ECCGraph';
-import './ECCPlayground.css';
 import { Modal } from './Modal';
 import { VictoryModal } from './VictoryModal';
 import type { ECPoint } from '../types/ecc';
-import { calculateChallengePrivateKeyFromGraph } from '../utils/graphPrivateKeyCalculation';
 
 interface ECCPlaygroundProps {
   challenge: Challenge;

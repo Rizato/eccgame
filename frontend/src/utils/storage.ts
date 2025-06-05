@@ -1,6 +1,9 @@
+import type { GameStats } from '../store/slices/statsSlice';
+
 const STORAGE_PREFIX = 'ecccryptoplayground_';
 const DAILY_WINS_KEY = `${STORAGE_PREFIX}daily_wins`;
 const FIRST_VISIT_KEY = `${STORAGE_PREFIX}first_visit_complete`;
+const GAME_STATS_KEY = `${STORAGE_PREFIX}game_stats`;
 
 export const storageUtils = {
   // Daily challenge win tracking
@@ -45,6 +48,33 @@ export const storageUtils = {
       localStorage.setItem(FIRST_VISIT_KEY, 'true');
     } catch (error) {
       console.warn('Failed to mark first visit complete:', error);
+    }
+  },
+
+  // Game stats tracking
+  getGameStats: (): GameStats | null => {
+    try {
+      const stored = localStorage.getItem(GAME_STATS_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch (error) {
+      console.warn('Failed to get game stats:', error);
+      return null;
+    }
+  },
+
+  saveGameStats: (stats: GameStats): void => {
+    try {
+      localStorage.setItem(GAME_STATS_KEY, JSON.stringify(stats));
+    } catch (error) {
+      console.warn('Failed to save game stats:', error);
+    }
+  },
+
+  clearGameStats: (): void => {
+    try {
+      localStorage.removeItem(GAME_STATS_KEY);
+    } catch (error) {
+      console.warn('Failed to clear game stats:', error);
     }
   },
 };

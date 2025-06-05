@@ -1,0 +1,80 @@
+.faq-page {
+  min-height: 100vh;
+  background: var(--bg-color);
+  color: var(--text-color);
+  padding: 20px;
+}
+
+.faq-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faq-header {
+  margin-bottom: 40px;
+}
+
+.back-link {
+  color: var(--accent-color);
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 16px;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--accent-hover-color);
+}
+
+.faq-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.faq-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.faq-section {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.faq-section h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+.faq-section p {
+  margin: 0;
+  line-height: 1.6;
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .faq-page {
+    padding: 16px;
+  }
+
+  .faq-header h1 {
+    font-size: 2rem;
+  }
+
+  .faq-section {
+    padding: 20px;
+  }
+
+  .faq-section h2 {
+    font-size: 1.2rem;
+  }
+}

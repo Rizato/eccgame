@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { CURVE_N } from './ecc.ts';
 import {
   addBundledEdgeForNewSave,
   cleanupDanglingNodes,
@@ -7,7 +8,6 @@ import {
 } from './operationBundling';
 import { createEmptyGraph, addNode, addEdge } from './pointGraph';
 import type { ECPoint, Operation, SavedPoint } from '../types/ecc';
-import { CURVE_N } from './ecc.ts';
 
 describe('Operation Bundling', () => {
   const mockPoint1: ECPoint = { x: 1n, y: 2n };

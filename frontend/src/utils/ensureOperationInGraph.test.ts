@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { CURVE_N, getGeneratorPoint, pointMultiply } from './ecc';
-import { createEmptyGraph, addNode } from './pointGraph';
 import { ensureOperationInGraph } from './ensureOperationInGraph';
+import { createEmptyGraph, addNode } from './pointGraph';
 import type { PointGraph } from '../types/ecc';
 
 describe('ensureOperationInGraph', () => {

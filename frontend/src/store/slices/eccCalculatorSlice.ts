@@ -1,14 +1,14 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getP2PKHAddress } from '../../utils/crypto';
+import { logGraph, logSavedPoints, logNodeConnections } from '../../utils/debugHelpers';
 import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
-import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
-import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
+import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { calculateNodePrivateKey } from '../../utils/pointGraph';
-import { logGraph, logSavedPoints, logNodeConnections } from '../../utils/debugHelpers';
 import { submitGuess } from '../../utils/submitGuess.ts';
 import { submitSaveIfDaily } from '../../utils/submitSaves';
+import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
 interface DailyCalculatorState {
   selectedPoint: ECPoint;

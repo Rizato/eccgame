@@ -1,5 +1,5 @@
-import type { ECPoint, GraphNode, GraphEdge, PointGraph, Operation } from '../types/ecc';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
+import type { ECPoint, GraphNode, GraphEdge, PointGraph, Operation } from '../types/ecc';
 
 /**
  * Create a hash key for a point for lookup purposes
