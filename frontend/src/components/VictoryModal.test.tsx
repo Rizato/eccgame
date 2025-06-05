@@ -11,6 +11,7 @@ describe('VictoryModal', () => {
     savedPoints: [],
     victoryPrivateKey: '0x0000000000000000000000000000000000000000000000000000000000000001',
     isPracticeMode: false,
+    gaveUp: false,
   });
 
   it('should render victory modal when open', () => {
@@ -104,5 +105,24 @@ describe('VictoryModal', () => {
     const shareButton = screen.getByText('Share Result');
     expect(shareButton).toBeInTheDocument();
     expect(shareButton).toHaveClass('victory-share-button');
+  });
+
+  it('should show gave up state when gaveUp is true', () => {
+    const props = { ...createDefaultProps(), gaveUp: true };
+    render(<VictoryModal {...props} />);
+
+    expect(screen.getByText('Challenge Complete! 🤷')).toBeInTheDocument();
+    expect(
+      screen.getByText('No worries! Even the experts take many attempts. Better luck next time!')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Private Key')).not.toBeInTheDocument();
+  });
+
+  it('should show victory state when gaveUp is false', () => {
+    const props = { ...createDefaultProps(), gaveUp: false };
+    render(<VictoryModal {...props} />);
+
+    expect(screen.getByText('Private Key Found! 🎉')).toBeInTheDocument();
+    expect(screen.getByText('Private Key')).toBeInTheDocument();
   });
 });

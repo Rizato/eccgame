@@ -11,6 +11,7 @@ interface GameState {
   loading: boolean;
   error: string | null;
   hasWon: boolean;
+  gaveUp: boolean;
 }
 
 const initialState: GameState = {
@@ -19,6 +20,7 @@ const initialState: GameState = {
   loading: true,
   error: null,
   hasWon: false,
+  gaveUp: false,
 };
 
 export const loadDailyChallenge = createAsyncThunk(
@@ -67,6 +69,7 @@ const gameSlice = createSlice({
         // Clear challenge state when switching to practice
         state.challenge = null;
         state.hasWon = false;
+        state.gaveUp = false;
         state.loading = false;
         state.error = null;
       }
@@ -79,6 +82,9 @@ const gameSlice = createSlice({
     },
     setHasWon: (state, action: PayloadAction<boolean>) => {
       state.hasWon = action.payload;
+    },
+    setGaveUp: (state, action: PayloadAction<boolean>) => {
+      state.gaveUp = action.payload;
     },
     clearError: state => {
       state.error = null;
@@ -94,6 +100,7 @@ const gameSlice = createSlice({
         state.loading = false;
         state.challenge = action.payload.challenge;
         state.hasWon = action.payload.hasWon;
+        state.gaveUp = false;
       })
       .addCase(loadDailyChallenge.rejected, (state, action) => {
         state.loading = false;
@@ -108,5 +115,6 @@ const gameSlice = createSlice({
   },
 });
 
-export const { setGameMode, setChallenge, setError, setHasWon, clearError } = gameSlice.actions;
+export const { setGameMode, setChallenge, setError, setHasWon, setGaveUp, clearError } =
+  gameSlice.actions;
 export default gameSlice.reducer;

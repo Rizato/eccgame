@@ -83,7 +83,7 @@
   font-weight: 600;
   color: var(--text-dim);
   font-size: 0.875rem;
-  text-align: left;
+  text-align: start;
 }
 
 .modal-value-container {
@@ -103,7 +103,7 @@
   font-size: 0.875rem;
   flex: 1;
   outline: none;
-  text-align: left;
+  text-align: start;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -124,7 +124,7 @@
   font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
   font-size: 0.875rem;
   flex: 1;
-  text-align: left;
+  text-align: start;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

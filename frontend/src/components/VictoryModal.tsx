@@ -12,6 +12,7 @@ interface VictoryModalProps {
   savedPoints: SavedPoint[];
   isPracticeMode?: boolean;
   victoryPrivateKey: string;
+  gaveUp?: boolean;
 }
 
 export const VictoryModal: React.FC<VictoryModalProps> = ({
@@ -21,18 +22,25 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   challengeAddress,
   victoryPrivateKey,
   isPracticeMode,
+  gaveUp = false,
 }) => {
   const [shareStatus, setShareStatus] = useState<string | null>(null);
   if (!isOpen) return null;
 
   const getVictoryTitle = () => {
+    if (gaveUp) {
+      return 'Challenge Complete! 🤷';
+    }
     if (isPracticeMode) {
       return 'Practice Complete! 🎉';
     }
-    return 'Private Key Found!  🎉';
+    return 'Private Key Found! 🎉';
   };
 
   const getVictoryMessage = () => {
+    if (gaveUp) {
+      return 'No worries! Even the experts take many attempts. Better luck next time!';
+    }
     if (isPracticeMode) {
       return 'Great work! You successfully solved the practice challenge.';
     }
@@ -43,9 +51,10 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   const handleShare = async () => {
     const message = generateShareMessage({
       gameMode: isPracticeMode ? 'practice' : 'daily',
-      solved: true,
+      solved: !gaveUp,
       operationCount,
       challengeAddress,
+      gaveUp,
     });
 
     try {
@@ -71,7 +80,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           <button className="victory-close-x" onClick={onClose} aria-label="Close">
             ×
           </button>
-          <div className="victory-icon">🏆</div>
+          <div className="victory-icon">{gaveUp ? '🤷' : '🏆'}</div>
           <h2 className="victory-title">{getVictoryTitle()}</h2>
           <p className="victory-message">{getVictoryMessage()}</p>
         </div>
@@ -91,12 +100,14 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
             </div>
           </div>
 
-          <div className="stat-item">
-            <div className="stat-label">Private Key</div>
-            <div className="stat-value address-value" title={victoryPrivateKey}>
-              {victoryPrivateKey}
+          {!gaveUp && (
+            <div className="stat-item">
+              <div className="stat-label">Private Key</div>
+              <div className="stat-value address-value" title={victoryPrivateKey}>
+                {victoryPrivateKey}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="victory-actions">

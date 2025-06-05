@@ -212,7 +212,7 @@
   background: var(--surface);
   color: var(--text);
   border: none;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   font-size: 0.875rem;
   transition: all 0.2s ease;
@@ -243,7 +243,7 @@
   font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
   font-size: 0.875rem;
   flex: 1;
-  text-align: left;
+  text-align: start;
   word-break: break-all;
   line-height: 1.4;
   overflow: hidden;
@@ -261,6 +261,37 @@
   color: var(--text-inverse);
   border-color: var(--primary);
   transform: translateY(-1px);
+}
+
+/* Give Up Button */
+.give-up-button-container {
+  margin-top: 8px;
+  display: flex;
+  justify-content: start;
+}
+
+.give-up-button {
+  background: var(--error);
+  color: var(--text-inverse);
+  border: 1px solid var(--error);
+  padding: var(--spacing-sm) var(--spacing);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.give-up-button:hover {
+  background: var(--error-dark, #dc2626);
+  color: var(--text-inverse);
+  border-color: var(--error-dark, #dc2626);
+  transform: translateY(-1px);
+}
+
+.give-up-button:active {
+  transform: translateY(0);
 }
 
 /* Mobile responsive */

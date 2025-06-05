@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react'
 import type { Challenge } from '../types/api';
 import { useDailyCalculatorRedux } from '../hooks/useDailyCalculatorRedux';
 import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux';
+import { useAppSelector } from '../store/hooks';
 import { getP2PKHAddress } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
 import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
-import { findNodeByPoint, findPath } from '../utils/pointGraph';
+import { findNodeByPoint } from '../utils/pointGraph';
 import ECCCalculator from './ECCCalculator';
 import ECCGraph from './ECCGraph';
 import './ECCPlayground.css';
@@ -33,6 +34,9 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     challenge.public_key,
     practicePrivateKey || ''
   );
+
+  // Get game state for give up functionality
+  const gameState = useAppSelector(state => state.game);
 
   // Select the appropriate calculator based on mode
   const calculator = isPracticeMode ? practiceCalculator : dailyCalculator;
@@ -65,31 +69,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     return calculateChallengePrivateKeyFromGraph(challenge, graph);
   }, [challenge, graph]);
 
-  // Calculate total number of operations from generator to challenge
+  // Calculate total number of operations by summing all bundled edges
   const totalOperationCount = useMemo(() => {
-    const generatorNode = Object.values(graph.nodes).find(node => node.isGenerator);
-    const challengeNode = Object.values(graph.nodes).find(node => node.isChallenge);
-
-    if (!generatorNode || !challengeNode) {
-      return 0;
-    }
-
-    const path = findPath(graph, generatorNode.id, challengeNode.id);
-    if (!path) return 0;
-
-    // Calculate total operations by checking for bundled operations
-    let totalCount = 0;
-    for (const operation of path) {
-      // Find the edge that contains this operation to check if it's bundled
-      const edge = Object.values(graph.edges).find(e => e.operation.id === operation.id);
-      if (edge && edge.bundleCount) {
-        totalCount += Number(edge.bundleCount);
-      } else {
-        totalCount += 1;
-      }
-    }
-
-    return totalCount;
+    return Object.values(graph.edges).reduce((total, edge) => {
+      return total + (edge.bundleCount ? Number(edge.bundleCount) : 1);
+    }, 0);
   }, [graph]);
 
   // Reset current point when challenge changes
@@ -280,6 +264,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         challengeAddress={challengeAddress}
         victoryPrivateKey={victoryPrivateKey ? '0x' + victoryPrivateKey.toString(16) : ''}
         isPracticeMode={isPracticeMode}
+        gaveUp={gameState.gaveUp}
       />
     </div>
   );

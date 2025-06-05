@@ -1,9 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
-import { useAppSelector } from '../store/hooks';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
+import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
 import './ChallengeInfo.css';
 
-const ChallengeInfo: React.FC = () => {
+interface ChallengeInfoProps {
+  operationCount?: number;
+}
+
+const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => {
+  const dispatch = useAppDispatch();
   const gameMode = useAppSelector(state => state.game.gameMode);
   const challenge = useAppSelector(state => state.game.challenge);
   const practiceChallenge = useAppSelector(state => state.practiceMode.practiceChallenge);
@@ -16,6 +23,15 @@ const ChallengeInfo: React.FC = () => {
   const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Show give up button after 3 operations in daily mode only
+  const showGiveUpButton = !isPracticeMode && operationCount >= 3;
+
+  const handleGiveUp = () => {
+    dispatch(setGaveUp(true));
+    dispatch(setHasWon(true)); // Show victory modal
+    dispatch(setShowVictoryModal(true));
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -144,6 +160,16 @@ const ChallengeInfo: React.FC = () => {
                     {meta.name}
                   </span>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {showGiveUpButton && (
+            <div className="info-section">
+              <div className="give-up-button-container">
+                <button onClick={handleGiveUp} className="give-up-button">
+                  I Give Up
+                </button>
               </div>
             </div>
           )}
