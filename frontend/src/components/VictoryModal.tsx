@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import './VictoryModal.css';
-import { generateShareMessage, shareMessage } from '../utils/shareMessage';
+import { generateShareMessage, shareMessage } from '../utils/gameUtils';
 import type { SavedPoint } from '../types/ecc.ts';
 
 interface VictoryModalProps {

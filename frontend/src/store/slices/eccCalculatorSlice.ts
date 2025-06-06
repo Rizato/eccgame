@@ -1,13 +1,16 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getP2PKHAddress } from '../../utils/crypto';
-import { logGraph, logSavedPoints, logNodeConnections } from '../../utils/debugHelpers';
+import { logGraph, logSavedPoints, logNodeConnections } from '../../utils/gameUtils';
 import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
-import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
+import { ensureOperationInGraph } from '../../utils/graphOperations';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
-import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
-import { calculateNodePrivateKey } from '../../utils/pointGraph';
-import { submitSolution } from '../../utils/submitSolution.ts';
-import { submitSaveIfDaily } from '../../utils/submitSaves';
+import {
+  createEmptyGraph,
+  addNode,
+  hasPath,
+  calculateNodePrivateKey,
+} from '../../utils/graphOperations';
+import { submitSolution, submitSaveIfDaily } from '../../utils/apiSubmission';
 import { storageUtils } from '../../utils/storage';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 

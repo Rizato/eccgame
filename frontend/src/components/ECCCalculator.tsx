@@ -14,7 +14,7 @@ import {
   pointToPublicKey,
   publicKeyToPoint,
 } from '../utils/ecc';
-import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
+import { calculatePrivateKeyFromGraph } from '../utils/graphOperations.ts';
 import './ECCCalculator.css';
 import { SavePointModal } from './SavePointModal';
 import type { ECPoint, Operation } from '../types/ecc.ts';

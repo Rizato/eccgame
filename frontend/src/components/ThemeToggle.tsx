@@ -11,50 +11,24 @@ const ThemeToggle: React.FC = () => {
     themeUtils.setStoredTheme(theme);
   }, [theme]);
 
-  const handleThemeChange = (newTheme: Theme) => {
+  const toggleTheme = () => {
+    const newTheme: Theme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
   };
 
-  const getThemeIcon = (themeOption: Theme) => {
-    switch (themeOption) {
-      case 'light':
-        return '☀️';
-      case 'dark':
-        return '🌙';
-      case 'system':
-        return '💻';
-    }
-  };
-
-  const getThemeLabel = (themeOption: Theme) => {
-    switch (themeOption) {
-      case 'light':
-        return 'Light';
-      case 'dark':
-        return 'Dark';
-      case 'system':
-        return 'System';
-    }
+  const getThemeIcon = () => {
+    return theme === 'light' ? '🌙' : '☀️'; // Show moon when light (to switch to dark), sun when dark (to switch to light)
   };
 
   return (
-    <div className="theme-toggle">
-      <label htmlFor="theme-select" className="theme-toggle-label">
-        Theme:
-      </label>
-      <select
-        id="theme-select"
-        value={theme}
-        onChange={e => handleThemeChange(e.target.value as Theme)}
-        className="theme-select"
-      >
-        {(['light', 'dark', 'system'] as const).map(themeOption => (
-          <option key={themeOption} value={themeOption}>
-            {getThemeIcon(themeOption)} {getThemeLabel(themeOption)}
-          </option>
-        ))}
-      </select>
-    </div>
+    <button
+      onClick={toggleTheme}
+      className="theme-toggle-button"
+      aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+      title={`Currently ${theme} mode. Click to switch to ${theme === 'light' ? 'dark' : 'light'} mode.`}
+    >
+      <span className="theme-icon">{getThemeIcon()}</span>
+    </button>
   );
 };
 

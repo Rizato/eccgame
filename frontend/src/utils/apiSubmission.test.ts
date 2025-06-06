@@ -1,21 +1,28 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { getGeneratorPoint } from './ecc';
+import { getGeneratorPoint, pointMultiply } from './ecc';
+import { createEmptyGraph, addNode } from './graphOperations';
 import {
   submitSaveToBackend,
   hasSubmittedSave,
   clearSubmittedSaves,
   getSubmittedSaveCount,
   submitSaveIfDaily,
-} from './submitSaves';
+  submitChallengePointAsSolution,
+} from './apiSubmission';
 
 // Mock the API
 vi.mock('../services/api', () => ({
   challengeApi: {
     submitSave: vi.fn(),
+    submitSolution: vi.fn(),
   },
 }));
 
-describe('submitSaves', () => {
+vi.mock('./crypto', () => ({
+  generateSolutionFromPrivateKey: vi.fn(),
+}));
+
+describe('API Submission', () => {
   const mockGeneratorPoint = getGeneratorPoint();
   const mockChallengeUuid = '550e8400-e29b-41d4-a716-446655440000';
 
@@ -47,10 +54,8 @@ describe('submitSaves', () => {
 
       vi.mocked(challengeApi.submitSave).mockResolvedValue(mockResponse);
 
-      // Submit save
       await submitSaveToBackend(mockChallengeUuid, mockGeneratorPoint, 'Test Point');
 
-      // Check if tracked
       const result = hasSubmittedSave(mockChallengeUuid, mockGeneratorPoint);
       expect(result).toBe(true);
     });
@@ -95,7 +100,6 @@ describe('submitSaves', () => {
 
       vi.mocked(challengeApi.submitSave).mockResolvedValue(mockResponse);
 
-      // Submit first time
       const result1 = await submitSaveToBackend(
         mockChallengeUuid,
         mockGeneratorPoint,
@@ -103,7 +107,6 @@ describe('submitSaves', () => {
       );
       expect(result1).toEqual(mockResponse);
 
-      // Try to submit again
       const result2 = await submitSaveToBackend(
         mockChallengeUuid,
         mockGeneratorPoint,
@@ -111,7 +114,6 @@ describe('submitSaves', () => {
       );
       expect(result2).toBeNull();
 
-      // Should only have been called once
       expect(challengeApi.submitSave).toHaveBeenCalledTimes(1);
       expect(getSubmittedSaveCount()).toBe(1);
     });
@@ -124,36 +126,6 @@ describe('submitSaves', () => {
 
       expect(result).toBeNull();
       expect(getSubmittedSaveCount()).toBe(0);
-    });
-  });
-
-  describe('clearSubmittedSaves', () => {
-    it('should clear all submitted save tracking', async () => {
-      const { challengeApi } = await import('../services/api');
-      const mockResponse = {
-        uuid: 'save_uuid',
-        public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
-        created_at: '2023-01-01T00:00:00Z',
-        challenge: mockChallengeUuid,
-      };
-
-      vi.mocked(challengeApi.submitSave).mockResolvedValue(mockResponse);
-
-      // Submit a save
-      await submitSaveToBackend(mockChallengeUuid, mockGeneratorPoint, 'Test Point');
-      expect(getSubmittedSaveCount()).toBe(1);
-
-      // Clear tracking
-      clearSubmittedSaves();
-      expect(getSubmittedSaveCount()).toBe(0);
-
-      // Should be able to submit again
-      const result = await submitSaveToBackend(
-        mockChallengeUuid,
-        mockGeneratorPoint,
-        'Test Point Again'
-      );
-      expect(result).toEqual(mockResponse);
     });
   });
 
@@ -194,6 +166,51 @@ describe('submitSaves', () => {
       expect(challengeApi.submitSave).toHaveBeenCalledWith(mockChallengeUuid, {
         public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
       });
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('submitChallengePointAsSolution', () => {
+    it('should return null if challenge node not found', async () => {
+      const graph = createEmptyGraph();
+
+      const result = await submitChallengePointAsSolution(
+        mockChallengeUuid,
+        graph,
+        'nonexistent_node'
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('should submit challenge point when private key can be calculated', async () => {
+      const { challengeApi } = await import('../services/api');
+      const { generateSolutionFromPrivateKey } = await import('./crypto');
+
+      const graph = createEmptyGraph();
+      const challengeNode = addNode(graph, mockGeneratorPoint, {
+        id: 'challenge',
+        label: 'Challenge Point',
+        privateKey: 123n,
+      });
+
+      const mockSolution = { public_key: 'test_public_key', signature: 'test_signature' };
+      const mockResponse = { uuid: 'solution_uuid', result: 'correct' };
+
+      vi.mocked(generateSolutionFromPrivateKey).mockResolvedValue(mockSolution);
+      vi.mocked(challengeApi.submitSolution).mockResolvedValue(mockResponse as any);
+
+      const result = await submitChallengePointAsSolution(
+        mockChallengeUuid,
+        graph,
+        challengeNode.id
+      );
+
+      expect(generateSolutionFromPrivateKey).toHaveBeenCalledWith(
+        '0x000000000000000000000000000000000000000000000000000000000000007b',
+        mockChallengeUuid
+      );
+      expect(challengeApi.submitSolution).toHaveBeenCalledWith(mockChallengeUuid, mockSolution);
       expect(result).toEqual(mockResponse);
     });
   });

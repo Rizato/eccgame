@@ -21,7 +21,7 @@ import {
   clearShouldSubmitSolution,
 } from '../store/slices/eccCalculatorSlice';
 import { recordGamePlayed, recordGameWon } from '../store/slices/statsSlice';
-import { clearSubmittedSaves } from '../utils/submitSaves';
+import { clearSubmittedSaves } from '../utils/apiSubmission';
 import { getP2PKHAddress } from '../utils/crypto';
 import { pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
 import { storageUtils } from '../utils/storage';

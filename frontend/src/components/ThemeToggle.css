@@ -1,52 +1,70 @@
-.theme-toggle {
+.theme-toggle-button {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-left: auto;
-}
-
-.theme-toggle-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-
-.theme-select {
-  padding: var(--spacing-xs) var(--spacing-sm);
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
-  font-size: 0.875rem;
   cursor: pointer;
-  min-width: 120px;
   transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.theme-select:focus {
+.theme-toggle-button:hover {
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-button:focus {
   outline: none;
   border-color: var(--border-focus);
   box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
 }
 
-.theme-select:hover {
-  border-color: var(--border-focus);
+.theme-toggle-button:active {
+  transform: translateY(1px);
+}
+
+.theme-icon {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle-button:hover .theme-icon {
+  transform: scale(1.1);
+}
+
+/* Smooth rotation animation when switching themes */
+.theme-toggle-button .theme-icon {
+  animation: theme-icon-rotate 0.3s ease-in-out;
+}
+
+@keyframes theme-icon-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg) scale(0.8);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Mobile styles */
 @media (max-width: 768px) {
-  .theme-toggle {
-    margin-left: 0;
-    margin-top: 8px;
+  .theme-toggle-button {
+    width: 36px;
+    height: 36px;
   }
 
-  .theme-toggle-label {
-    font-size: 13px;
-  }
-
-  .theme-select {
-    font-size: 16px; /* Prevent zoom on iOS */
-    min-width: 110px;
+  .theme-icon {
+    font-size: 16px;
   }
 }

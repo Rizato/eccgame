@@ -7,9 +7,11 @@ import { initializeWinStateByAddress } from '../store/slices/eccCalculatorSlice'
 import { getP2PKHAddress } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
 import './ECCPlayground.css';
-import { calculateChallengePrivateKeyFromGraph } from '../utils/graphPrivateKeyCalculation';
-import { findNodeByPoint } from '../utils/pointGraph';
-import { calculatePrivateKeyFromGraph } from '../utils/pointPrivateKey';
+import {
+  calculateChallengePrivateKeyFromGraph,
+  findNodeByPoint,
+  calculatePrivateKeyFromGraph,
+} from '../utils/graphOperations';
 import ECCCalculator from './ECCCalculator';
 import ECCGraph from './ECCGraph';
 import { Modal } from './Modal';

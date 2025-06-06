@@ -13,20 +13,20 @@
 }
 
 .stats-modal {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-lg);
 }
 
 .stats-header {
   position: relative;
   padding: 24px 24px 16px 24px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border);
 }
 
 .stats-close-x {
@@ -37,7 +37,7 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   width: 32px;
   height: 32px;
   display: flex;
@@ -48,15 +48,15 @@
 }
 
 .stats-close-x:hover {
-  background: var(--bg-secondary);
-  color: var(--text-color);
+  background: var(--surface-dim);
+  color: var(--text);
 }
 
 .stats-title {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--text);
   text-align: center;
 }
 
@@ -72,8 +72,8 @@
 }
 
 .stat-card {
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
+  background: var(--surface-dim);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -81,19 +81,19 @@
 }
 
 .stat-card:hover {
-  border-color: var(--accent-color);
+  border-color: var(--accent);
 }
 
 .stat-number {
   font-size: 1.8rem;
   font-weight: 700;
-  color: var(--accent-color);
+  color: var(--accent);
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   font-weight: 500;
 }
 
@@ -105,7 +105,7 @@
   margin: 0 0 16px 0;
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: var(--text);
   text-align: center;
 }
 
@@ -114,8 +114,8 @@
   align-items: end;
   justify-content: space-around;
   height: 100px;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
+  background: var(--surface-dim);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 8px;
@@ -130,7 +130,7 @@
 
 .bar-fill {
   width: 20px;
-  background: var(--accent-color);
+  background: var(--accent);
   border-radius: 2px 2px 0 0;
   transition: all 0.2s ease;
   margin-bottom: 8px;
@@ -138,12 +138,12 @@
 }
 
 .bar-fill:hover {
-  background: var(--accent-hover-color);
+  background: var(--accent-dark);
 }
 
 .bar-label {
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   text-align: center;
   max-width: 40px;
   line-height: 1.2;
@@ -152,7 +152,7 @@
 .histogram-axis-label {
   text-align: center;
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   font-weight: 500;
 }
 
@@ -160,13 +160,13 @@
   display: flex;
   justify-content: center;
   padding-top: 16px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--border);
 }
 
 .reset-stats-button {
   background: transparent;
-  border: 1px solid var(--error-color);
-  color: var(--error-color);
+  border: 1px solid var(--error);
+  color: var(--error);
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -175,7 +175,7 @@
 }
 
 .reset-stats-button:hover {
-  background: var(--error-color);
+  background: var(--error);
   color: white;
 }
 

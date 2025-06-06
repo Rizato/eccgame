@@ -28,30 +28,27 @@ describe('ThemeToggle', () => {
   });
 
   describe('rendering', () => {
-    it('should render theme toggle with label', () => {
+    it('should render theme toggle button', () => {
       render(<ThemeToggle />);
 
-      expect(screen.getByText('Theme:')).toBeInTheDocument();
-      expect(screen.getByRole('combobox')).toBeInTheDocument();
+      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByLabelText(/switch to.*mode/i)).toBeInTheDocument();
     });
 
-    it('should render all theme options', () => {
+    it('should show correct icon for current theme', () => {
+      mockThemeUtils.getStoredTheme.mockReturnValue('light');
       render(<ThemeToggle />);
 
-      screen.getByRole('combobox');
-
-      expect(screen.getByText('☀️ Light')).toBeInTheDocument();
-      expect(screen.getByText('🌙 Dark')).toBeInTheDocument();
-      expect(screen.getByText('💻 System')).toBeInTheDocument();
+      // When in light mode, should show moon (to switch to dark)
+      expect(screen.getByText('🌙')).toBeInTheDocument();
     });
 
-    it('should show correct initial theme from storage', () => {
+    it('should show sun icon when in dark mode', () => {
       mockThemeUtils.getStoredTheme.mockReturnValue('dark');
-
       render(<ThemeToggle />);
 
-      const select = screen.getByRole('combobox') as HTMLSelectElement;
-      expect(select.value).toBe('dark');
+      // When in dark mode, should show sun (to switch to light)
+      expect(screen.getByText('☀️')).toBeInTheDocument();
     });
   });
 
@@ -66,83 +63,81 @@ describe('ThemeToggle', () => {
   });
 
   describe('theme changing', () => {
-    it('should change theme when selection changes', () => {
+    it('should toggle from light to dark when clicked', () => {
+      mockThemeUtils.getStoredTheme.mockReturnValue('light');
       render(<ThemeToggle />);
 
-      const select = screen.getByRole('combobox');
-      fireEvent.change(select, { target: { value: 'dark' } });
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
 
       expect(mockThemeUtils.setStoredTheme).toHaveBeenCalledWith('dark');
       expect(mockThemeUtils.applyTheme).toHaveBeenCalledWith('dark');
     });
 
-    it('should update internal state when theme changes', () => {
+    it('should toggle from dark to light when clicked', () => {
+      mockThemeUtils.getStoredTheme.mockReturnValue('dark');
       render(<ThemeToggle />);
 
-      const select = screen.getByRole('combobox') as HTMLSelectElement;
-      fireEvent.change(select, { target: { value: 'system' } });
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
 
-      expect(select.value).toBe('system');
+      expect(mockThemeUtils.setStoredTheme).toHaveBeenCalledWith('light');
+      expect(mockThemeUtils.applyTheme).toHaveBeenCalledWith('light');
     });
 
-    it('should handle all theme options', () => {
+    it('should update icon when clicking to toggle theme', () => {
+      mockThemeUtils.getStoredTheme.mockReturnValue('light');
       render(<ThemeToggle />);
 
-      const select = screen.getByRole('combobox');
+      // Initially in light mode, should show moon
+      expect(screen.getByText('🌙')).toBeInTheDocument();
 
-      // Test each theme option
-      const themes = ['light', 'dark', 'system'];
-      themes.forEach(theme => {
-        fireEvent.change(select, { target: { value: theme } });
+      // Click to toggle to dark mode
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
 
-        expect(mockThemeUtils.setStoredTheme).toHaveBeenCalledWith(theme);
-        expect(mockThemeUtils.applyTheme).toHaveBeenCalledWith(theme);
-      });
-    });
-  });
-
-  describe('theme icons and labels', () => {
-    it('should display correct icons for each theme', () => {
-      render(<ThemeToggle />);
-
-      // Check that icons are present in the options
-      expect(screen.getByText(/☀️/)).toBeInTheDocument(); // Light
-      expect(screen.getByText(/🌙/)).toBeInTheDocument(); // Dark
-      expect(screen.getByText(/💻/)).toBeInTheDocument(); // System
-    });
-
-    it('should display correct labels for each theme', () => {
-      render(<ThemeToggle />);
-
-      expect(screen.getByText(/Light/)).toBeInTheDocument();
-      expect(screen.getByText(/Dark/)).toBeInTheDocument();
-      expect(screen.getByText(/System/)).toBeInTheDocument();
+      // Should now show sun (we're now in dark mode)
+      expect(screen.getByText('☀️')).toBeInTheDocument();
     });
   });
 
   describe('accessibility', () => {
-    it('should have proper ARIA labels', () => {
+    it('should have proper ARIA attributes', () => {
+      mockThemeUtils.getStoredTheme.mockReturnValue('light');
       render(<ThemeToggle />);
 
-      const select = screen.getByRole('combobox');
-      expect(select).toHaveAttribute('id', 'theme-select');
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
+      expect(button).toHaveAttribute(
+        'title',
+        'Currently light mode. Click to switch to dark mode.'
+      );
+    });
 
-      const label = screen.getByText('Theme:');
-      expect(label).toHaveAttribute('for', 'theme-select');
+    it('should update ARIA attributes when theme changes', () => {
+      mockThemeUtils.getStoredTheme.mockReturnValue('dark');
+      render(<ThemeToggle />);
+
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
+      expect(button).toHaveAttribute(
+        'title',
+        'Currently dark mode. Click to switch to light mode.'
+      );
     });
 
     it('should be keyboard accessible', () => {
       render(<ThemeToggle />);
 
-      const select = screen.getByRole('combobox');
+      const button = screen.getByRole('button');
 
       // Should be focusable
-      select.focus();
-      expect(select).toHaveFocus();
+      button.focus();
+      expect(button).toHaveFocus();
 
       // Should respond to keyboard events
-      fireEvent.keyDown(select, { key: 'ArrowDown' });
-      fireEvent.keyDown(select, { key: 'Enter' });
+      fireEvent.keyDown(button, { key: 'Enter' });
+      fireEvent.keyDown(button, { key: ' ' });
     });
   });
 
@@ -157,19 +152,19 @@ describe('ThemeToggle', () => {
     it('should handle rapid theme changes', () => {
       render(<ThemeToggle />);
 
-      const select = screen.getByRole('combobox');
+      const button = screen.getByRole('button');
 
       // Clear initial calls
       mockThemeUtils.setStoredTheme.mockClear();
       mockThemeUtils.applyTheme.mockClear();
 
-      // Rapidly change themes
-      fireEvent.change(select, { target: { value: 'dark' } });
-      fireEvent.change(select, { target: { value: 'light' } });
-      fireEvent.change(select, { target: { value: 'system' } });
+      // Rapidly click to toggle themes
+      fireEvent.click(button);
+      fireEvent.click(button);
+      fireEvent.click(button);
 
       expect(mockThemeUtils.setStoredTheme).toHaveBeenCalledTimes(3);
-      expect(mockThemeUtils.applyTheme).toHaveBeenCalledTimes(3); // 3 changes
+      expect(mockThemeUtils.applyTheme).toHaveBeenCalledTimes(3);
     });
   });
 });

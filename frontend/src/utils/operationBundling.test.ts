@@ -6,7 +6,7 @@ import {
   createBundledEdgeForSavedPoint,
   isPointSaved,
 } from './operationBundling';
-import { createEmptyGraph, addNode, addEdge } from './pointGraph';
+import { createEmptyGraph, addNode, addEdge } from './graphOperations';
 import type { ECPoint, Operation, SavedPoint } from '../types/ecc';
 
 describe('Operation Bundling', () => {

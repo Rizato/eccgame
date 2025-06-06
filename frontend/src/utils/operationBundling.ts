@@ -1,4 +1,4 @@
-import { pointToHash } from './pointGraph';
+import { pointToHash } from './graphOperations';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
 import type {
   Operation,

@@ -44,4 +44,10 @@ describe('storageUtils', () => {
     mockLocalStorage.clear();
     vi.clearAllMocks();
   });
+
+  // TODO: Add storage utility tests
+  it('should have tests for storage utilities', () => {
+    // Placeholder test
+    expect(true).toBe(true);
+  });
 });

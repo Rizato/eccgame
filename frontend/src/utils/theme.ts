@@ -1,16 +1,23 @@
-export type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark';
 
 const THEME_PREFIX = 'ecccryptoplayground_';
 const THEME_STORAGE_KEY = `${THEME_PREFIX}theme`;
 
 export const themeUtils = {
-  // Get the current theme from localStorage or default to 'system'
+  // Get the current theme from localStorage or default to system preference
   getStoredTheme: (): Theme => {
     try {
       const stored = localStorage.getItem(THEME_STORAGE_KEY);
-      return (stored as Theme) || 'system';
+      if (stored && (stored === 'light' || stored === 'dark')) {
+        return stored as Theme;
+      }
+      // If no theme stored, use system preference but store it as actual theme
+      const systemTheme = themeUtils.getSystemTheme();
+      themeUtils.setStoredTheme(systemTheme);
+      return systemTheme;
     } catch {
-      return 'system';
+      const systemTheme = themeUtils.getSystemTheme();
+      return systemTheme;
     }
   },
 
@@ -31,21 +38,12 @@ export const themeUtils = {
     return 'light';
   },
 
-  // Get the effective theme (resolve 'system' to actual theme)
-  getEffectiveTheme: (theme: Theme): 'light' | 'dark' => {
-    if (theme === 'system') {
-      return themeUtils.getSystemTheme();
-    }
-    return theme;
-  },
-
   // Apply theme to document
   applyTheme: (theme: Theme): void => {
-    const effectiveTheme = themeUtils.getEffectiveTheme(theme);
-    document.documentElement.setAttribute('data-theme', effectiveTheme);
+    document.documentElement.setAttribute('data-theme', theme);
 
     // Also set a class for backward compatibility
     document.documentElement.classList.remove('light-theme', 'dark-theme');
-    document.documentElement.classList.add(`${effectiveTheme}-theme`);
+    document.documentElement.classList.add(`${theme}-theme`);
   },
 };
