@@ -17,7 +17,7 @@ describe('VictoryModal', () => {
   it('should render victory modal when open', () => {
     render(<VictoryModal {...createDefaultProps()} />);
 
-    expect(screen.getByText('Private Key Found! 🎉')).toBeInTheDocument();
+    expect(screen.getByText('Private Key Found!')).toBeInTheDocument();
     expect(
       screen.getByText('Incredible! You successfully found the private key from the public key.')
     ).toBeInTheDocument();
@@ -47,7 +47,7 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), isPracticeMode: true };
     render(<VictoryModal {...props} />);
 
-    expect(screen.getByText('Practice Complete! 🎉')).toBeInTheDocument();
+    expect(screen.getByText('Practice Complete!')).toBeInTheDocument();
     expect(
       screen.getByText('Great work! You successfully solved the practice challenge.')
     ).toBeInTheDocument();
@@ -58,7 +58,7 @@ describe('VictoryModal', () => {
   it('should show challenge mode content when isPracticeMode is false', () => {
     render(<VictoryModal {...createDefaultProps()} />);
 
-    expect(screen.getByText('Private Key Found! 🎉')).toBeInTheDocument();
+    expect(screen.getByText('Private Key Found!')).toBeInTheDocument();
     expect(
       screen.getByText('Incredible! You successfully found the private key from the public key.')
     ).toBeInTheDocument();
@@ -111,10 +111,8 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), gaveUp: true };
     render(<VictoryModal {...props} />);
 
-    expect(screen.getByText('Challenge Complete! 🤷')).toBeInTheDocument();
-    expect(
-      screen.getByText('No worries! Even the experts take many attempts. Better luck next time!')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Gave Up.')).toBeInTheDocument();
+    expect(screen.getByText("Don't feel bad, this is literally impossible.")).toBeInTheDocument();
     expect(screen.queryByText('Private Key')).not.toBeInTheDocument();
   });
 
@@ -122,7 +120,7 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), gaveUp: false };
     render(<VictoryModal {...props} />);
 
-    expect(screen.getByText('Private Key Found! 🎉')).toBeInTheDocument();
+    expect(screen.getByText('Private Key Found!')).toBeInTheDocument();
     expect(screen.getByText('Private Key')).toBeInTheDocument();
   });
 });

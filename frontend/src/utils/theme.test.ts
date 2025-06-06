@@ -59,7 +59,7 @@ describe('themeUtils', () => {
 
   describe('getStoredTheme', () => {
     it('should return stored theme from localStorage', () => {
-      mockLocalStorage.setItem('eccryptoplaygroundtheme', 'dark');
+      mockLocalStorage.setItem('ecccryptoplayground_theme', 'dark');
 
       const theme = themeUtils.getStoredTheme();
 
@@ -86,7 +86,7 @@ describe('themeUtils', () => {
       const validThemes: Theme[] = ['light', 'dark', 'system'];
 
       validThemes.forEach(theme => {
-        mockLocalStorage.setItem('eccryptoplaygroundtheme', theme);
+        mockLocalStorage.setItem('ecccryptoplayground_theme', theme);
         expect(themeUtils.getStoredTheme()).toBe(theme);
       });
     });
@@ -96,7 +96,7 @@ describe('themeUtils', () => {
     it('should save theme to localStorage', () => {
       themeUtils.setStoredTheme('dark');
 
-      expect(mockLocalStorage.getItem('eccryptoplaygroundtheme')).toBe('dark');
+      expect(mockLocalStorage.getItem('ecccryptoplayground_theme')).toBe('dark');
     });
 
     it('should handle localStorage errors gracefully', () => {

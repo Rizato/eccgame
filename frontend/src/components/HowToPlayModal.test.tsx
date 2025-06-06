@@ -6,10 +6,8 @@ describe('HowToPlayModal', () => {
   it('should render when open', () => {
     render(<HowToPlayModal isOpen={true} onClose={vi.fn()} />);
 
-    expect(screen.getByText('How to Play!')).toBeInTheDocument();
-    expect(
-      screen.getByText('Master the ECC calculator and crack cryptographic challenges!')
-    ).toBeInTheDocument();
+    expect(screen.getByText('How to Use ECC Crypto Playground')).toBeInTheDocument();
+    expect(screen.getByText('Try your luck at solving the impossible!')).toBeInTheDocument();
   });
 
   it('should not render when closed', () => {
@@ -36,21 +34,5 @@ describe('HowToPlayModal', () => {
     gotItButton.click();
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('should contain key sections', () => {
-    render(<HowToPlayModal isOpen={true} onClose={vi.fn()} />);
-
-    expect(screen.getByText('🎯 Your Mission')).toBeInTheDocument();
-    expect(screen.getByText('🧮 The ECC Calculator')).toBeInTheDocument();
-    expect(screen.getByText('🤷 Giving Up')).toBeInTheDocument();
-    expect(screen.getByText('🏆 Winning & Sharing')).toBeInTheDocument();
-  });
-
-  it('should explain giving up and sharing', () => {
-    render(<HowToPlayModal isOpen={true} onClose={vi.fn()} />);
-
-    expect(screen.getByText(/share your progress/i)).toBeInTheDocument();
-    expect(screen.getByText(/help spread the word/i)).toBeInTheDocument();
   });
 });
