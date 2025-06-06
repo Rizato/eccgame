@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
+import Decimal from 'decimal.js';
 import { useAppSelector } from '../store/hooks';
-import { getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
+import { CURVE_P, getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
 import type { ECPoint } from '../types/ecc';
 import './ECCGraph.css';
 
@@ -32,7 +33,17 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
 
   // Map large coordinate values to screen percentage (0-100)
   const mapToScreenCoordinate = useCallback((coord: bigint) => {
-    return Number(coord % 90n) + 5; // Keep between 5-95% to avoid edges
+    // Use Decimal.js for precise arithmetic to avoid precision loss
+    const coordDecimal = new Decimal(coord.toString());
+    const curvePDecimal = new Decimal(CURVE_P.toString());
+
+    // Calculate percentage with high precision
+    const percent = coordDecimal.dividedBy(curvePDecimal);
+
+    // Convert to screen coordinate (5-95% to avoid edges)
+    const screenCoord = percent.times(90).plus(5);
+
+    return screenCoord.toNumber();
   }, []);
 
   // Calculate generator point screen coordinates

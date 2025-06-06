@@ -8,6 +8,7 @@ import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { calculateNodePrivateKey } from '../../utils/pointGraph';
 import { submitSolution } from '../../utils/submitSolution.ts';
 import { submitSaveIfDaily } from '../../utils/submitSaves';
+import { storageUtils } from '../../utils/storage';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
 interface DailyCalculatorState {
@@ -374,7 +375,7 @@ const dailyCalculatorSlice = createSlice({
       // Remove from saved points
       state.savedPoints = state.savedPoints.filter(point => point.id !== pointId);
     },
-    checkWinCondition: state => {
+    checkWinCondition: (state, action: PayloadAction<string | undefined>) => {
       // Win condition: there's a path from challenge to generator in the graph
       if (state.challengeNodeId && state.generatorNodeId) {
         const hasConnection = hasPath(state.graph, state.challengeNodeId, state.generatorNodeId);
@@ -393,11 +394,24 @@ const dailyCalculatorSlice = createSlice({
           state.hasWon = true;
           state.showVictoryModal = true;
           state.shouldSubmitSolution = true; // Trigger solution submission
+
+          // Mark address as won if provided
+          const challengeAddress = action.payload;
+          if (challengeAddress) {
+            storageUtils.markWonByAddress(challengeAddress);
+          }
         }
       }
     },
     clearShouldSubmitSolution: state => {
       state.shouldSubmitSolution = false;
+    },
+    initializeWinStateByAddress: (state, action: PayloadAction<string>) => {
+      const address = action.payload;
+      const hasWonBefore = storageUtils.hasWonByAddress(address);
+      state.hasWon = hasWonBefore;
+      // Don't show victory modal on initialization, only when actually winning
+      state.showVictoryModal = false;
     },
     addOperationToGraph: (
       state,
@@ -461,6 +475,7 @@ export const {
   unsaveSavedPoint,
   checkWinCondition,
   clearShouldSubmitSolution,
+  initializeWinStateByAddress,
   addOperationToGraph,
 } = dailyCalculatorSlice.actions;
 

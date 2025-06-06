@@ -22,6 +22,9 @@ import {
 } from '../store/slices/eccCalculatorSlice';
 import { recordGamePlayed, recordGameWon } from '../store/slices/statsSlice';
 import { clearSubmittedSaves } from '../utils/submitSaves';
+import { getP2PKHAddress } from '../utils/crypto';
+import { pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
+import { storageUtils } from '../utils/storage';
 import type { ECPoint, SavedPoint } from '../types/ecc';
 
 export function useDailyCalculatorRedux(challengePublicKey: string) {
@@ -45,21 +48,58 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
 
   // Check win condition when relevant state changes
   useEffect(() => {
-    dispatch(checkWinCondition());
-  }, [dailyState.selectedPoint, dispatch]);
+    const checkWinWithAddress = async () => {
+      try {
+        const challengePoint = publicKeyToPoint(challengePublicKey);
+        const pubKey = pointToPublicKey(challengePoint);
+        const address = await getP2PKHAddress(pubKey);
+        dispatch(checkWinCondition(address));
+      } catch {
+        dispatch(checkWinCondition(undefined));
+      }
+    };
+
+    checkWinWithAddress();
+  }, [dailyState.selectedPoint, challengePublicKey, dispatch]);
 
   // Track win stats when won (and not from giving up)
   useEffect(() => {
     if (dailyState.hasWon && !gameState.gaveUp && gameState.challenge) {
-      // Calculate total operations from graph
-      const totalOperations = Object.values(dailyState.graph.edges).reduce((total, edge) => {
-        return total + (edge.bundleCount ? Number(edge.bundleCount) : 1);
-      }, 0);
+      const trackStatsForWin = async () => {
+        try {
+          const challengePoint = publicKeyToPoint(challengePublicKey);
+          const pubKey = pointToPublicKey(challengePoint);
+          const address = await getP2PKHAddress(pubKey);
 
-      dispatch(recordGamePlayed({ mode: 'daily', challengeId: gameState.challenge.uuid }));
-      dispatch(recordGameWon({ operations: totalOperations, mode: 'daily' }));
+          // Only increment stats for first win on this address
+          const isFirstWin = storageUtils.isFirstWinForAddress(address);
+
+          // Always record game played
+          dispatch(recordGamePlayed({ mode: 'daily', challengeId: gameState.challenge!.uuid }));
+
+          // Only record win if this is the first time winning this address
+          if (isFirstWin) {
+            const totalOperations = Object.values(dailyState.graph.edges).reduce((total, edge) => {
+              return total + (edge.bundleCount ? Number(edge.bundleCount) : 1);
+            }, 0);
+
+            dispatch(recordGameWon({ operations: totalOperations, mode: 'daily' }));
+          }
+        } catch (error) {
+          console.warn('Failed to track win stats:', error);
+        }
+      };
+
+      trackStatsForWin();
     }
-  }, [dailyState.hasWon, gameState.gaveUp, gameState.challenge, dailyState.graph.edges, dispatch]);
+  }, [
+    dailyState.hasWon,
+    gameState.gaveUp,
+    gameState.challenge,
+    dailyState.graph.edges,
+    challengePublicKey,
+    dispatch,
+  ]);
 
   // Submit solution when shouldSubmitSolution is true (only for daily mode)
   useEffect(() => {

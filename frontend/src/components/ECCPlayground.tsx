@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react'
 import type { Challenge } from '../types/api';
 import { useDailyCalculatorRedux } from '../hooks/useDailyCalculatorRedux';
 import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux';
-import { useAppSelector } from '../store/hooks';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { initializeWinStateByAddress } from '../store/slices/eccCalculatorSlice';
 import { getP2PKHAddress } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
 import './ECCPlayground.css';
@@ -37,6 +38,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Get game state for give up functionality
   const gameState = useAppSelector(state => state.game);
+  const dispatch = useAppDispatch();
 
   // Select the appropriate calculator based on mode
   const calculator = isPracticeMode ? practiceCalculator : dailyCalculator;
@@ -89,13 +91,18 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         const pubKey = pointToPublicKey(challengePoint);
         const address = await getP2PKHAddress(pubKey);
         setChallengeAddress(address);
+
+        // Initialize win state based on address (only for daily mode)
+        if (!isPracticeMode) {
+          dispatch(initializeWinStateByAddress(address));
+        }
       } catch {
         setChallengeAddress('Invalid');
       }
     };
 
     calculateChallengeAddress();
-  }, [challenge.public_key]);
+  }, [challenge.public_key, isPracticeMode, dispatch]);
 
   // Save current point (wrapper around Redux action)
   const saveCurrentPoint = useCallback(

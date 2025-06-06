@@ -2,6 +2,7 @@ import type { GameStats } from '../store/slices/statsSlice';
 
 const STORAGE_PREFIX = 'ecccryptoplayground_';
 const DAILY_WINS_KEY = `${STORAGE_PREFIX}daily_wins`;
+const ADDRESS_WINS_KEY = `${STORAGE_PREFIX}address_wins`;
 const FIRST_VISIT_KEY = `${STORAGE_PREFIX}first_visit_complete`;
 const GAME_STATS_KEY = `${STORAGE_PREFIX}game_stats`;
 
@@ -30,6 +31,39 @@ export const storageUtils = {
       console.warn('Failed to check daily win status:', error);
       return false;
     }
+  },
+
+  // Address-based win tracking (persistent across refreshes)
+  markWonByAddress: (address: string): void => {
+    try {
+      const stored = localStorage.getItem(ADDRESS_WINS_KEY);
+      const addressWins = stored ? JSON.parse(stored) : {};
+
+      const today = new Date().toDateString();
+      addressWins[address] = { date: today, timestamp: Date.now() };
+
+      localStorage.setItem(ADDRESS_WINS_KEY, JSON.stringify(addressWins));
+    } catch (error) {
+      console.warn('Failed to mark address win:', error);
+    }
+  },
+
+  hasWonByAddress: (address: string): boolean => {
+    try {
+      const stored = localStorage.getItem(ADDRESS_WINS_KEY);
+      if (!stored) return false;
+
+      const addressWins = JSON.parse(stored);
+      return !!addressWins[address];
+    } catch (error) {
+      console.warn('Failed to check address win status:', error);
+      return false;
+    }
+  },
+
+  // Check if this is the first win for an address (for stats counting)
+  isFirstWinForAddress: (address: string): boolean => {
+    return !storageUtils.hasWonByAddress(address);
   },
 
   // First visit tracking
