@@ -23,7 +23,6 @@
 }
 
 .header-content {
-  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -109,7 +108,7 @@
 .mode-controls {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: var(--spacing-sm);
 }
 
 .mode-selector {

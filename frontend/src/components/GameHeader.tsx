@@ -48,16 +48,16 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
               >
                 <div className="stats-icon">
                   <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                   >
-                    <rect x="3" y="13" width="2" height="6" />
-                    <rect x="9" y="8" width="2" height="12" />
-                    <rect x="15" y="3" width="2" height="18" />
+                    <rect x="2" y="12" width="1" height="2" />
+                    <rect x="7" y="7" width="1" height="7" />
+                    <rect x="12" y="2" width="1" height="12" />
                   </svg>
                 </div>
               </button>

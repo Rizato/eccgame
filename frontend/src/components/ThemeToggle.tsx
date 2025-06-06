@@ -17,7 +17,7 @@ const ThemeToggle: React.FC = () => {
   };
 
   const getThemeIcon = () => {
-    return theme === 'light' ? '🌙' : '☀️'; // Show moon when light (to switch to dark), sun when dark (to switch to light)
+    return theme === 'light' ? '☀' : '🌘︎'; // Show moon when dark, sun when light
   };
 
   return (
