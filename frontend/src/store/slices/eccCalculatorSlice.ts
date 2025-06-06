@@ -265,6 +265,7 @@ const dailyCalculatorSlice = createSlice({
       state.challengeNodeId = challengeNode.id;
 
       // Don't clear saved points when switching to challenge
+      cleanupDanglingNodes(state.graph, state.savedPoints);
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -287,6 +288,7 @@ const dailyCalculatorSlice = createSlice({
       state.generatorNodeId = generatorNode.id;
 
       // Don't clear saved points when switching to generator
+      cleanupDanglingNodes(state.graph, state.savedPoints);
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -325,14 +327,8 @@ const dailyCalculatorSlice = createSlice({
 
       // Create bundled edge for the saved point path (only if currentNode exists)
       if (currentNode) {
-        console.log('🔗 Adding bundled edge for saved point');
         addBundledEdgeForNewSave(state.graph, currentNode.id, state.savedPoints);
-        logGraph(state.graph, 'After Bundling');
-        // Clean up dangling nodes and edges when saving a point
-        console.log('🧹 Cleaning up dangling nodes');
         cleanupDanglingNodes(state.graph, state.savedPoints);
-        console.log('After saving and cleanup:');
-        logGraph(state.graph, 'After Saving and Cleanup');
       }
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
@@ -360,6 +356,9 @@ const dailyCalculatorSlice = createSlice({
           node.privateKey = calculatedKey;
         }
       }
+
+      // Clean up dangling nodes and edges when loading a point
+      cleanupDanglingNodes(state.graph, state.savedPoints);
 
       state.error = null;
       state.calculatorDisplay = '';

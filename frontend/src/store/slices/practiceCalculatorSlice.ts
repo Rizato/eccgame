@@ -194,6 +194,7 @@ const practiceCalculatorSlice = createSlice({
       state.challengeNodeId = challengeNode.id;
 
       // Don't clear saved points when switching to challenge
+      cleanupDanglingNodes(state.graph, state.savedPoints);
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -217,6 +218,7 @@ const practiceCalculatorSlice = createSlice({
       state.generatorNodeId = generatorNode.id;
 
       // Don't clear saved points when switching to generator
+      cleanupDanglingNodes(state.graph, state.savedPoints);
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -269,9 +271,7 @@ const practiceCalculatorSlice = createSlice({
         console.log('🔗 Adding bundled edge for saved point');
         addBundledEdgeForNewSave(state.graph, currentNode.id, state.savedPoints);
         // Clean up dangling nodes and edges when saving a point
-        console.log('🧹 Cleaning up dangling nodes');
         cleanupDanglingNodes(state.graph, state.savedPoints);
-        console.log('After saving and cleanup:');
         logGraph(state.graph, 'After Saving and Cleanup');
       }
     },
@@ -293,6 +293,9 @@ const practiceCalculatorSlice = createSlice({
           node.privateKey = calculatedKey;
         }
       }
+
+      // Clean up dangling nodes and edges when loading a point
+      cleanupDanglingNodes(state.graph, state.savedPoints);
 
       state.error = null;
       state.calculatorDisplay = '';

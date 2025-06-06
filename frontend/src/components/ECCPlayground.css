@@ -805,9 +805,9 @@
   cursor: pointer;
 }
 
-.ecc-point.target {
-  animation: pulse 2s infinite;
-}
+/*.ecc-point.target {*/
+/*  animation: pulse 2s infinite;*/
+/*}*/
 
 @keyframes pulse {
   0%,
