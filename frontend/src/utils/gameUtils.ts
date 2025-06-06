@@ -4,7 +4,6 @@
  * This module contains utilities for game features like sharing
  * and debugging functionality.
  */
-import type { PointGraph, SavedPoint } from '../types/ecc';
 
 /**
  * Utility for generating share messages for ECC Crypto Playground results
