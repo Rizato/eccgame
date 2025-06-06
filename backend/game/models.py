@@ -83,13 +83,13 @@ class Solution(models.Model):
         )
         updates = ["result", "is_key_valid"]
         try:
-            guess = VerifyingKey.from_string(
+            solution = VerifyingKey.from_string(
                 bytearray.fromhex(self.public_key), curve=SECP256k1, validate_point=True
             )
             self.is_key_valid = True
-            if challenge.pubkey == guess.pubkey:
+            if challenge.pubkey == solution.pubkey:
                 self.result = "correct"
-            elif challenge.pubkey.point.x() == guess.pubkey.point.x():
+            elif challenge.pubkey.point.x() == solution.pubkey.point.x():
                 self.result = "negated"
             else:
                 self.result = "incorrect"

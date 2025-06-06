@@ -1,8 +1,8 @@
 import pytest
 from ecdsa import SECP256k1, SigningKey
 
-from game.models import Challenge, Metadata, Save
-from game.serializers import ChallengeSerializer, GuessSerializer, SaveSerializer
+from game.models import Challenge, Metadata, Save, Solution
+from game.serializers import ChallengeSerializer, SaveSerializer, SolutionSerializer
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def test_challenge_serialization(challenge_with_metadata, rf):
 
 
 @pytest.fixture
-def guess_serializer_data():
+def solution_serializer_data():
     challenge = Challenge.objects.create(
         p2pkh_address="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
         public_key="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
@@ -56,51 +56,51 @@ def guess_serializer_data():
 
 
 @pytest.mark.django_db
-def test_valid_guess_data(guess_serializer_data):
+def test_valid_solution_data(solution_serializer_data):
     data = {
-        "public_key": guess_serializer_data["public_key_hex"],
-        "signature": guess_serializer_data["signature"],
+        "public_key": solution_serializer_data["public_key_hex"],
+        "signature": solution_serializer_data["signature"],
     }
-    serializer = GuessSerializer(data=data)
+    serializer = SolutionSerializer(data=data)
     # Test that the data validates the basic structure
     assert serializer.is_valid()
 
 
 @pytest.mark.django_db
-def test_validate_key_method(guess_serializer_data):
+def test_validate_key_method(solution_serializer_data):
     # Test the validate_key method directly
-    serializer = GuessSerializer()
+    serializer = SolutionSerializer()
     # Valid key should not raise exception
-    result = serializer.validate_key(guess_serializer_data["public_key_hex"])
-    assert result == guess_serializer_data["public_key_hex"]
+    result = serializer.validate_key(solution_serializer_data["public_key_hex"])
+    assert result == solution_serializer_data["public_key_hex"]
 
 
 @pytest.mark.django_db
 def test_invalid_public_key_validation():
-    serializer = GuessSerializer()
+    serializer = SolutionSerializer()
     # Invalid key should raise ValidationError
     with pytest.raises(Exception):
         serializer.validate_key("invalid_key")
 
 
 @pytest.mark.django_db
-def test_invalid_signature_length(guess_serializer_data):
+def test_invalid_signature_length(solution_serializer_data):
     data = {
-        "public_key": guess_serializer_data["public_key_hex"],
+        "public_key": solution_serializer_data["public_key_hex"],
         "signature": "short",
     }
-    serializer = GuessSerializer(data=data)
+    serializer = SolutionSerializer(data=data)
     assert not serializer.is_valid()
     assert "signature" in serializer.errors
 
 
 @pytest.mark.django_db
-def test_invalid_signature_hex(guess_serializer_data):
+def test_invalid_signature_hex(solution_serializer_data):
     data = {
-        "public_key": guess_serializer_data["public_key_hex"],
+        "public_key": solution_serializer_data["public_key_hex"],
         "signature": "g" * 128,  # Invalid hex characters
     }
-    serializer = GuessSerializer(data=data)
+    serializer = SolutionSerializer(data=data)
     assert not serializer.is_valid()
     assert "signature" in serializer.errors
 

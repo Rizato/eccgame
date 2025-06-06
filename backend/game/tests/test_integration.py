@@ -30,19 +30,19 @@ def test_complete_game_flow(integration_challenge):
     assert response.status_code == status.HTTP_200_OK
     challenge_uuid = response.json()["uuid"]
 
-    # 2. Submit a guess
+    # 2. Submit a solution
     signing_key = SigningKey.generate(curve=SECP256k1)
     public_key = signing_key.verifying_key.to_string("compressed").hex()
     message = bytearray.fromhex(public_key) + uuid.UUID(challenge_uuid).bytes
     signature = signing_key.sign(message).hex()
 
-    guess_data = {
+    solution_data = {
         "public_key": public_key,
         "signature": signature,
     }
 
     response = api_client.post(
-        f"/api/challenges/{challenge_uuid}/solution/", guess_data, format="json"
+        f"/api/challenges/{challenge_uuid}/solution/", solution_data, format="json"
     )
     assert response.status_code == status.HTTP_201_CREATED
 

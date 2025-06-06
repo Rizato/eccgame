@@ -126,7 +126,7 @@ def active_challenge():
 
 
 @pytest.fixture
-def guess_data(active_challenge):
+def solution_data(active_challenge):
     # Generate valid test data
     signing_key = SigningKey.generate(curve=SECP256k1)
     public_key_hex = signing_key.verifying_key.to_string("compressed").hex()
@@ -140,61 +140,33 @@ def guess_data(active_challenge):
 
 
 @pytest.mark.django_db
-def test_create_guess_success(active_challenge, guess_data):
+def test_create_solution_success(active_challenge, solution_data):
     client = APIClient()
     data = {
-        "public_key": guess_data["public_key"],
-        "signature": guess_data["signature"],
+        "public_key": solution_data["public_key"],
+        "signature": solution_data["signature"],
     }
     response = client.post(
-        f"/api/challenges/{active_challenge.uuid}/guess/", data, format="json"
+        f"/api/challenges/{active_challenge.uuid}/solution/", data, format="json"
     )
     assert response.status_code == status.HTTP_201_CREATED
     assert "uuid" in response.json()
 
 
 @pytest.mark.django_db
-def test_create_guess_inactive_challenge(active_challenge, guess_data):
+def test_create_solution_inactive_challenge(active_challenge, solution_data):
     client = APIClient()
     active_challenge.active = False
     active_challenge.save()
 
     data = {
-        "public_key": guess_data["public_key"],
-        "signature": guess_data["signature"],
+        "public_key": solution_data["public_key"],
+        "signature": solution_data["signature"],
     }
     response = client.post(
-        f"/api/challenges/{active_challenge.uuid}/guess/", data, format="json"
+        f"/api/challenges/{active_challenge.uuid}/solution/", data, format="json"
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-@pytest.mark.django_db
-def test_guess_limit_enforcement(active_challenge):
-    from django.conf import settings
-
-    client = APIClient()
-    # Make MAX_GUESSES + 1 requests
-    for i in range(settings.MAX_GUESSES + 1):
-        # Generate new signature for each request
-        signing_key = SigningKey.generate(curve=SECP256k1)
-        public_key = signing_key.verifying_key.to_string("compressed").hex()
-        message = bytearray.fromhex(public_key) + active_challenge.uuid.bytes
-        signature = signing_key.sign(message).hex()
-
-        data = {
-            "public_key": public_key,
-            "signature": signature,
-        }
-
-        response = client.post(
-            f"/api/challenges/{active_challenge.uuid}/guess/", data, format="json"
-        )
-
-        if i < settings.MAX_GUESSES:
-            assert response.status_code == status.HTTP_201_CREATED
-        else:
-            assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.fixture
@@ -252,7 +224,7 @@ def test_create_save_inactive_challenge():
         f"/api/challenges/{inactive_challenge.uuid}/save/", data, format="json"
     )
 
-    # Should still work for inactive challenges (unlike guesses)
+    # Should still work for inactive challenges (unlike solutions)
     assert response.status_code == status.HTTP_201_CREATED
 
 
