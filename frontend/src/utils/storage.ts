@@ -3,6 +3,7 @@ import type { GameStats } from '../store/slices/statsSlice';
 const STORAGE_PREFIX = 'ecccryptoplayground_';
 const DAILY_WINS_KEY = `${STORAGE_PREFIX}daily_wins`;
 const ADDRESS_WINS_KEY = `${STORAGE_PREFIX}address_wins`;
+const GAMES_STARTED_KEY = `${STORAGE_PREFIX}games_started`;
 const FIRST_VISIT_KEY = `${STORAGE_PREFIX}first_visit_complete`;
 const GAME_STATS_KEY = `${STORAGE_PREFIX}game_stats`;
 
@@ -64,6 +65,34 @@ export const storageUtils = {
   // Check if this is the first win for an address (for stats counting)
   isFirstWinForAddress: (address: string): boolean => {
     return !storageUtils.hasWonByAddress(address);
+  },
+
+  // Game started tracking (to count games played on first operation)
+  markGameStarted: (challengeUuid: string): void => {
+    try {
+      const stored = localStorage.getItem(GAMES_STARTED_KEY);
+      const gamesStarted = stored ? JSON.parse(stored) : {};
+
+      const today = new Date().toDateString();
+      gamesStarted[challengeUuid] = { date: today, timestamp: Date.now() };
+
+      localStorage.setItem(GAMES_STARTED_KEY, JSON.stringify(gamesStarted));
+    } catch (error) {
+      console.warn('Failed to mark game started:', error);
+    }
+  },
+
+  hasGameStarted: (challengeUuid: string): boolean => {
+    try {
+      const stored = localStorage.getItem(GAMES_STARTED_KEY);
+      if (!stored) return false;
+
+      const gamesStarted = JSON.parse(stored);
+      return !!gamesStarted[challengeUuid];
+    } catch (error) {
+      console.warn('Failed to check game started status:', error);
+      return false;
+    }
   },
 
   // First visit tracking

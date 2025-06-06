@@ -62,6 +62,20 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
     checkWinWithAddress();
   }, [dailyState.selectedPoint, challengePublicKey, dispatch]);
 
+  // Track game as played when first operation is performed
+  useEffect(() => {
+    if (gameState.challenge && Object.keys(dailyState.graph.edges).length > 0) {
+      const challengeUuid = gameState.challenge.uuid;
+
+      // Only mark game played once per challenge
+      if (!storageUtils.hasGameStarted(challengeUuid)) {
+        storageUtils.markGameStarted(challengeUuid);
+        dispatch(recordGamePlayed({ mode: 'daily', challengeId: challengeUuid }));
+        console.log('🎮 Game marked as played on first operation for challenge:', challengeUuid);
+      }
+    }
+  }, [dailyState.graph.edges, gameState.challenge, dispatch]);
+
   // Track win stats when won (and not from giving up)
   useEffect(() => {
     if (dailyState.hasWon && !gameState.gaveUp && gameState.challenge) {
@@ -73,9 +87,6 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
 
           // Only increment stats for first win on this address
           const isFirstWin = storageUtils.isFirstWinForAddress(address);
-
-          // Always record game played
-          dispatch(recordGamePlayed({ mode: 'daily', challengeId: gameState.challenge!.uuid }));
 
           // Only record win if this is the first time winning this address
           if (isFirstWin) {
