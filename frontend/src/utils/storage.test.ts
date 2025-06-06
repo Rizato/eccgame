@@ -1,5 +1,5 @@
 import { beforeEach, describe, vi } from 'vitest';
-import type { GuessResponse } from '../types/api';
+import type { SolutionResponse } from '../types/api';
 
 // Mock localStorage
 const mockLocalStorage = (() => {
@@ -24,8 +24,8 @@ Object.defineProperty(window, 'localStorage', {
   value: mockLocalStorage,
 });
 
-const mockGuess: GuessResponse = {
-  uuid: 'guess-123',
+const mockSolution: SolutionResponse = {
+  uuid: 'solution-123',
   public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   signature:
     '304402207fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a002201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',

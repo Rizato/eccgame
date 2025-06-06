@@ -15,8 +15,8 @@
 import axios from 'axios';
 import type {
   Challenge,
-  GuessRequest,
-  GuessResponse,
+  SolutionRequest,
+  SolutionResponse,
   SaveRequest,
   SaveResponse,
 } from '../types/api';
@@ -167,12 +167,15 @@ export const challengeApi = {
     return data;
   },
 
-  // Submit a guess for a challenge
+  // Submit a solution for a challenge
   // TRANSPARENCY: This only sends public_key and signature - NO private key data
-  submitGuess: async (challengeUuid: string, guess: GuessRequest): Promise<GuessResponse> => {
+  submitSolution: async (
+    challengeUuid: string,
+    solution: SolutionRequest
+  ): Promise<SolutionResponse> => {
     /*
      * PRIVACY VERIFICATION:
-     * The 'guess' object only contains:
+     * The 'solution' object only contains:
      * - public_key: string (derived from private key, safe to transmit)
      * - signature: string (cryptographic proof, safe to transmit)
      *
@@ -181,7 +184,7 @@ export const challengeApi = {
 
     // Rate limit POST requests but don't cache them
     return rateLimitedRequest(async () => {
-      const response = await api.post(`/api/challenges/${challengeUuid}/guess/`, guess);
+      const response = await api.post(`/api/challenges/${challengeUuid}/solution/`, solution);
       return response.data;
     });
   },

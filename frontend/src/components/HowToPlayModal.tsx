@@ -132,8 +132,8 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
               </li>
             </ul>
             <p>
-              <strong>Share your wins!</strong> Help spread the word about Crypto Guesser and
-              challenge your friends to beat your operation count.
+              <strong>Share your wins!</strong> Help spread the word about ECC Crypto Playground and
+              challenge your friends to solve it in fewer steps.
             </p>
           </section>
 

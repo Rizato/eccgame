@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getGeneratorPoint } from './ecc';
 import { createEmptyGraph, addNode } from './pointGraph';
-import { submitChallengePointAsGuess } from './submitGuess.ts';
+import { submitChallengePointAsSolution } from './submitSolution.ts';
 
 // Mock the API and crypto functions
 vi.mock('../services/api', () => ({
   challengeApi: {
-    submitGuess: vi.fn(),
+    submitSolution: vi.fn(),
   },
 }));
 
@@ -18,15 +18,15 @@ vi.mock('./pointPrivateKey', () => ({
   calculatePrivateKeyFromGraph: vi.fn(),
 }));
 
-describe('submitGuess', () => {
+describe('submitSolution', () => {
   const mockGeneratorPoint = getGeneratorPoint();
   const mockChallengeUuid = '550e8400-e29b-41d4-a716-446655440000';
 
-  describe('submitChallengePointAsGuess', () => {
+  describe('submitChallengePointAsSolution', () => {
     it('should return null if challenge node not found', async () => {
       const graph = createEmptyGraph();
 
-      const result = await submitChallengePointAsGuess(
+      const result = await submitChallengePointAsSolution(
         mockChallengeUuid,
         graph,
         'nonexistent_node'
@@ -37,7 +37,7 @@ describe('submitGuess', () => {
 
     it('should submit challenge point when private key can be calculated', async () => {
       const { challengeApi } = await import('../services/api');
-      const { generateGuessFromPrivateKey } = await import('./crypto');
+      const { generateSolutionFromPrivateKey } = await import('./crypto');
       const { calculatePrivateKeyFromGraph } = await import('./pointPrivateKey');
 
       const graph = createEmptyGraph();
@@ -46,21 +46,25 @@ describe('submitGuess', () => {
         label: 'Challenge Point',
       });
 
-      const mockGuess = { public_key: 'test_public_key', signature: 'test_signature' };
-      const mockResponse = { uuid: 'guess_uuid', result: 'correct' };
+      const mockSolution = { public_key: 'test_public_key', signature: 'test_signature' };
+      const mockResponse = { uuid: 'solution_uuid', result: 'correct' };
 
       vi.mocked(calculatePrivateKeyFromGraph).mockReturnValue(123n);
-      vi.mocked(generateGuessFromPrivateKey).mockResolvedValue(mockGuess);
-      vi.mocked(challengeApi.submitGuess).mockResolvedValue(mockResponse as any);
+      vi.mocked(generateSolutionFromPrivateKey).mockResolvedValue(mockSolution);
+      vi.mocked(challengeApi.submitSolution).mockResolvedValue(mockResponse as any);
 
-      const result = await submitChallengePointAsGuess(mockChallengeUuid, graph, challengeNode.id);
+      const result = await submitChallengePointAsSolution(
+        mockChallengeUuid,
+        graph,
+        challengeNode.id
+      );
 
       expect(calculatePrivateKeyFromGraph).toHaveBeenCalledWith(mockGeneratorPoint, graph);
-      expect(generateGuessFromPrivateKey).toHaveBeenCalledWith(
+      expect(generateSolutionFromPrivateKey).toHaveBeenCalledWith(
         '0x000000000000000000000000000000000000000000000000000000000000007b',
         mockChallengeUuid
       );
-      expect(challengeApi.submitGuess).toHaveBeenCalledWith(mockChallengeUuid, mockGuess);
+      expect(challengeApi.submitSolution).toHaveBeenCalledWith(mockChallengeUuid, mockSolution);
       expect(result).toEqual(mockResponse);
     });
   });

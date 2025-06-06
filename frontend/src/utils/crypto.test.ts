@@ -3,7 +3,7 @@ import {
   base58CheckEncode,
   bytesToHex,
   createSignature,
-  generateGuessFromPrivateKey,
+  generateSolutionFromPrivateKey,
   getP2PKHAddress,
   getPublicKeyFromPrivate,
   hexToBytes,
@@ -95,37 +95,37 @@ describe('crypto utilities', () => {
     });
   });
 
-  describe('generateGuessFromPrivateKey', () => {
-    it('should generate guess object with public key and signature', async () => {
+  describe('generateSolutionFromPrivateKey', () => {
+    it('should generate solution object with public key and signature', async () => {
       const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
       const challengeUuid = '550e8400-e29b-41d4-a716-446655440000';
 
-      const guess = await generateGuessFromPrivateKey(privateKey, challengeUuid);
+      const solution = await generateSolutionFromPrivateKey(privateKey, challengeUuid);
 
-      expect(guess).toHaveProperty('public_key');
-      expect(guess).toHaveProperty('signature');
-      expect(guess.public_key).toHaveLength(66);
-      expect(guess.signature).toHaveLength(128);
+      expect(solution).toHaveProperty('public_key');
+      expect(solution).toHaveProperty('signature');
+      expect(solution.public_key).toHaveLength(66);
+      expect(solution.signature).toHaveLength(128);
     });
 
     it('should throw error for invalid private key', async () => {
       const invalidPrivateKey = 'invalid';
       const challengeUuid = '550e8400-e29b-41d4-a716-446655440000';
 
-      await expect(generateGuessFromPrivateKey(invalidPrivateKey, challengeUuid)).rejects.toThrow(
-        'Invalid private key format or value'
-      );
+      await expect(
+        generateSolutionFromPrivateKey(invalidPrivateKey, challengeUuid)
+      ).rejects.toThrow('Invalid private key format or value');
     });
 
     it('should generate consistent results for same inputs', async () => {
       const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
       const challengeUuid = '550e8400-e29b-41d4-a716-446655440000';
 
-      const guess1 = await generateGuessFromPrivateKey(privateKey, challengeUuid);
-      const guess2 = await generateGuessFromPrivateKey(privateKey, challengeUuid);
+      const solution1 = await generateSolutionFromPrivateKey(privateKey, challengeUuid);
+      const solution2 = await generateSolutionFromPrivateKey(privateKey, challengeUuid);
 
-      expect(guess1.public_key).toBe(guess2.public_key);
-      expect(guess1.signature).toBe(guess2.signature);
+      expect(solution1.public_key).toBe(solution2.public_key);
+      expect(solution1.signature).toBe(solution2.signature);
     });
   });
 

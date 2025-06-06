@@ -14,7 +14,7 @@ export interface Metadata {
   name: string;
 }
 
-export interface Guess {
+export interface Solution {
   uuid: string;
   public_key: string;
   signature: string;
@@ -25,12 +25,12 @@ export interface Guess {
   created_at: string;
 }
 
-export interface GuessRequest {
+export interface SolutionRequest {
   public_key: string;
   signature: string;
 }
 
-export interface GuessResponse extends Guess {
+export interface SolutionResponse extends Solution {
   challenge: string; // UUID
 }
 

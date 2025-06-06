@@ -1,8 +1,8 @@
 from django.contrib import admin
 
-from game.models import Challenge, Guess, Save
+from game.models import Challenge, Save, Solution
 
 # Register your models here.
 admin.site.register(Challenge)
-admin.site.register(Guess)
+admin.site.register(Solution)
 admin.site.register(Save)

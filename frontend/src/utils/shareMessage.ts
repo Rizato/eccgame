@@ -1,5 +1,5 @@
 /**
- * Utility for generating share messages for Crypto Guesser results
+ * Utility for generating share messages for ECC Crypto Playground results
  */
 
 interface ShareMessageOptions {
@@ -80,7 +80,7 @@ export async function shareMessage(
     // Try native share API first (mobile devices)
     if (navigator.share) {
       await navigator.share({
-        title: 'Crypto Guesser Result',
+        title: 'ECC Crypto Playground Result',
         text: text,
       });
       return { success: true, method: 'share' };

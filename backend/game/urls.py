@@ -1,7 +1,12 @@
 from django.urls import include, path
 from rest_framework_nested import routers
 
-from game.views import ChallengeViewSet, DailyChallengeView, GuessViewSet, SaveViewSet
+from game.views import (
+    ChallengeViewSet,
+    DailyChallengeView,
+    SaveViewSet,
+    SolutionViewSet,
+)
 
 router = routers.SimpleRouter()
 router.register(r"challenges", ChallengeViewSet)
@@ -9,7 +14,7 @@ router.register(r"challenges", ChallengeViewSet)
 challenges_router = routers.NestedSimpleRouter(
     router, r"challenges", lookup="challenge"
 )
-challenges_router.register(r"guess", GuessViewSet, basename="challenge-guesses")
+challenges_router.register(r"solution", SolutionViewSet, basename="challenge-solutions")
 challenges_router.register(r"save", SaveViewSet, basename="challenge-saves")
 
 

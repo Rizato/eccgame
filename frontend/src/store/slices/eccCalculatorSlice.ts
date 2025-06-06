@@ -6,7 +6,7 @@ import { ensureOperationInGraph } from '../../utils/ensureOperationInGraph';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
 import { createEmptyGraph, addNode, hasPath } from '../../utils/pointGraph';
 import { calculateNodePrivateKey } from '../../utils/pointGraph';
-import { submitGuess } from '../../utils/submitGuess.ts';
+import { submitSolution } from '../../utils/submitSolution.ts';
 import { submitSaveIfDaily } from '../../utils/submitSaves';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
@@ -25,7 +25,7 @@ interface DailyCalculatorState {
   showVictoryModal: boolean;
   savedPoints: SavedPoint[];
   challengePublicKey: string;
-  shouldSubmitGuess: boolean;
+  shouldSubmitSolution: boolean;
 }
 
 const generatorPoint = getGeneratorPoint();
@@ -59,7 +59,7 @@ const initialState: DailyCalculatorState = {
   showVictoryModal: false,
   savedPoints: [],
   challengePublicKey: '',
-  shouldSubmitGuess: false,
+  shouldSubmitSolution: false,
 };
 
 export const calculateDailyCurrentAddress = createAsyncThunk(
@@ -79,8 +79,8 @@ export const calculateDailyCurrentAddress = createAsyncThunk(
   }
 );
 
-export const submitDailyGameGuess = createAsyncThunk(
-  'dailyCalculator/submitDailyGameGuess',
+export const submitDailySolution = createAsyncThunk(
+  'dailyCalculator/submitDailyGameSolution',
   async (_arg: void, { getState }) => {
     const state = getState() as {
       dailyCalculator: DailyCalculatorState;
@@ -91,17 +91,17 @@ export const submitDailyGameGuess = createAsyncThunk(
     const challengeUuid = state.game.challenge?.uuid;
 
     if (!challengeUuid || !challengeNodeId) {
-      console.warn('Cannot submit guess - missing challenge UUID or node ID');
+      console.warn('Cannot submit solution - missing challenge UUID or node ID');
       return null;
     }
 
     try {
-      const results = await submitGuess(graph, challengeUuid, challengeNodeId);
+      const results = await submitSolution(graph, challengeUuid, challengeNodeId);
 
-      console.log('Successfully submitted daily game guess:', results);
+      console.log('Successfully submitted daily game solution:', results);
       return results;
     } catch (error) {
-      console.error('Failed to submit daily game guess:', error);
+      console.error('Failed to submit daily game solution:', error);
       // Don't reject - we don't want to prevent the victory modal from showing
       return null;
     }
@@ -392,12 +392,12 @@ const dailyCalculatorSlice = createSlice({
 
           state.hasWon = true;
           state.showVictoryModal = true;
-          state.shouldSubmitGuess = true; // Trigger guess submission
+          state.shouldSubmitSolution = true; // Trigger solution submission
         }
       }
     },
-    clearShouldSubmitGuess: state => {
-      state.shouldSubmitGuess = false;
+    clearShouldSubmitSolution: state => {
+      state.shouldSubmitSolution = false;
     },
     addOperationToGraph: (
       state,
@@ -460,7 +460,7 @@ export const {
   loadSavedPoint,
   unsaveSavedPoint,
   checkWinCondition,
-  clearShouldSubmitGuess,
+  clearShouldSubmitSolution,
   addOperationToGraph,
 } = dailyCalculatorSlice.actions;
 

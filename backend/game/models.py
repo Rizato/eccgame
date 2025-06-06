@@ -51,9 +51,9 @@ class Metadata(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class Guess(models.Model):
+class Solution(models.Model):
     """
-    Represents a guess for a particular challenge
+    Represents a solution attempt for a particular challenge
     """
 
     class ResultChoices(models.TextChoices):
@@ -66,7 +66,7 @@ class Guess(models.Model):
     public_key = models.CharField(max_length=66)
     # Checks if the key is even a point on the ecc curve
     challenge = models.ForeignKey(
-        Challenge, on_delete=models.CASCADE, related_name="challenge"
+        Challenge, on_delete=models.CASCADE, related_name="solutions"
     )
     result = models.CharField(choices=ResultChoices, null=True, blank=True)
     signature = models.CharField(max_length=128)  # raw hex signature

@@ -14,6 +14,7 @@
     "cleanup": "npm run lint:fix && npm run format",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "preview": "vite preview"
   },
   "dependencies": {

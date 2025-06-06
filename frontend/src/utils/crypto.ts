@@ -11,7 +11,7 @@
  * - Uses industry-standard secp256k1 elliptic curve cryptography
  *
  * PRIVACY GUARANTEE:
- * - generateGuessFromPrivateKey() only returns public key + signature
+ * - generateSolutionFromPrivateKey() only returns public key + signature
  * - No private key data is included in the return value
  * - All intermediate calculations are local to this browser session
  *
@@ -308,7 +308,7 @@ export async function createSignature(
  * NEVER includes it in the return value. Only the derived public key
  * and cryptographic signature are returned for transmission.
  */
-export async function generateGuessFromPrivateKey(privateKeyHex: string, challengeUuid: string) {
+export async function generateSolutionFromPrivateKey(privateKeyHex: string, challengeUuid: string) {
   if (!isValidPrivateKey(privateKeyHex)) {
     throw new Error('Invalid private key format or value');
   }

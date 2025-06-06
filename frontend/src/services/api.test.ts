@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Challenge, GuessRequest, GuessResponse } from '../types/api';
+import type { Challenge, SolutionRequest, SolutionResponse } from '../types/api';
 
 // Mock axios
 vi.mock('axios');
@@ -28,14 +28,14 @@ const mockChallenge: Challenge = {
   created_at: '2023-01-01T00:00:00Z',
 };
 
-const mockGuessRequest: GuessRequest = {
+const mockSolutionRequest: SolutionRequest = {
   public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   signature:
     '304402207fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a002201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
 };
 
-const mockGuessResponse: GuessResponse = {
-  uuid: 'guess-123',
+const mockSolutionResponse: SolutionResponse = {
+  uuid: 'solution-123',
   public_key: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
   signature:
     '304402207fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a002201234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
@@ -230,17 +230,17 @@ describe('api service', () => {
     });
   });
 
-  describe('challengeApi.submitGuess', () => {
-    it('should submit guess successfully', async () => {
-      mockApi.post.mockResolvedValue({ data: mockGuessResponse });
+  describe('challengeApi.submitSolution', () => {
+    it('should submit solution successfully', async () => {
+      mockApi.post.mockResolvedValue({ data: mockSolutionResponse });
 
-      const result = await challengeApi.submitGuess('challenge-123', mockGuessRequest);
+      const result = await challengeApi.submitSolution('challenge-123', mockSolutionRequest);
 
       expect(mockApi.post).toHaveBeenCalledWith(
-        '/api/challenges/challenge-123/guess/',
-        mockGuessRequest
+        '/api/challenges/challenge-123/solution/',
+        mockSolutionRequest
       );
-      expect(result).toEqual(mockGuessResponse);
+      expect(result).toEqual(mockSolutionResponse);
     });
 
     it('should handle validation errors', async () => {
@@ -255,9 +255,9 @@ describe('api service', () => {
       };
       mockApi.post.mockRejectedValue(error);
 
-      await expect(challengeApi.submitGuess('challenge-123', mockGuessRequest)).rejects.toEqual(
-        error
-      );
+      await expect(
+        challengeApi.submitSolution('challenge-123', mockSolutionRequest)
+      ).rejects.toEqual(error);
     });
 
     it('should handle rate limiting', async () => {
@@ -269,9 +269,9 @@ describe('api service', () => {
       };
       mockApi.post.mockRejectedValue(error);
 
-      await expect(challengeApi.submitGuess('challenge-123', mockGuessRequest)).rejects.toEqual(
-        error
-      );
+      await expect(
+        challengeApi.submitSolution('challenge-123', mockSolutionRequest)
+      ).rejects.toEqual(error);
     });
 
     it('should handle server errors', async () => {
@@ -283,27 +283,27 @@ describe('api service', () => {
       };
       mockApi.post.mockRejectedValue(error);
 
-      await expect(challengeApi.submitGuess('challenge-123', mockGuessRequest)).rejects.toEqual(
-        error
-      );
+      await expect(
+        challengeApi.submitSolution('challenge-123', mockSolutionRequest)
+      ).rejects.toEqual(error);
     });
 
     it('should only send public key and signature (privacy verification)', async () => {
-      mockApi.post.mockResolvedValue({ data: mockGuessResponse });
+      mockApi.post.mockResolvedValue({ data: mockSolutionResponse });
 
-      const guessWithExtraData = {
-        ...mockGuessRequest,
+      const solutionWithExtraData = {
+        ...mockSolutionRequest,
         // These should not be sent (simulating potential private data)
         private_key: 'should-not-be-sent',
         internal_data: 'should-not-be-sent',
       };
 
-      await challengeApi.submitGuess('challenge-123', guessWithExtraData);
+      await challengeApi.submitSolution('challenge-123', solutionWithExtraData);
 
-      // Verify that the entire guess object is sent (API should filter)
+      // Verify that the entire solution object is sent (API should filter)
       expect(mockApi.post).toHaveBeenCalledWith(
-        '/api/challenges/challenge-123/guess/',
-        guessWithExtraData
+        '/api/challenges/challenge-123/solution/',
+        solutionWithExtraData
       );
     });
   });
@@ -325,9 +325,9 @@ describe('api service', () => {
       timeoutError.name = 'TimeoutError';
       mockApi.post.mockRejectedValue(timeoutError);
 
-      await expect(challengeApi.submitGuess('challenge-123', mockGuessRequest)).rejects.toThrow(
-        'timeout of 10000ms exceeded'
-      );
+      await expect(
+        challengeApi.submitSolution('challenge-123', mockSolutionRequest)
+      ).rejects.toThrow('timeout of 10000ms exceeded');
     });
   });
 
@@ -409,10 +409,10 @@ describe('api service', () => {
       expect(result).toHaveProperty('created_at');
     });
 
-    it('should return guess response with correct structure', async () => {
-      mockApi.post.mockResolvedValue({ data: mockGuessResponse });
+    it('should return solution response with correct structure', async () => {
+      mockApi.post.mockResolvedValue({ data: mockSolutionResponse });
 
-      const result = await challengeApi.submitGuess('challenge-123', mockGuessRequest);
+      const result = await challengeApi.submitSolution('challenge-123', mockSolutionRequest);
 
       expect(result).toHaveProperty('uuid');
       expect(result).toHaveProperty('public_key');

@@ -16,9 +16,9 @@ import {
   checkWinCondition,
   calculateDailyCurrentAddress,
   setChallengePublicKey,
-  submitDailyGameGuess,
+  submitDailySolution,
   submitSaveToBackend,
-  clearShouldSubmitGuess,
+  clearShouldSubmitSolution,
 } from '../store/slices/eccCalculatorSlice';
 import { recordGamePlayed, recordGameWon } from '../store/slices/statsSlice';
 import { clearSubmittedSaves } from '../utils/submitSaves';
@@ -61,14 +61,14 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
     }
   }, [dailyState.hasWon, gameState.gaveUp, gameState.challenge, dailyState.graph.edges, dispatch]);
 
-  // Submit guess when shouldSubmitGuess is true (only for daily mode)
+  // Submit solution when shouldSubmitSolution is true (only for daily mode)
   useEffect(() => {
-    if (dailyState.shouldSubmitGuess && gameState.gameMode === 'daily') {
-      console.log('🎯 Submitting daily game guess to backend...');
-      dispatch(submitDailyGameGuess());
-      dispatch(clearShouldSubmitGuess());
+    if (dailyState.shouldSubmitSolution && gameState.gameMode === 'daily') {
+      console.log('🎯 Submitting daily game solution to backend...');
+      dispatch(submitDailySolution());
+      dispatch(clearShouldSubmitSolution());
     }
-  }, [dailyState.shouldSubmitGuess, gameState.gameMode, dispatch]);
+  }, [dailyState.shouldSubmitSolution, gameState.gameMode, dispatch]);
 
   return {
     // State
@@ -83,7 +83,7 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
     hasWon: dailyState.hasWon,
     showVictoryModal: dailyState.showVictoryModal,
     savedPoints: dailyState.savedPoints,
-    shouldSubmitGuess: dailyState.shouldSubmitGuess,
+    shouldSubmitSolution: dailyState.shouldSubmitSolution,
     // Actions
     setCurrentPoint: (point: ECPoint) => dispatch(setSelectedPoint(point)),
     setError: (error: string | null) => dispatch(setError(error)),

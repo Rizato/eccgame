@@ -8,8 +8,8 @@ from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from game.models import Challenge, ChallengeSentinel, Guess, Save
-from game.serializers import ChallengeSerializer, GuessSerializer, SaveSerializer
+from game.models import Challenge, ChallengeSentinel, Save, Solution
+from game.serializers import ChallengeSerializer, SaveSerializer, SolutionSerializer
 
 
 class DailyChallengeView(views.APIView):
@@ -76,17 +76,17 @@ class ChallengeViewSet(viewsets.GenericViewSet, RetrieveModelMixin):
     lookup_field = "uuid"
 
 
-class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
+class SolutionViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin):
     """
-    Guesses for any challenge
+    Solutions for any challenge
     """
 
-    serializer_class = GuessSerializer
+    serializer_class = SolutionSerializer
     throttle_classes = [AnonRateThrottle]
     lookup_field = "uuid"
 
     def get_queryset(self):
-        return Guess.objects.filter(challenge=self.kwargs["challenge_uuid"])
+        return Solution.objects.filter(challenge=self.kwargs["challenge_uuid"])
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -111,10 +111,10 @@ class GuessViewSet(viewsets.GenericViewSet, CreateModelMixin, RetrieveModelMixin
         if not challenge.active:
             raise PermissionDenied(f"Challenge {challenge.uuid} is not active")
 
-        guess = serializer.save(challenge=challenge)
-        guess.evaluate_key()
+        solution = serializer.save(challenge=challenge)
+        solution.evaluate_key()
         # TODO Defer verification until later
-        guess.verify()
+        solution.verify()
 
 
 class SaveViewSet(viewsets.GenericViewSet, CreateModelMixin):

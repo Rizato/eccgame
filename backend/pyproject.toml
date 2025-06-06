@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-django", "black", "isort", "flake8", "flake8-bugbear", "Flake8-pyproject", "pre-commit"]
+dev = ["pytest", "pytest-django", "pytest-cov", "black", "isort", "flake8", "flake8-bugbear", "Flake8-pyproject", "pre-commit"]
 
 [tool.setuptools]
 zip-safe = false
@@ -38,6 +38,32 @@ extend-ignore = ["E203","E501","E701"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--strict-markers"
+addopts = "--strict-markers --cov=game --cov-report=term-missing --cov-report=html --cov-report=xml"
 DJANGO_SETTINGS_MODULE = "project.settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
+
+[tool.coverage.run]
+source = ["game"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__init__.py",
+    "*/admin.py",
+    "*/apps.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+precision = 2
+show_missing = true
+skip_covered = false
+
+[tool.coverage.html]
+directory = "htmlcov"
