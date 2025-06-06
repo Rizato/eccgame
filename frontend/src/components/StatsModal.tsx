@@ -54,25 +54,10 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div className="stat-card">
-              <div className="stat-number">{stats.currentStreak}</div>
-              <div className="stat-label">Current Streak</div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-number">{stats.maxStreak}</div>
-              <div className="stat-label">Max Streak</div>
-            </div>
-
-            <div className="stat-card">
               <div className="stat-number">
                 {stats.averageOperations > 0 ? Math.round(stats.averageOperations) : 0}
               </div>
               <div className="stat-label">Avg Operations</div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-number">{stats.bestOperations || '—'}</div>
-              <div className="stat-label">Best Operations</div>
             </div>
           </div>
 
