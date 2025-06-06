@@ -31,16 +31,13 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
   const generatorPoint = getGeneratorPoint();
 
   // Map large coordinate values to screen percentage (0-100)
-  const mapToScreenCoordinate = useCallback((coord: bigint, isY: boolean = false) => {
-    // Use the last 32 bits for better distribution
-    const lastBits = Number(coord & 0xffffffffn);
-    const percentage = (lastBits % 80) + 10; // Keep between 10-90% to avoid edges
-    return isY ? percentage : percentage;
+  const mapToScreenCoordinate = useCallback((coord: bigint) => {
+    return Number(coord % 90n) + 5; // Keep between 5-95% to avoid edges
   }, []);
 
   // Calculate generator point screen coordinates
   const generatorX = generatorPoint.isInfinity ? 50 : mapToScreenCoordinate(generatorPoint.x);
-  const generatorY = generatorPoint.isInfinity ? 50 : mapToScreenCoordinate(generatorPoint.y, true);
+  const generatorY = generatorPoint.isInfinity ? 50 : mapToScreenCoordinate(generatorPoint.y);
 
   const getVisiblePoints = useCallback((): GraphPoint[] => {
     const allPoints: GraphPoint[] = [];
@@ -61,7 +58,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
     // Always add original challenge point
     const originalPoint = publicKeyToPoint(challengePublicKey);
     const originalX = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.x);
-    const originalY = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.y, true);
+    const originalY = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.y);
 
     const originalEntry: GraphPoint = {
       id: 'original',
@@ -79,7 +76,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
     savedPoints.forEach(savedPoint => {
       if (!savedPoint.point.isInfinity) {
         const savedX = mapToScreenCoordinate(savedPoint.point.x);
-        const savedY = mapToScreenCoordinate(savedPoint.point.y, true);
+        const savedY = mapToScreenCoordinate(savedPoint.point.y);
 
         allPoints.push({
           id: savedPoint.id,
@@ -97,7 +94,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
     // Add selected point if it's unique
     if (!selectedPoint.isInfinity) {
       const currentX = mapToScreenCoordinate(selectedPoint.x);
-      const currentY = mapToScreenCoordinate(selectedPoint.y, true);
+      const currentY = mapToScreenCoordinate(selectedPoint.y);
 
       allPoints.push({
         id: 'current',
