@@ -77,7 +77,5 @@ describe('ECCGraph', () => {
     // The key test: verify that decimal.js doesn't throw errors and coordinates are calculated
     const points = container.querySelectorAll('.ecc-point');
     expect(points.length).toBeGreaterThan(0);
-
-    console.log('✅ ECCGraph with decimal.js coordinate mapping works correctly');
   });
 });

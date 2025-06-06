@@ -19,8 +19,6 @@ describe('Game Tracking', () => {
 
       // Should now be started
       expect(storageUtils.hasGameStarted(challengeUuid)).toBe(true);
-
-      console.log('✅ Game started tracking works correctly');
     });
 
     it('should handle multiple different challenges', () => {
@@ -40,8 +38,6 @@ describe('Game Tracking', () => {
       // Both should now be started
       expect(storageUtils.hasGameStarted(challenge1)).toBe(true);
       expect(storageUtils.hasGameStarted(challenge2)).toBe(true);
-
-      console.log('✅ Multiple challenge tracking works correctly');
     });
 
     it('should persist game started state in localStorage', () => {
@@ -58,8 +54,6 @@ describe('Game Tracking', () => {
       const data = JSON.parse(stored!);
       expect(data[challengeUuid]).toBeTruthy();
       expect(data[challengeUuid].timestamp).toBeTruthy();
-
-      console.log('✅ Game started state persists in localStorage');
     });
   });
 
@@ -81,8 +75,6 @@ describe('Game Tracking', () => {
       storageUtils.markWonByAddress(address);
       expect(storageUtils.hasGameStarted(challengeUuid)).toBe(true);
       expect(storageUtils.hasWonByAddress(address)).toBe(true);
-
-      console.log('✅ Game started and win tracking work together');
     });
   });
 });

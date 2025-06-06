@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getP2PKHAddress } from '../../utils/crypto';
-import { logGraph, logSavedPoints, logNodeConnections } from '../../utils/gameUtils';
 import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
 import { ensureOperationInGraph } from '../../utils/graphOperations';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
@@ -101,8 +100,6 @@ export const submitDailySolution = createAsyncThunk(
 
     try {
       const results = await submitSolution(graph, challengeUuid, challengeNodeId);
-
-      console.log('Successfully submitted daily game solution:', results);
       return results;
     } catch (error) {
       console.error('Failed to submit daily game solution:', error);
@@ -322,13 +319,6 @@ const dailyCalculatorSlice = createSlice({
 
       state.savedPoints.push(savedPoint);
 
-      console.log(`💾 SAVED POINT: ${savedPoint.label}`);
-      console.log('Point:', {
-        x: savedPoint.point.isInfinity ? 'infinity' : `0x${savedPoint.point.x.toString(16)}`,
-        y: savedPoint.point.isInfinity ? 'infinity' : `0x${savedPoint.point.y.toString(16)}`,
-        privateKey: savedPoint.privateKey ? `0x${savedPoint.privateKey.toString(16)}` : 'unknown',
-      });
-
       // Create bundled edge for the saved point path (only if currentNode exists)
       if (currentNode) {
         addBundledEdgeForNewSave(state.graph, currentNode.id, state.savedPoints);
@@ -338,10 +328,6 @@ const dailyCalculatorSlice = createSlice({
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
       const savedPoint = action.payload;
       state.selectedPoint = savedPoint.point;
-
-      console.log(`📂 LOADING SAVED POINT: ${savedPoint.label}`);
-      console.log('Before loading - Graph state:');
-      logGraph(state.graph, 'Before Loading Saved Point');
 
       // Add the saved point to the graph if it doesn't exist, including its private key
       const node = addNode(state.graph, savedPoint.point, {
@@ -354,9 +340,6 @@ const dailyCalculatorSlice = createSlice({
       if (!node.privateKey) {
         const calculatedKey = calculateNodePrivateKey(state.graph, node.id);
         if (calculatedKey) {
-          console.log(
-            `🔑 Calculated private key for ${savedPoint.label}: 0x${calculatedKey.toString(16)}`
-          );
           node.privateKey = calculatedKey;
         }
       }
@@ -374,7 +357,6 @@ const dailyCalculatorSlice = createSlice({
     },
     unsaveSavedPoint: (state, action: PayloadAction<string>) => {
       const pointId = action.payload;
-      console.log(`🗑️ UNSAVING POINT: ${pointId}`);
       // Remove from saved points
       state.savedPoints = state.savedPoints.filter(point => point.id !== pointId);
     },
@@ -383,17 +365,6 @@ const dailyCalculatorSlice = createSlice({
       if (state.challengeNodeId && state.generatorNodeId) {
         const hasConnection = hasPath(state.graph, state.challengeNodeId, state.generatorNodeId);
         if (hasConnection && !state.hasWon) {
-          console.log('🏆 WIN CONDITION TRIGGERED - Analyzing graph for false positives');
-          logGraph(state.graph, 'Win Condition Graph');
-          logSavedPoints(state.savedPoints, 'Saved Points at Win');
-
-          if (state.challengeNodeId) {
-            logNodeConnections(state.graph, state.challengeNodeId, 'Challenge Node');
-          }
-          if (state.generatorNodeId) {
-            logNodeConnections(state.graph, state.generatorNodeId, 'Generator Node');
-          }
-
           state.hasWon = true;
           state.showVictoryModal = true;
           state.shouldSubmitSolution = true; // Trigger solution submission
@@ -425,27 +396,10 @@ const dailyCalculatorSlice = createSlice({
       }>
     ) => {
       const { fromPoint, toPoint, operation } = action.payload;
-
-      console.log(`⚡ ADDING OPERATION: ${operation.description}`);
-      console.log('From:', {
-        x: fromPoint.isInfinity ? 'infinity' : `0x${fromPoint.x.toString(16)}`,
-        y: fromPoint.isInfinity ? 'infinity' : `0x${fromPoint.y.toString(16)}`,
-      });
-      console.log('To:', {
-        x: toPoint.isInfinity ? 'infinity' : `0x${toPoint.x.toString(16)}`,
-        y: toPoint.isInfinity ? 'infinity' : `0x${toPoint.y.toString(16)}`,
-      });
-
       ensureOperationInGraph(state.graph, fromPoint, toPoint, operation);
 
       // Update selected point to the result
       state.selectedPoint = toPoint;
-
-      // Log graph state after operation (but only if it's a significant change)
-      if (Object.keys(state.graph.nodes).length <= 20) {
-        // Avoid spam for large graphs
-        logGraph(state.graph, `After ${operation.description}`);
-      }
     },
   },
   extraReducers: builder => {

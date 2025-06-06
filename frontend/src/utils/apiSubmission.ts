@@ -45,7 +45,6 @@ export async function submitSaveToBackend(
   label: string
 ): Promise<SaveResponse | null> {
   if (point.isInfinity) {
-    console.log('Skipping save submission for infinity point');
     return null;
   }
 
@@ -54,13 +53,10 @@ export async function submitSaveToBackend(
 
   // Check if already submitted
   if (submittedSaves.has(saveKey)) {
-    console.log(`Save already submitted for ${label} (${publicKey.slice(0, 10)}...)`);
     return null;
   }
 
   try {
-    console.log(`🔄 Submitting save to backend: ${label}`);
-
     const saveRequest = {
       public_key: publicKey,
     };
@@ -69,11 +65,6 @@ export async function submitSaveToBackend(
 
     // Mark as submitted to prevent re-submission
     submittedSaves.add(saveKey);
-
-    console.log(`✅ Save submitted successfully: ${label}`, {
-      uuid: response.uuid,
-      public_key: response.public_key.slice(0, 10) + '...',
-    });
 
     return response;
   } catch (error) {
@@ -87,7 +78,6 @@ export async function submitSaveToBackend(
  */
 export function clearSubmittedSaves(): void {
   submittedSaves.clear();
-  console.log('🧹 Cleared submitted save tracking');
 }
 
 /**
@@ -153,11 +143,6 @@ export async function submitChallengePointAsSolution(
     // Submit to backend
     const response = await challengeApi.submitSolution(challengeUuid, solution);
 
-    console.log('Submitted challenge solution:', {
-      public_key: solution.public_key,
-      result: response.result,
-    });
-
     return response;
   } catch (error) {
     console.error('Failed to submit challenge solution:', error);
@@ -176,16 +161,12 @@ export async function submitSolution(
 ): Promise<{
   challengeResult: SolutionResponse | null;
 }> {
-  console.log('Submitting solution to backend...');
-
   // Then submit the challenge solution
   const challengeResult = await submitChallengePointAsSolution(
     challengeUuid,
     graph,
     challengeNodeId
   );
-
-  console.log(`Submitted challenge solution`);
 
   return {
     challengeResult,

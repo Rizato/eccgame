@@ -71,7 +71,6 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
       if (!storageUtils.hasGameStarted(challengeUuid)) {
         storageUtils.markGameStarted(challengeUuid);
         dispatch(recordGamePlayed({ mode: 'daily', challengeId: challengeUuid }));
-        console.log('🎮 Game marked as played on first operation for challenge:', challengeUuid);
       }
     }
   }, [dailyState.graph.edges, gameState.challenge, dispatch]);
@@ -115,7 +114,6 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
   // Submit solution when shouldSubmitSolution is true (only for daily mode)
   useEffect(() => {
     if (dailyState.shouldSubmitSolution && gameState.gameMode === 'daily') {
-      console.log('🎯 Submitting daily game solution to backend...');
       dispatch(submitDailySolution());
       dispatch(clearShouldSubmitSolution());
     }

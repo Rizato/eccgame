@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getP2PKHAddress } from '../../utils/crypto';
-import { logGraph } from '../../utils/gameUtils';
 import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
 import { ensureOperationInGraph } from '../../utils/graphOperations';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
@@ -272,11 +271,9 @@ const practiceCalculatorSlice = createSlice({
 
       // Create bundled edge for the saved point path (only if currentNode exists)
       if (currentNode) {
-        console.log('🔗 Adding bundled edge for saved point');
         addBundledEdgeForNewSave(state.graph, currentNode.id, state.savedPoints);
         // Clean up dangling nodes and edges when saving a point
         cleanupDanglingNodes(state.graph, state.savedPoints);
-        logGraph(state.graph, 'After Saving and Cleanup');
       }
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
