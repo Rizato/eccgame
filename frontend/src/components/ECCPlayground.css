@@ -578,6 +578,11 @@
   box-shadow: var(--shadow);
 }
 
+.ecc-point.current .point-label {
+  border-radius: var(--radius-lg);
+  padding: 2px 6px;
+}
+
 .point-label {
   position: absolute;
   top: -25px;

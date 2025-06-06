@@ -84,17 +84,9 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           <h2 className="victory-title">{getVictoryTitle()}</h2>
           <p className="victory-message">{getVictoryMessage()}</p>
         </div>
-
         <div className="victory-stats">
           <div className="stat-item">
-            <div className="stat-label">Operations Used</div>
-            <div className="stat-value">{operationCount}</div>
-          </div>
-
-          <div className="stat-item">
-            <div className="stat-label">
-              {isPracticeMode ? 'Practice Wallet' : 'Challenge Wallet'}
-            </div>
+            <div className="stat-label">Wallet Address</div>
             <div className="stat-value address-value" title={challengeAddress}>
               {challengeAddress}
             </div>
@@ -108,6 +100,11 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
               </div>
             </div>
           )}
+
+          <div className="stat-item">
+            <div className="stat-label">{gaveUp ? 'Steps tried' : 'Steps to solve'}</div>
+            <div className="stat-value">{operationCount}</div>
+          </div>
         </div>
 
         <div className="victory-actions">
