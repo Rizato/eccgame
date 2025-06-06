@@ -271,9 +271,9 @@
 }
 
 .give-up-button {
-  background: var(--error);
-  color: var(--text-inverse);
+  background: transparent;
   border: 1px solid var(--error);
+  color: var(--error);
   padding: var(--spacing-sm) var(--spacing);
   border-radius: var(--radius);
   font-size: 0.875rem;
