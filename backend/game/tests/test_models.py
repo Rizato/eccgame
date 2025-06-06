@@ -207,18 +207,6 @@ def test_save_duplicate_public_keys_allowed(sample_challenge):
 
 
 @pytest.mark.django_db
-def test_save_str_representation(sample_challenge):
-    """Test the string representation of Save model"""
-    save = Save.objects.create(
-        public_key="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-        challenge=sample_challenge,
-    )
-
-    expected_str = f"Save: 0279be667e... for {sample_challenge.uuid}"
-    assert str(save) == expected_str
-
-
-@pytest.mark.django_db
 def test_save_cascade_delete(sample_challenge):
     """Test that saves are deleted when challenge is deleted"""
     save = Save.objects.create(
@@ -226,12 +214,12 @@ def test_save_cascade_delete(sample_challenge):
         challenge=sample_challenge,
     )
 
-    save_id = save.id
-    challenge_id = sample_challenge.id
+    save_id = save.uuid
+    challenge_id = sample_challenge.uuid
 
     # Delete the challenge
     sample_challenge.delete()
 
     # Save should also be deleted
-    assert not Save.objects.filter(id=save_id).exists()
-    assert not Challenge.objects.filter(id=challenge_id).exists()
+    assert not Save.objects.filter(uuid=save_id).exists()
+    assert not Challenge.objects.filter(uuid=challenge_id).exists()

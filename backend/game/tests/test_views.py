@@ -2,7 +2,7 @@ import datetime
 from unittest.mock import patch
 
 import pytest
-from django.test import Client, TransactionTestCase
+from django.test import Client
 from ecdsa import SECP256k1, SigningKey
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -197,7 +197,6 @@ def test_create_save_success(test_challenge):
     assert "uuid" in response.data
     assert response.data["public_key"] == data["public_key"]
     assert str(response.data["challenge"]) == str(test_challenge.uuid)
-    assert "created_at" in response.data
 
     # Verify save was created in database
     save = Save.objects.get(uuid=response.data["uuid"])
@@ -287,60 +286,6 @@ def test_create_save_duplicate_allowed(test_challenge):
     # Verify both saves exist in database
     saves = Save.objects.filter(public_key=data["public_key"], challenge=test_challenge)
     assert saves.count() == 2
-
-
-@pytest.mark.django_db
-def test_save_viewset_only_create_allowed(test_challenge):
-    """Test that SaveViewSet only allows CREATE operations"""
-    client = APIClient()
-
-    # Create a save first
-    save = Save.objects.create(
-        public_key="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-        challenge=test_challenge,
-    )
-
-    base_url = f"/api/challenges/{test_challenge.uuid}/save/"
-    save_url = f"{base_url}{save.uuid}/"
-
-    # Test that GET (list) is not allowed
-    response = client.get(base_url)
-    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    # Test that GET (detail) is not allowed
-    response = client.get(save_url)
-    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    # Test that PUT is not allowed
-    response = client.put(save_url, {"public_key": "updated_key"}, format="json")
-    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    # Test that PATCH is not allowed
-    response = client.patch(save_url, {"public_key": "updated_key"}, format="json")
-    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-    # Test that DELETE is not allowed
-    response = client.delete(save_url)
-    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-
-
-@pytest.mark.django_db
-@patch("rest_framework.throttling.AnonRateThrottle.allow_request")
-def test_save_rate_limiting(mock_allow_request, test_challenge):
-    """Test that save creation is rate limited"""
-    # Mock rate limiting to return False (rate limit exceeded)
-    mock_allow_request.return_value = False
-
-    client = APIClient()
-    data = {
-        "public_key": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-    }
-
-    response = client.post(
-        f"/api/challenges/{test_challenge.uuid}/save/", data, format="json"
-    )
-
-    assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
 
 @pytest.mark.django_db

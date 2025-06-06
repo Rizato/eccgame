@@ -55,19 +55,6 @@ def test_complete_game_flow(integration_challenge):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(
-    REST_FRAMEWORK={
-        "DEFAULT_AUTHENTICATION_CLASSES": [
-            "rest_framework.authentication.SessionAuthentication",
-        ],
-        "DEFAULT_THROTTLE_CLASSES": [
-            "rest_framework.throttling.AnonRateThrottle",
-        ],
-        "DEFAULT_THROTTLE_RATES": {
-            "anon": "1000/sec",  # Very high rate for testing
-        },
-    }
-)
 def test_daily_challenge_happy_path_with_subtract_and_halve():
     """
     Integration test for the complete daily challenge happy path.

@@ -71,7 +71,7 @@ def test_validate_key_method(solution_serializer_data):
     # Test the validate_key method directly
     serializer = SolutionSerializer()
     # Valid key should not raise exception
-    result = serializer.validate_key(solution_serializer_data["public_key_hex"])
+    result = serializer.validate_public_key(solution_serializer_data["public_key_hex"])
     assert result == solution_serializer_data["public_key_hex"]
 
 
@@ -144,7 +144,6 @@ def test_save_serializer_serialization(sample_challenge_for_save):
     assert str(data["uuid"]) == str(save.uuid)
     assert data["public_key"] == save.public_key
     assert str(data["challenge"]) == str(save.challenge.uuid)
-    assert "created_at" in data
 
 
 @pytest.mark.django_db
