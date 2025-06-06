@@ -46,8 +46,17 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
                 title="Game Statistics"
                 aria-label="View game statistics"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 13h4v8H3v-8zm6-5h4v13H9V8zm6-5h4v18h-4V3z" />
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <rect x="3" y="13" width="4" height="8" />
+                  <rect x="9" y="8" width="4" height="13" />
+                  <rect x="15" y="3" width="4" height="18" />
                 </svg>
               </button>
             )}

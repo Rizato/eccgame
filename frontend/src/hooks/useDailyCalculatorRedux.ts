@@ -20,6 +20,7 @@ import {
   submitSaveToBackend,
   clearShouldSubmitGuess,
 } from '../store/slices/eccCalculatorSlice';
+import { recordGamePlayed, recordGameWon } from '../store/slices/statsSlice';
 import { clearSubmittedSaves } from '../utils/submitSaves';
 import type { ECPoint, SavedPoint } from '../types/ecc';
 
@@ -46,6 +47,19 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
   useEffect(() => {
     dispatch(checkWinCondition());
   }, [dailyState.selectedPoint, dispatch]);
+
+  // Track win stats when won (and not from giving up)
+  useEffect(() => {
+    if (dailyState.hasWon && !gameState.gaveUp && gameState.challenge) {
+      // Calculate total operations from graph
+      const totalOperations = Object.values(dailyState.graph.edges).reduce((total, edge) => {
+        return total + (edge.bundleCount ? Number(edge.bundleCount) : 1);
+      }, 0);
+
+      dispatch(recordGamePlayed({ mode: 'daily', challengeId: gameState.challenge.uuid }));
+      dispatch(recordGameWon({ operations: totalOperations, mode: 'daily' }));
+    }
+  }, [dailyState.hasWon, gameState.gaveUp, gameState.challenge, dailyState.graph.edges, dispatch]);
 
   // Submit guess when shouldSubmitGuess is true (only for daily mode)
   useEffect(() => {

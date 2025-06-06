@@ -3,11 +3,13 @@
   background: var(--bg-color);
   color: var(--text-color);
   padding: 20px;
+  overflow-y: auto;
 }
 
 .privacy-container {
   max-width: 800px;
   margin: 0 auto;
+  padding-bottom: 40px;
 }
 
 .privacy-header {

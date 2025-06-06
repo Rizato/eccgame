@@ -550,8 +550,8 @@
 }
 
 .point-dot {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   background: var(--point-color, var(--primary));
   border: 2px solid var(--card-background);
   border-radius: 50%;

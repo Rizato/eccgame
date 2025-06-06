@@ -3,6 +3,7 @@ import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
 import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
+import { recordGamePlayed, recordGameLost } from '../store/slices/statsSlice';
 import './ChallengeInfo.css';
 
 interface ChallengeInfoProps {
@@ -15,6 +16,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
   const challenge = useAppSelector(state => state.game.challenge);
   const practiceChallenge = useAppSelector(state => state.practiceMode.practiceChallenge);
   const hasWon = useAppSelector(state => state.game.hasWon);
+  const gaveUp = useAppSelector(state => state.game.gaveUp);
 
   const { difficulty, practicePrivateKey, setDifficulty, generatePracticeChallenge } =
     usePracticeModeRedux();
@@ -25,10 +27,17 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Show give up button after 3 operations in daily mode only, but hide it after winning
-  const showGiveUpButton = !isPracticeMode && operationCount >= 3 && !hasWon;
+  // Show give up button after 3 operations in daily mode only, but hide it after winning or giving up
+  const showGiveUpButton = !isPracticeMode && operationCount >= 3 && !hasWon && !gaveUp;
 
   const handleGiveUp = () => {
+    // Record stats (with challenge ID to prevent double counting)
+    if (challenge) {
+      dispatch(recordGamePlayed({ mode: 'daily', challengeId: challenge.uuid }));
+      dispatch(recordGameLost());
+    }
+
+    // Update game state
     dispatch(setGaveUp(true));
     dispatch(setHasWon(true)); // Show victory modal
     dispatch(setShowVictoryModal(true));

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import DailyView from '../components/DailyView';
 import HowToPlayModal from '../components/HowToPlayModal';
 import PracticeModeView from '../components/PracticeModeView';
+import GameFooter from '../components/GameFooter';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setGameMode } from '../store/slices/gameSlice';
 import { storageUtils } from '../utils/storage';
@@ -38,7 +39,7 @@ const ECCGamePage: React.FC<ECCGamePageProps> = ({ mode = 'daily' }) => {
   };
 
   return (
-    <>
+    <div className="ecc-game-page-wrapper">
       {gameMode === 'practice' ? (
         <PracticeModeView onOpenHowToPlay={handleOpenHowToPlay} />
       ) : (
@@ -46,7 +47,8 @@ const ECCGamePage: React.FC<ECCGamePageProps> = ({ mode = 'daily' }) => {
       )}
 
       <HowToPlayModal isOpen={showHowToPlay} onClose={handleCloseHowToPlay} />
-    </>
+      <GameFooter />
+    </div>
   );
 };
 

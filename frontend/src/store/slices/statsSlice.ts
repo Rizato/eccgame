@@ -10,8 +10,8 @@ export interface GameStats {
   currentStreak: number;
   maxStreak: number;
   dailyGamesPlayed: number;
-  practiceGamesPlayed: number;
   operationHistory: number[]; // Last 20 games for histogram
+  playedChallenges: string[]; // Track which challenge IDs have been played
 }
 
 interface StatsState {
@@ -27,34 +27,62 @@ const defaultStats: GameStats = {
   currentStreak: 0,
   maxStreak: 0,
   dailyGamesPlayed: 0,
-  practiceGamesPlayed: 0,
   operationHistory: [],
+  playedChallenges: [],
+};
+
+// Load stats with migration for old data
+const loadInitialStats = (): GameStats => {
+  const savedStats = storageUtils.getGameStats();
+  if (!savedStats) return defaultStats;
+
+  // Migrate old stats that don't have playedChallenges
+  return {
+    ...savedStats,
+    playedChallenges: savedStats.playedChallenges || [],
+  };
 };
 
 const initialState: StatsState = {
-  stats: storageUtils.getGameStats() || defaultStats,
+  stats: loadInitialStats(),
 };
 
 const statsSlice = createSlice({
   name: 'stats',
   initialState,
   reducers: {
-    recordGamePlayed: (state, action: PayloadAction<{ mode: 'daily' | 'practice' }>) => {
-      state.stats.gamesPlayed += 1;
-      if (action.payload.mode === 'daily') {
-        state.stats.dailyGamesPlayed += 1;
-      } else {
-        state.stats.practiceGamesPlayed += 1;
+    recordGamePlayed: (
+      state,
+      action: PayloadAction<{ mode: 'daily' | 'practice'; challengeId?: string }>
+    ) => {
+      const { mode, challengeId } = action.payload;
+
+      // Ensure playedChallenges exists (for migration)
+      if (!state.stats.playedChallenges) {
+        state.stats.playedChallenges = [];
       }
-      storageUtils.saveGameStats(state.stats);
+
+      // Only track daily challenges, not practice mode
+      if (mode === 'daily' && challengeId) {
+        if (state.stats.playedChallenges.includes(challengeId)) {
+          return; // Already played this challenge
+        }
+        state.stats.playedChallenges.push(challengeId);
+        state.stats.dailyGamesPlayed += 1;
+        state.stats.gamesPlayed += 1;
+        storageUtils.saveGameStats(state.stats);
+      }
+      // Don't track practice mode stats
     },
 
     recordGameWon: (
       state,
       action: PayloadAction<{ operations: number; mode: 'daily' | 'practice' }>
     ) => {
-      const { operations } = action.payload;
-
+      const { operations, mode } = action.payload;
+      if (mode === 'practice') {
+        return;
+      }
       state.stats.gamesWon += 1;
       state.stats.totalOperations += operations;
       state.stats.averageOperations = state.stats.totalOperations / state.stats.gamesWon;
@@ -90,7 +118,11 @@ const statsSlice = createSlice({
     loadStats: state => {
       const savedStats = storageUtils.getGameStats();
       if (savedStats) {
-        state.stats = savedStats;
+        // Migrate old stats that don't have playedChallenges
+        state.stats = {
+          ...savedStats,
+          playedChallenges: savedStats.playedChallenges || [],
+        };
       }
     },
   },
