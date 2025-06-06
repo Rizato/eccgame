@@ -56,7 +56,7 @@ describe('ECCCalculator', () => {
       });
 
       expect(screen.getByText('Current Point')).toBeInTheDocument();
-      expect(screen.getByText('Save Point')).toBeInTheDocument();
+      expect(screen.getByText('☆')).toBeInTheDocument();
       expect(screen.getByDisplayValue('')).toBeInTheDocument();
     });
 
@@ -182,13 +182,13 @@ describe('ECCCalculator', () => {
     });
   });
 
-  describe('Save Point Button', () => {
+  describe('☆ Button', () => {
     it('should be disabled for generator point', async () => {
       await act(async () => {
         renderWithStore(<ECCCalculator {...createDefaultProps()} />);
       });
 
-      const saveButton = screen.getByText('Save Point');
+      const saveButton = screen.getByText('☆');
       expect(saveButton).toBeDisabled();
     });
   });

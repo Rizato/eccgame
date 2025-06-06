@@ -113,7 +113,7 @@ describe('ECCCalculator', () => {
         renderWithStore(<ECCCalculator {...createDefaultProps()} />);
       });
 
-      expect(screen.getByText('Save Point')).toBeInTheDocument();
+      expect(screen.getByText('☆')).toBeInTheDocument();
     });
   });
 

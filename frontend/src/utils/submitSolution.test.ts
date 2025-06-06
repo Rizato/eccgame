@@ -11,7 +11,7 @@ vi.mock('../services/api', () => ({
 }));
 
 vi.mock('./crypto', () => ({
-  generateGuessFromPrivateKey: vi.fn(),
+  generateSolutionFromPrivateKey: vi.fn(),
 }));
 
 vi.mock('./pointPrivateKey', () => ({
