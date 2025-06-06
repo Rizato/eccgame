@@ -55,9 +55,9 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
                     stroke="currentColor"
                     strokeWidth="2"
                   >
-                    <rect x="3" y="13" width="4" height="8" />
-                    <rect x="9" y="8" width="4" height="13" />
-                    <rect x="15" y="3" width="4" height="18" />
+                    <rect x="3" y="13" width="2" height="6" />
+                    <rect x="9" y="8" width="2" height="12" />
+                    <rect x="15" y="3" width="2" height="18" />
                   </svg>
                 </div>
               </button>
