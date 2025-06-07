@@ -176,8 +176,50 @@
   padding: var(--spacing-sm);
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  cursor: text;
-  user-select: text;
+  cursor: pointer;
+  user-select: none;
+  text-align: start;
+  flex-grow: 1;
+}
+
+/* Import modal value container and copy button styles from Modal.css */
+.victory-modal .modal-value-container {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.victory-modal .copy-button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.victory-modal .copy-button:hover {
+  background: var(--surface-variant);
+  color: var(--text);
+}
+
+.victory-modal .stat-value.clickable {
+  cursor: pointer;
+  user-select: none;
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.victory-modal .stat-value.clickable:hover {
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .victory-actions {
@@ -255,5 +297,10 @@
   .victory-share-button {
     min-width: unset;
     width: 100%;
+  }
+
+  .victory-modal .copy-button {
+    min-width: 50px;
+    font-size: 0.7rem;
   }
 }

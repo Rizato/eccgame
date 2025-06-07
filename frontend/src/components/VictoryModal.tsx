@@ -25,6 +25,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   gaveUp = false,
 }) => {
   const [shareStatus, setShareStatus] = useState<string | null>(null);
+  const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   if (!isOpen) return null;
 
   const getVictoryTitle = () => {
@@ -95,8 +96,47 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           {!gaveUp && (
             <div className="stat-item">
               <div className="stat-label">Private Key</div>
-              <div className="stat-value address-value" title={victoryPrivateKey}>
-                {victoryPrivateKey}
+              <div className="modal-value-container">
+                <span
+                  className="stat-value address-value clickable"
+                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                  title={
+                    privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
+                  }
+                >
+                  {(() => {
+                    try {
+                      const keyValue = victoryPrivateKey.startsWith('0x')
+                        ? victoryPrivateKey.slice(2)
+                        : victoryPrivateKey;
+                      const keyBigInt = BigInt('0x' + keyValue);
+                      return privateKeyHexMode
+                        ? '0x' + keyBigInt.toString(16)
+                        : keyBigInt.toString();
+                    } catch {
+                      return victoryPrivateKey;
+                    }
+                  })()}
+                </span>
+                <button
+                  className="copy-button"
+                  onClick={() => {
+                    try {
+                      const keyValue = victoryPrivateKey.startsWith('0x')
+                        ? victoryPrivateKey.slice(2)
+                        : victoryPrivateKey;
+                      const keyBigInt = BigInt('0x' + keyValue);
+                      const textToCopy = privateKeyHexMode
+                        ? '0x' + keyBigInt.toString(16)
+                        : keyBigInt.toString();
+                      navigator.clipboard.writeText(textToCopy);
+                    } catch {
+                      navigator.clipboard.writeText(victoryPrivateKey);
+                    }
+                  }}
+                >
+                  Copy
+                </button>
               </div>
             </div>
           )}
