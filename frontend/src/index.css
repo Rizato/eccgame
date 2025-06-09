@@ -54,6 +54,13 @@
   --spacing-xl: 2rem;
 
   --graph-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+
+  /* Mobile touch targets */
+  --mobile-touch-min: 44px;
+  --mobile-button-height: 44px;
+  --mobile-input-height: 44px;
+  --mobile-font-size: 0.875rem;
+  --mobile-font-size-sm: 0.75rem;
 }
 
 [data-theme='dark'] {
@@ -131,6 +138,23 @@ body {
   margin: 0;
   min-width: 320px;
   height: 100vh;
+}
+
+/* Mobile scrolling */
+@media (max-width: 768px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #root {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
 }
 
 h1 {
@@ -255,6 +279,7 @@ select:focus {
     padding: 0.8em 1.4em;
     font-size: 0.9em;
     min-height: 44px;
+    min-width: 44px;
     touch-action: manipulation;
   }
 

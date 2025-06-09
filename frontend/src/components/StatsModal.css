@@ -181,11 +181,14 @@
 
 @media (max-width: 768px) {
   .stats-overlay {
-    padding: 10px;
+    padding: 2vh 1vw;
+    overflow-y: auto;
   }
 
   .stats-modal {
     border-radius: 8px;
+    width: 98vw;
+    max-height: 96vh;
   }
 
   .stats-grid {
@@ -207,5 +210,16 @@
 
   .bar-label {
     font-size: 0.7rem;
+  }
+
+  .stats-close-x {
+    width: var(--mobile-touch-min);
+    height: var(--mobile-touch-min);
+  }
+
+  .reset-stats-button {
+    font-size: var(--mobile-font-size);
+    min-height: var(--mobile-button-height);
+    padding: 0 var(--spacing);
   }
 }

@@ -35,6 +35,22 @@
   gap: 32px;
 }
 
+.mobile-nav-button {
+  display: none;
+  background: none;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  padding: 8px;
+  transition: all 0.2s ease;
+}
+
+.mobile-nav-button:hover {
+  background: var(--surface-variant);
+  color: var(--primary);
+}
+
 .site-title {
   text-decoration: none;
   color: inherit;
@@ -352,59 +368,86 @@
 
 @media (max-width: 768px) {
   .game-header {
-    padding: var(--spacing-sm);
+    padding: 8px 16px;
   }
 
   .header-content {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    align-items: stretch;
+    gap: 12px;
   }
 
   .header-left {
-    flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 12px;
+  }
+
+  .mobile-nav-button {
+    display: flex;
     align-items: center;
+    justify-content: center;
+  }
+
+  .desktop-nav {
+    display: none;
   }
 
   .header-content h1 {
-    text-align: center;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
+    margin: 0;
   }
 
   .mode-controls {
-    justify-content: center;
-    gap: var(--spacing);
+    gap: 8px;
   }
 
-  .nav-links {
-    justify-content: center;
-  }
-
-  .mode-selector {
-    flex: 1;
-    max-width: 280px;
+  .stats-button,
+  .how-to-play-button {
+    width: 28px;
+    height: 28px;
+    font-size: 0.875rem;
   }
 
   .game-main {
-    padding: var(--spacing-sm);
-  }
-
-  .mode-button {
-    font-size: 0.75rem;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    flex: 1;
+    padding: 8px;
   }
 
   .challenge-info-card {
-    padding: var(--spacing);
+    padding: 0px;
+    overflow: visible;
+    height: auto;
   }
 
   .challenge-info-sidebar {
-    max-height: 35%;
+    height: auto;
+    flex: 0 0 auto;
+    overflow: visible;
   }
 
   .daily-challenge-container {
-    gap: var(--spacing-xs);
+    gap: 6px;
+    height: auto;
+    overflow: visible;
+  }
+
+  .playground-container {
+    flex: 1;
+    min-height: 500px;
+    height: auto;
+    overflow: visible;
+  }
+
+  .ecc-game-page-wrapper {
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .ecc-game-page {
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .game-main {
+    flex: 1;
+    min-height: calc(100vh - 60px);
+    overflow: visible;
   }
 }

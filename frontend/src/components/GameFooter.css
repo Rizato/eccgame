@@ -45,12 +45,6 @@
 
 @media (max-width: 768px) {
   .game-footer {
-    padding: var(--spacing-sm);
-  }
-
-  .footer-content {
-    flex-direction: column;
-    text-align: center;
-    gap: var(--spacing-sm);
+    display: none;
   }
 }

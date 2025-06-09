@@ -162,14 +162,4 @@ describe('ECCCalculator', () => {
       expect(screen.getByText('⌫')).toBeInTheDocument();
     });
   });
-
-  describe('Help Text', () => {
-    it('should show operation help', async () => {
-      await act(async () => {
-        renderWithStore(<ECCCalculator {...createDefaultProps()} />);
-      });
-
-      expect(screen.getByText(/Use keyboard.*or click buttons/)).toBeInTheDocument();
-    });
-  });
 });

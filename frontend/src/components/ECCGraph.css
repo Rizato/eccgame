@@ -36,7 +36,6 @@
 .ecc-graph {
   position: relative;
   flex: 1;
-  min-height: 300px;
   background: var(--graph-bg);
   border: 2px solid var(--border-color);
   border-radius: 8px;
@@ -209,3 +208,22 @@
 }
 
 /* Remove dark mode specific styles as variables handle it automatically */
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .formula {
+    display: none;
+  }
+
+  .graph-content {
+    margin-bottom: 0.5rem;
+  }
+
+  .ecc-graph {
+    margin-bottom: 0.5rem;
+  }
+
+  .graph-display {
+    padding: 0.5rem;
+  }
+}

@@ -1,0 +1,197 @@
+.placeholder-content {
+  padding: var(--spacing);
+}
+
+.placeholder-button,
+.placeholder-address,
+.placeholder-explorer,
+.placeholder-private-key {
+  background: var(--surface-variant);
+  color: var(--text-dim);
+  border-radius: var(--radius);
+  padding: var(--spacing-sm);
+  animation: placeholderPulse 1.5s ease-in-out infinite;
+}
+
+.placeholder-button {
+  border: 1px solid var(--border);
+  font-size: 0.875rem;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.placeholder-address {
+  font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.75rem;
+  flex: 1;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+}
+
+.placeholder-explorer {
+  font-size: 0.75rem;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+  border: 1px solid var(--border);
+}
+
+.placeholder-private-key {
+  font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.75rem;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+}
+
+.placeholder-playground {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+  height: 100%;
+}
+
+.placeholder-graph {
+  flex: 1;
+  background: var(--surface-dim);
+  padding: var(--spacing);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+}
+
+.placeholder-graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.placeholder-title {
+  background: var(--surface-variant);
+  color: var(--text-dim);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius);
+  animation: placeholderPulse 1.5s ease-in-out infinite;
+  width: 100px;
+}
+
+.placeholder-legend {
+  display: flex;
+  gap: 16px;
+}
+
+.placeholder-legend-item {
+  width: 60px;
+  height: 16px;
+  background: var(--surface-variant);
+  border-radius: var(--radius);
+  animation: placeholderPulse 1.5s ease-in-out infinite;
+}
+
+.placeholder-graph-area {
+  flex: 1;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.placeholder-graph-area::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 20px;
+  background: var(--surface-variant);
+  border-radius: var(--radius);
+  animation: placeholderPulse 1.5s ease-in-out infinite;
+}
+
+.placeholder-calculator {
+  background: var(--surface);
+  padding: var(--spacing);
+  min-height: 250px;
+}
+
+.placeholder-calculator-header {
+  background: var(--surface-variant);
+  color: var(--text-dim);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius);
+  animation: placeholderPulse 1.5s ease-in-out infinite;
+  width: 80px;
+  margin-bottom: var(--spacing);
+}
+
+.placeholder-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.placeholder-button-row {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.placeholder-calc-button {
+  flex: 1;
+  height: 40px;
+  background: var(--surface-variant);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  animation: placeholderPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes placeholderPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .placeholder-graph {
+    min-height: 250px;
+  }
+
+  .placeholder-calculator {
+    min-height: 200px;
+  }
+
+  .placeholder-button,
+  .placeholder-address,
+  .placeholder-explorer,
+  .placeholder-private-key {
+    font-size: var(--mobile-font-size);
+    min-height: var(--mobile-button-height);
+    padding: 0 var(--spacing);
+  }
+
+  .placeholder-calc-button {
+    height: var(--mobile-button-height);
+  }
+}

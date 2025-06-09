@@ -173,12 +173,6 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
 
   const graphPoints = getVisiblePoints();
 
-  // Check if selected point is at generator for legend coloring
-  const isAtGenerator =
-    selectedPoint.x === generatorPoint.x &&
-    selectedPoint.y === generatorPoint.y &&
-    !selectedPoint.isInfinity;
-
   return (
     <div className="graph-section graph-display">
       <div className="graph-content">
@@ -235,31 +229,6 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
         <div className="range-indicator bottom-left">0</div>
         <div className="range-indicator bottom-right">p</div>
         <div className="range-indicator top-left">p</div>
-      </div>
-
-      {/* Legend at bottom */}
-      <div className="legend-grid">
-        <div className="legend-item">
-          <div className="legend-dot" style={{ backgroundColor: '#3b82f6' }}></div>
-          <span>G</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-dot" style={{ backgroundColor: '#f59e0b' }}></div>
-          <span>Wallet</span>
-        </div>
-        {savedPoints.length > 0 && (
-          <div className="legend-item">
-            <div className="legend-dot" style={{ backgroundColor: '#8b5cf6' }}></div>
-            <span>Saved</span>
-          </div>
-        )}
-        <div className="legend-item">
-          <div
-            className="legend-dot"
-            style={{ backgroundColor: isAtGenerator ? '#22c55e' : '#ef4444' }}
-          ></div>
-          <span>Current</span>
-        </div>
       </div>
     </div>
   );

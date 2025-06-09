@@ -586,7 +586,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       {/* Current Point Display in Calculator */}
       <div className="calculator-point-display">
         <div className="point-display-header">
-          <h5>Current Point</h5>
+          <div className="point-address">{currentAddress}</div>
           <div className="point-display-actions">
             <button
               onClick={() => {
@@ -624,8 +624,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         </div>
         <div className="point-display-content">
           <>
-            <div className="point-address">{currentAddress}</div>
-            <div className="point-coordinates-compact">
+            <div className="point-coordinates-compact desktop-only">
               {currentPoint.isInfinity ? (
                 <span>Point at Infinity</span>
               ) : (
@@ -635,7 +634,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 </>
               )}
             </div>
-            <div className="point-compressed-key">
+            <div className="point-compressed-key desktop-only">
               <span>
                 Compressed:{' '}
                 {currentPoint.isInfinity
@@ -820,12 +819,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             </div>
           </div>
         </div>
-      </div>
-      <div className="operation-help">
-        <small>
-          Use keyboard (0-9, A-F, +, -, *, /, Enter, Escape) or click buttons. Operations act on the
-          current point above.
-        </small>
       </div>
 
       <SavePointModal

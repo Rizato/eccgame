@@ -172,16 +172,6 @@ describe('ECCCalculator', () => {
     });
   });
 
-  describe('Help Text', () => {
-    it('should show operation instructions', async () => {
-      await act(async () => {
-        renderWithStore(<ECCCalculator {...createDefaultProps()} />);
-      });
-
-      expect(screen.getByText(/Use keyboard.*or click buttons/)).toBeInTheDocument();
-    });
-  });
-
   describe('☆ Button', () => {
     it('should be disabled for generator point', async () => {
       await act(async () => {

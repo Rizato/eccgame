@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useGameStateRedux } from '../hooks/useGameStateRedux';
 import StatsModal from './StatsModal';
 import ThemeToggle from './ThemeToggle';
+import MobileNavDrawer from './MobileNavDrawer';
 
 interface GameHeaderProps {
   showErrorBanner?: boolean;
@@ -12,6 +13,7 @@ interface GameHeaderProps {
 const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpenHowToPlay }) => {
   const { error, clearError } = useGameStateRedux();
   const [showStats, setShowStats] = useState(false);
+  const [showMobileNav, setShowMobileNav] = useState(false);
   const location = useLocation();
 
   const isGameRoute = ['/', '/practice'].includes(location.pathname);
@@ -21,11 +23,29 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
       <header className="game-header">
         <div className="header-content">
           <div className="header-left">
+            <button
+              className="mobile-nav-button"
+              onClick={() => setShowMobileNav(true)}
+              aria-label="Open navigation menu"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
             <Link to="/" className="site-title">
               <h1>ECC Crypto Playground</h1>
             </Link>
             {isGameRoute && (
-              <nav className="nav-links">
+              <nav className="nav-links desktop-nav">
                 <Link to="/" className={location.pathname === '/' ? 'nav-link active' : 'nav-link'}>
                   Daily
                 </Link>
@@ -63,7 +83,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
               </button>
             )}
             {!isGameRoute && (
-              <nav className="nav-links">
+              <nav className="nav-links desktop-nav">
                 <Link
                   to="/faq"
                   className={location.pathname === '/faq' ? 'nav-link active' : 'nav-link'}
@@ -95,6 +115,11 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
       </header>
 
       <StatsModal isOpen={showStats} onClose={() => setShowStats(false)} />
+      <MobileNavDrawer
+        isOpen={showMobileNav}
+        onClose={() => setShowMobileNav(false)}
+        onOpenHowToPlay={onOpenHowToPlay}
+      />
     </>
   );
 };

@@ -18,7 +18,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
   const hasWon = useAppSelector(state => state.game.hasWon);
   const gaveUp = useAppSelector(state => state.game.gaveUp);
 
-  const { difficulty, practicePrivateKey, setDifficulty, generatePracticeChallenge } =
+  const { practicePrivateKey, setDifficulty, generatePracticeChallenge, isGenerating } =
     usePracticeModeRedux();
 
   const isPracticeMode = gameMode === 'practice';
@@ -27,8 +27,9 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Show give up button after 3 operations in daily mode only, but hide it after winning or giving up
-  const showGiveUpButton = !isPracticeMode && operationCount >= 3 && !hasWon && !gaveUp;
+  // Always show give up button in daily mode, but enable only after 3 operations and when not won/given up
+  const showGiveUpButton = !isPracticeMode;
+  const enableGiveUpButton = !isPracticeMode && operationCount >= 3 && !hasWon && !gaveUp;
 
   const handleGiveUp = () => {
     // Record stats (with challenge ID to prevent double counting)
@@ -59,13 +60,45 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
     }
   }, [showDifficultyDropdown]);
 
-  if (!currentChallenge) {
+  if (!currentChallenge || (isPracticeMode && isGenerating)) {
     return (
       <div className="challenge-info-container">
         <div className="challenge-info-content">
-          <div className="info-section">
-            <p>Loading challenge...</p>
+          <div className="challenge-header">
+            <h4 className="address-heading">
+              {isPracticeMode ? 'Practice Wallet' : 'Daily Wallet'}
+            </h4>
+            <div className="header-actions">
+              {isPracticeMode && (
+                <button className="details-button combined-control-button disabled" disabled>
+                  New Challenge ▼
+                </button>
+              )}
+              {!isPracticeMode && (
+                <button className="give-up-button header-give-up disabled" disabled>
+                  Give Up
+                </button>
+              )}
+            </div>
           </div>
+          <div className="info-section">
+            <div className="address-row">
+              <code className="address-code loading-placeholder">
+                {isPracticeMode ? 'Generating new challenge...' : 'Loading challenge...'}
+              </code>
+              {!isPracticeMode && (
+                <div className="explorer-link loading-placeholder">View Explorer</div>
+              )}
+            </div>
+          </div>
+          {isPracticeMode && (
+            <div className="info-section">
+              <label>Private Key:</label>
+              <div className="private-key-display-container">
+                <span className="private-key-display loading-placeholder">Generating...</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -74,26 +107,25 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
   return (
     <>
       <div className="challenge-info-container">
-        <div className="challenge-header"></div>
-
         <div className="challenge-info-content">
-          <div className="info-section">
+          <div className="challenge-header">
             <h4 className="address-heading">
               {isPracticeMode ? 'Practice Wallet' : 'Daily Wallet'}
             </h4>
-            <div className="address-row">
-              <code className="address-code">{currentChallenge.p2pkh_address}</code>
+            <div className="header-actions">
               {isPracticeMode && (
                 <div className="combined-control" ref={dropdownRef}>
                   <button
-                    onClick={() => setShowDifficultyDropdown(!showDifficultyDropdown)}
-                    className="details-button combined-control-button"
+                    onClick={() =>
+                      !isGenerating && setShowDifficultyDropdown(!showDifficultyDropdown)
+                    }
+                    className={`details-button combined-control-button ${isGenerating ? 'disabled' : ''}`}
+                    disabled={isGenerating}
+                    title={isGenerating ? 'Generating new challenge...' : 'Create new challenge'}
                   >
-                    New Challenge (
-                    {difficulty === 'easy' ? 'Easy' : difficulty === 'medium' ? 'Medium' : 'Hard'})
-                    ▼
+                    {isGenerating ? 'Generating...' : 'New Challenge ▼'}
                   </button>
-                  {showDifficultyDropdown && (
+                  {showDifficultyDropdown && !isGenerating && (
                     <div className="difficulty-dropdown">
                       <button
                         onClick={() => {
@@ -129,6 +161,25 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
                   )}
                 </div>
               )}
+              {showGiveUpButton && (
+                <button
+                  onClick={handleGiveUp}
+                  className={`give-up-button header-give-up ${!enableGiveUpButton ? 'disabled' : ''}`}
+                  disabled={!enableGiveUpButton}
+                  title={
+                    !enableGiveUpButton
+                      ? 'Available after 3 operations'
+                      : 'Give up and reveal solution'
+                  }
+                >
+                  Give Up
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="info-section">
+            <div className="address-row">
+              <code className="address-code">{currentChallenge.p2pkh_address}</code>
               {!isPracticeMode && currentChallenge.explorer_link && (
                 <a
                   href={currentChallenge.explorer_link}
@@ -170,16 +221,6 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
                     {meta.name}
                   </span>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {showGiveUpButton && (
-            <div className="info-section">
-              <div className="give-up-button-container">
-                <button onClick={handleGiveUp} className="give-up-button">
-                  Give Up
-                </button>
               </div>
             </div>
           )}

@@ -40,23 +40,6 @@
   transform: scale(1.1);
 }
 
-/* Smooth rotation animation when switching themes */
-.theme-toggle-button .theme-icon {
-  animation: theme-icon-rotate 0.3s ease-in-out;
-}
-
-@keyframes theme-icon-rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(180deg) scale(0.8);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 /* Mobile styles */
 @media (max-width: 768px) {
   .theme-toggle-button {
