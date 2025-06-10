@@ -4,14 +4,12 @@ interface UIState {
   showHowToPlayModal: boolean;
   showMobileNav: boolean;
   showErrorBanner: boolean;
-  showVictoryModal: boolean;
 }
 
 const initialState: UIState = {
   showHowToPlayModal: false,
   showMobileNav: false,
   showErrorBanner: true,
-  showVictoryModal: false,
 };
 
 const uiSlice = createSlice({
@@ -49,18 +47,6 @@ const uiSlice = createSlice({
     toggleHowToPlayModal: state => {
       state.showHowToPlayModal = !state.showHowToPlayModal;
     },
-
-    setShowVictoryModal: (state, action: PayloadAction<boolean>) => {
-      state.showVictoryModal = action.payload;
-    },
-
-    openVictoryModal: state => {
-      state.showVictoryModal = true;
-    },
-
-    closeVictoryModal: state => {
-      state.showVictoryModal = false;
-    },
   },
 });
 
@@ -73,9 +59,6 @@ export const {
   closeMobileNav,
   setShowErrorBanner,
   toggleHowToPlayModal,
-  setShowVictoryModal,
-  openVictoryModal,
-  closeVictoryModal,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;
@@ -84,4 +67,3 @@ export default uiSlice.reducer;
 export const selectShowHowToPlayModal = (state: { ui: UIState }) => state.ui.showHowToPlayModal;
 export const selectShowMobileNav = (state: { ui: UIState }) => state.ui.showMobileNav;
 export const selectShowErrorBanner = (state: { ui: UIState }) => state.ui.showErrorBanner;
-export const selectShowVictoryModal = (state: { ui: UIState }) => state.ui.showVictoryModal;

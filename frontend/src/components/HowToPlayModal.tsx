@@ -1,13 +1,13 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import './HowToPlayModal.css';
-import { useUIRedux } from '../hooks/useUIRedux';
 
-export const HowToPlayModal: React.FC = () => {
-  const { showHowToPlayModal, closeHowToPlay } = useUIRedux();
+interface HowToPlayModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-  const isOpen = showHowToPlayModal;
-  const onClose = closeHowToPlay;
+export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return createPortal(

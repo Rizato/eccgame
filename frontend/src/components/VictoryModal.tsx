@@ -2,47 +2,34 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import './VictoryModal.css';
 import { generateShareMessage, shareMessage } from '../utils/gameUtils';
+import type { SavedPoint } from '../types/ecc.ts';
 import { getPublicKeyFromPrivate } from '../utils/crypto.ts';
-import { useAppSelector } from '../store/hooks';
-import { useUIRedux } from '../hooks/useUIRedux';
-import { useGameStateRedux } from '../hooks/useGameStateRedux';
 
-export const VictoryModal: React.FC = () => {
-  const { showVictoryModal, closeVictory } = useUIRedux();
-  const { gaveUp, gameMode } = useGameStateRedux();
+interface VictoryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  operationCount: number;
+  challengeAddress: string;
+  savedPoints: SavedPoint[];
+  isPracticeMode?: boolean;
+  victoryPrivateKey: string;
+  signature: string;
+  gaveUp?: boolean;
+}
 
-  // Get mode-specific data
-  const isPracticeMode = gameMode === 'practice';
-  const dailyVictoryData = useAppSelector(state => ({
-    privateKey: state.dailyMode.victoryPrivateKey,
-    signature: state.dailyMode.signature,
-  }));
-  const practiceVictoryData = useAppSelector(state => ({
-    privateKey: state.practiceMode.practicePrivateKey,
-    signature: '', // Practice mode doesn't have signatures
-  }));
-
-  const victoryData = isPracticeMode ? practiceVictoryData : dailyVictoryData;
-  const victoryPrivateKey = victoryData.privateKey;
-  const signature = victoryData.signature;
-
-  // Get challenge address
-  const challengeAddress = useAppSelector(state =>
-    isPracticeMode ? state.practiceMode.challengeAddress : state.game.challenge?.p2pkh_address || ''
-  );
-
-  // Calculate operation count from graph
-  const operationCount = useAppSelector(state => {
-    const graph = isPracticeMode ? state.practiceCalculator.graph : state.dailyCalculator.graph;
-    return Object.values(graph.edges).reduce((total, edge) => {
-      return total + (edge.bundleCount ? Number(edge.bundleCount) : 1);
-    }, 0);
-  });
-
-  const onClose = closeVictory;
+export const VictoryModal: React.FC<VictoryModalProps> = ({
+  isOpen,
+  onClose,
+  operationCount,
+  challengeAddress,
+  victoryPrivateKey,
+  isPracticeMode,
+  signature,
+  gaveUp = false,
+}) => {
   const [shareStatus, setShareStatus] = useState<string | null>(null);
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
-  if (!showVictoryModal) return null;
+  if (!isOpen) return null;
 
   const getVictoryTitle = () => {
     if (gaveUp) {

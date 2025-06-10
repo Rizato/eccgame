@@ -1,41 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import './SavePointModal.css';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-  closeSavePointModal,
-  selectSavePointModalOpen,
-  selectSavePointModalDefaultLabel,
-  selectSavePointModalPendingData,
-} from '../store/slices/savePointModalSlice';
-import { useSavedPointsRedux } from '../hooks/useSavedPointsRedux';
-import type { SavedPoint } from '../types/ecc';
 
-export const SavePointModal: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { addPoint } = useSavedPointsRedux();
+interface SavePointModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (label: string) => void;
+  defaultLabel?: string;
+}
 
-  const isOpen = useAppSelector(selectSavePointModalOpen);
-  const defaultLabel = useAppSelector(selectSavePointModalDefaultLabel);
-  const pendingData = useAppSelector(selectSavePointModalPendingData);
-
-  const onClose = () => dispatch(closeSavePointModal());
-
-  const onSave = (label: string) => {
-    if (pendingData?.point) {
-      const savedPoint: SavedPoint = {
-        id: `saved-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        point: pendingData.point,
-        label,
-        timestamp: Date.now(),
-        privateKey: pendingData.privateKey,
-      };
-      addPoint(savedPoint);
-    }
-  };
+export const SavePointModal: React.FC<SavePointModalProps> = ({
+  isOpen,
+  onClose,
+  onSave,
+  defaultLabel = '',
+}) => {
   const [label, setLabel] = useState(defaultLabel);
 
   useEffect(() => {
-    setLabel(defaultLabel || '');
+    setLabel(defaultLabel);
   }, [defaultLabel, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
