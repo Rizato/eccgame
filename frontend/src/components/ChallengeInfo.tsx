@@ -3,7 +3,6 @@ import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
 import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
-import { recordGamePlayed, recordGameLost } from '../store/slices/statsSlice';
 import './ChallengeInfo.css';
 
 interface ChallengeInfoProps {
@@ -32,12 +31,6 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
   const enableGiveUpButton = !isPracticeMode && operationCount >= 3 && !hasWon && !gaveUp;
 
   const handleGiveUp = () => {
-    // Record stats (with challenge ID to prevent double counting)
-    if (challenge) {
-      dispatch(recordGamePlayed({ mode: 'daily', challengeId: challenge.uuid }));
-      dispatch(recordGameLost());
-    }
-
     // Update game state
     dispatch(setGaveUp(true));
     dispatch(setHasWon(true)); // Show victory modal
@@ -180,9 +173,9 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
           <div className="info-section">
             <div className="address-row">
               <code className="address-code">{currentChallenge.p2pkh_address}</code>
-              {!isPracticeMode && currentChallenge.explorer_link && (
+              {!isPracticeMode && (
                 <a
-                  href={currentChallenge.explorer_link}
+                  href={`https://blockstream.info/address/${currentChallenge.p2pkh_address}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="explorer-link"
@@ -212,13 +205,13 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
             </div>
           )}
 
-          {!isPracticeMode && currentChallenge.metadata && currentChallenge.metadata.length > 0 && (
+          {!isPracticeMode && currentChallenge.tags && currentChallenge.tags.length > 0 && (
             <div className="info-section">
               <label>Tags:</label>
               <div className="metadata-tags">
-                {currentChallenge.metadata.map((meta, index) => (
-                  <span key={meta.name || index} className="tag">
-                    {meta.name}
+                {currentChallenge.tags.map((tag, index) => (
+                  <span key={tag || index} className="tag">
+                    {tag}
                   </span>
                 ))}
               </div>

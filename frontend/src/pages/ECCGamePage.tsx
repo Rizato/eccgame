@@ -5,7 +5,6 @@ import PracticeModeView from '../components/PracticeModeView';
 import GameFooter from '../components/GameFooter';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setGameMode } from '../store/slices/gameSlice';
-import { storageUtils } from '../utils/storage';
 import './ECCGamePage.css';
 
 interface ECCGamePageProps {
@@ -22,16 +21,8 @@ const ECCGamePage: React.FC<ECCGamePageProps> = ({ mode = 'daily' }) => {
     dispatch(setGameMode(mode));
   }, [dispatch, mode]);
 
-  // Check if this is the user's first visit
-  useEffect(() => {
-    if (storageUtils.isFirstVisit()) {
-      setShowHowToPlay(true);
-    }
-  }, []);
-
   const handleCloseHowToPlay = () => {
     setShowHowToPlay(false);
-    storageUtils.markFirstVisitComplete();
   };
 
   const handleOpenHowToPlay = () => {

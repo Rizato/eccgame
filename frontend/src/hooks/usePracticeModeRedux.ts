@@ -6,7 +6,7 @@ import {
   generatePracticeChallenge,
   type Difficulty,
 } from '../store/slices/practiceModeSlice';
-import type { Challenge } from '../types/api';
+import type { Challenge } from '../types/game';
 
 export function usePracticeModeRedux() {
   const dispatch = useAppDispatch();

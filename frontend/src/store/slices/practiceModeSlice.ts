@@ -7,7 +7,7 @@ import {
   pointMultiply,
   pointToPublicKey,
 } from '../../utils/ecc';
-import type { Challenge } from '../../types/api';
+import type { Challenge } from '../../types/game';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -54,23 +54,13 @@ export const generatePracticeChallenge = createAsyncThunk(
     const p2pkhAddress = await getP2PKHAddress(publicKeyHex);
 
     const challenge: Challenge = {
-      uuid: 'practice-challenge',
+      id: 0,
       public_key: publicKeyHex,
       p2pkh_address: p2pkhAddress,
-      created_at: new Date().toISOString(),
-      metadata: [
-        {
-          id: 0,
-          name: `Difficulty: ${difficulty}`,
-        },
-        {
-          id: 1,
-          name: `Range: ${difficulty === 'easy' ? '1-100' : difficulty === 'medium' ? '1-1M' : 'full'}`,
-        },
+      tags: [
+        `difficulty:${difficulty}`,
+        `range:${difficulty === 'easy' ? '1-100' : difficulty === 'medium' ? '1-1M' : 'full'}`,
       ],
-      explorer_link: '',
-      active: true,
-      active_date: new Date().toISOString(),
     };
 
     return {

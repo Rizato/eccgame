@@ -7,8 +7,7 @@ import { store } from './store';
 import { themeUtils } from './utils/theme';
 
 // Apply theme immediately before React renders to prevent flash
-const savedTheme = themeUtils.getStoredTheme();
-themeUtils.applyTheme(savedTheme);
+themeUtils.applyTheme('system');
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

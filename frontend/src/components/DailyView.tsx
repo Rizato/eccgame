@@ -14,11 +14,7 @@ const DailyView: React.FC<DailyViewProps> = ({ onOpenHowToPlay }) => {
 
   return (
     <div className="ecc-game-page">
-      <GameHeader
-        showModeSelector={true}
-        showErrorBanner={true}
-        onOpenHowToPlay={onOpenHowToPlay}
-      />
+      <GameHeader showErrorBanner={true} onOpenHowToPlay={onOpenHowToPlay} />
       <main className="game-main">
         {loading && (
           <PlaceholderLayout message="Loading today's challenge..." isPracticeMode={false} />

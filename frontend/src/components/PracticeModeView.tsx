@@ -9,7 +9,7 @@ interface PracticeModeViewProps {
 const PracticeModeView: React.FC<PracticeModeViewProps> = ({ onOpenHowToPlay }) => {
   return (
     <div className="ecc-game-page">
-      <GameHeader showModeSelector={true} onOpenHowToPlay={onOpenHowToPlay} />
+      <GameHeader onOpenHowToPlay={onOpenHowToPlay} />
       <main className="game-main">
         <PracticeMode />
       </main>

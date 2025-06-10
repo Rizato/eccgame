@@ -1,9 +1,8 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { type Action, configureStore, type ThunkAction } from '@reduxjs/toolkit';
 import dailyCalculatorReducer from './slices/eccCalculatorSlice';
 import gameReducer from './slices/gameSlice';
 import practiceCalculatorReducer from './slices/practiceCalculatorSlice';
 import practiceModeReducer from './slices/practiceModeSlice';
-import statsReducer from './slices/statsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +10,6 @@ export const store = configureStore({
     dailyCalculator: dailyCalculatorReducer,
     practiceCalculator: practiceCalculatorReducer,
     practiceMode: practiceModeReducer,
-    stats: statsReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
@@ -80,3 +78,10 @@ export const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
+export type AppThunk<ThunkReturnType = void> = ThunkAction<
+  ThunkReturnType,
+  RootState,
+  unknown,
+  Action
+>;

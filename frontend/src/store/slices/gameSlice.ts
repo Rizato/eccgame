@@ -1,7 +1,7 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import { challengeApi } from '../../services/api';
-import { storageUtils } from '../../utils/storage';
-import type { Challenge } from '../../types/api';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { Challenge } from '../../types/game';
+import type { AppThunk } from '../index.ts';
+import { challenges } from '../../data/challenges.json';
 
 export type GameMode = 'daily' | 'practice';
 
@@ -12,6 +12,7 @@ interface GameState {
   error: string | null;
   hasWon: boolean;
   gaveUp: boolean;
+  challenges: Challenge[];
 }
 
 const initialState: GameState = {
@@ -21,43 +22,23 @@ const initialState: GameState = {
   error: null,
   hasWon: false,
   gaveUp: false,
+  challenges: challenges,
 };
 
-export const loadDailyChallenge = createAsyncThunk(
-  'game/loadDailyChallenge',
-  async (arg: void, { rejectWithValue }) => {
-    try {
-      const dailyChallenge = await challengeApi.getDailyChallenge();
-      const wonToday = storageUtils.hasWonToday(dailyChallenge.uuid);
-      return { challenge: dailyChallenge, hasWon: wonToday };
-    } catch (error) {
-      console.error('Failed to load daily challenge:', error);
-      return rejectWithValue("Failed to load today's challenge. Please try again.");
-    }
-  }
-);
-
-export const handleSolve = createAsyncThunk(
-  'game/handleSolve',
-  async (privateKey: string, { getState, rejectWithValue }) => {
+export const loadDailyChallenge = (): AppThunk => {
+  return (dispatch, getState) => {
+    const now = new Date();
+    const daysSinceEpoch = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
     const state = getState() as { game: GameState };
-    const { challenge } = state.game;
-
-    if (!challenge) {
-      return rejectWithValue('No challenge available');
-    }
-
-    try {
-      // TODO: In a real implementation, this would submit to the backend
-      // For now, we'll just mark as won locally
-      storageUtils.markWonToday(challenge.uuid);
-      return true;
-    } catch (error) {
-      console.error('Failed to submit solution:', error);
-      return rejectWithValue('Failed to submit solution. Please try again.');
-    }
-  }
-);
+    const challenges = state.game.challenges;
+    const challengeIndex = daysSinceEpoch % challenges.length;
+    const challenge = {
+      id: challengeIndex,
+      ...challenges[challengeIndex],
+    };
+    dispatch(setChallenge(challenge));
+  };
+};
 
 const gameSlice = createSlice({
   name: 'game',
@@ -75,6 +56,7 @@ const gameSlice = createSlice({
       }
     },
     setChallenge: (state, action: PayloadAction<Challenge | null>) => {
+      state.loading = false;
       state.challenge = action.payload;
     },
     setError: (state, action: PayloadAction<string | null>) => {
@@ -89,32 +71,19 @@ const gameSlice = createSlice({
     clearError: state => {
       state.error = null;
     },
-  },
-  extraReducers: builder => {
-    builder
-      .addCase(loadDailyChallenge.pending, state => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loadDailyChallenge.fulfilled, (state, action) => {
-        state.loading = false;
-        state.challenge = action.payload.challenge;
-        state.hasWon = action.payload.hasWon;
-        state.gaveUp = false;
-      })
-      .addCase(loadDailyChallenge.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(handleSolve.fulfilled, state => {
-        state.hasWon = true;
-      })
-      .addCase(handleSolve.rejected, (state, action) => {
-        state.error = action.payload as string;
-      });
+    setChallenges: (state, action: PayloadAction<Challenge[]>) => {
+      state.challenges = action.payload;
+    },
   },
 });
 
-export const { setGameMode, setChallenge, setError, setHasWon, setGaveUp, clearError } =
-  gameSlice.actions;
+export const {
+  setGameMode,
+  setChallenge,
+  setError,
+  setHasWon,
+  setGaveUp,
+  clearError,
+  setChallenges,
+} = gameSlice.actions;
 export default gameSlice.reducer;

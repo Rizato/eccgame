@@ -9,8 +9,6 @@ import {
   hasPath,
   calculateNodePrivateKey,
 } from '../../utils/graphOperations';
-import { submitSolution, submitSaveIfDaily } from '../../utils/apiSubmission';
-import { storageUtils } from '../../utils/storage';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
 interface DailyCalculatorState {
@@ -78,59 +76,6 @@ export const calculateDailyCurrentAddress = createAsyncThunk(
       return address;
     } catch {
       return 'Invalid';
-    }
-  }
-);
-
-export const submitDailySolution = createAsyncThunk(
-  'dailyCalculator/submitDailyGameSolution',
-  async (_arg: void, { getState }) => {
-    const state = getState() as {
-      dailyCalculator: DailyCalculatorState;
-      game: { challenge: { uuid: string } | null };
-    };
-
-    const { graph, challengeNodeId } = state.dailyCalculator;
-    const challengeUuid = state.game.challenge?.uuid;
-
-    if (!challengeUuid || !challengeNodeId) {
-      console.warn('Cannot submit solution - missing challenge UUID or node ID');
-      return null;
-    }
-
-    try {
-      const results = await submitSolution(graph, challengeUuid, challengeNodeId);
-      return results;
-    } catch (error) {
-      console.error('Failed to submit daily game solution:', error);
-      // Don't reject - we don't want to prevent the victory modal from showing
-      return null;
-    }
-  }
-);
-
-export const submitSaveToBackend = createAsyncThunk(
-  'dailyCalculator/submitSaveToBackend',
-  async ({ point, label }: { point: ECPoint; label: string }, { getState }) => {
-    const state = getState() as {
-      dailyCalculator: DailyCalculatorState;
-      game: { challenge: { uuid: string } | null; gameMode: string };
-    };
-
-    const challengeUuid = state.game.challenge?.uuid;
-    const gameMode = state.game.gameMode;
-
-    if (!challengeUuid) {
-      console.warn('Cannot submit save - no challenge UUID');
-      return null;
-    }
-
-    try {
-      const result = await submitSaveIfDaily(challengeUuid, gameMode, point, label);
-      return result;
-    } catch (error) {
-      console.error('Failed to submit save to backend:', error);
-      return null;
     }
   }
 );
@@ -360,32 +305,15 @@ const dailyCalculatorSlice = createSlice({
       // Remove from saved points
       state.savedPoints = state.savedPoints.filter(point => point.id !== pointId);
     },
-    checkWinCondition: (state, action: PayloadAction<string | undefined>) => {
+    checkWinCondition: state => {
       // Win condition: there's a path from challenge to generator in the graph
       if (state.challengeNodeId && state.generatorNodeId) {
         const hasConnection = hasPath(state.graph, state.challengeNodeId, state.generatorNodeId);
         if (hasConnection && !state.hasWon) {
           state.hasWon = true;
           state.showVictoryModal = true;
-          state.shouldSubmitSolution = true; // Trigger solution submission
-
-          // Mark address as won if provided
-          const challengeAddress = action.payload;
-          if (challengeAddress) {
-            storageUtils.markWonByAddress(challengeAddress);
-          }
         }
       }
-    },
-    clearShouldSubmitSolution: state => {
-      state.shouldSubmitSolution = false;
-    },
-    initializeWinStateByAddress: (state, action: PayloadAction<string>) => {
-      const address = action.payload;
-      const hasWonBefore = storageUtils.hasWonByAddress(address);
-      state.hasWon = hasWonBefore;
-      // Don't show victory modal on initialization, only when actually winning
-      state.showVictoryModal = false;
     },
     addOperationToGraph: (
       state,
@@ -420,19 +348,14 @@ export const {
   setShowVictoryModal,
   setPendingOperation,
   setChallengePublicKey,
-  setChallengeWithPrivateKey,
   clearCalculator,
   addToCalculator,
   backspaceCalculator,
   resetToChallenge,
-  resetToChallengeWithPrivateKey,
   resetToGenerator,
   savePoint,
   loadSavedPoint,
-  unsaveSavedPoint,
   checkWinCondition,
-  clearShouldSubmitSolution,
-  initializeWinStateByAddress,
   addOperationToGraph,
 } = dailyCalculatorSlice.actions;
 

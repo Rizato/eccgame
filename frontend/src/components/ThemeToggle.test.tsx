@@ -18,9 +18,6 @@ const mockThemeUtils = vi.mocked(themeUtils);
 describe('ThemeToggle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Default mocks
-    mockThemeUtils.getStoredTheme.mockReturnValue('light');
   });
 
   afterEach(() => {
@@ -36,7 +33,7 @@ describe('ThemeToggle', () => {
     });
 
     it('should show correct icon for current theme', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('light');
+      mockThemeUtils.getSystemTheme.mockReturnValue('light');
       render(<ThemeToggle />);
 
       // When in light mode, should show moon (to switch to dark)
@@ -44,7 +41,7 @@ describe('ThemeToggle', () => {
     });
 
     it('should show sun icon when in dark mode', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('dark');
+      mockThemeUtils.getSystemTheme.mockReturnValue('dark');
       render(<ThemeToggle />);
 
       // When in dark mode, should show sun (to switch to light)
@@ -54,7 +51,7 @@ describe('ThemeToggle', () => {
 
   describe('theme initialization', () => {
     it('should apply initial theme on mount', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('dark');
+      mockThemeUtils.getSystemTheme.mockReturnValue('dark');
 
       render(<ThemeToggle />);
 
@@ -64,29 +61,27 @@ describe('ThemeToggle', () => {
 
   describe('theme changing', () => {
     it('should toggle from light to dark when clicked', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('light');
+      mockThemeUtils.getSystemTheme.mockReturnValue('light');
       render(<ThemeToggle />);
 
       const button = screen.getByRole('button');
       fireEvent.click(button);
 
-      expect(mockThemeUtils.setStoredTheme).toHaveBeenCalledWith('dark');
       expect(mockThemeUtils.applyTheme).toHaveBeenCalledWith('dark');
     });
 
     it('should toggle from dark to light when clicked', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('dark');
+      mockThemeUtils.getSystemTheme.mockReturnValue('dark');
       render(<ThemeToggle />);
 
       const button = screen.getByRole('button');
       fireEvent.click(button);
 
-      expect(mockThemeUtils.setStoredTheme).toHaveBeenCalledWith('light');
       expect(mockThemeUtils.applyTheme).toHaveBeenCalledWith('light');
     });
 
     it('should update icon when clicking to toggle theme', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('light');
+      mockThemeUtils.getSystemTheme.mockReturnValue('light');
       render(<ThemeToggle />);
 
       // Initially in light mode, should show moon
@@ -103,7 +98,7 @@ describe('ThemeToggle', () => {
 
   describe('accessibility', () => {
     it('should have proper ARIA attributes', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('light');
+      mockThemeUtils.getSystemTheme.mockReturnValue('light');
       render(<ThemeToggle />);
 
       const button = screen.getByRole('button');
@@ -115,7 +110,7 @@ describe('ThemeToggle', () => {
     });
 
     it('should update ARIA attributes when theme changes', () => {
-      mockThemeUtils.getStoredTheme.mockReturnValue('dark');
+      mockThemeUtils.getSystemTheme.mockReturnValue('dark');
       render(<ThemeToggle />);
 
       const button = screen.getByRole('button');
@@ -155,7 +150,6 @@ describe('ThemeToggle', () => {
       const button = screen.getByRole('button');
 
       // Clear initial calls
-      mockThemeUtils.setStoredTheme.mockClear();
       mockThemeUtils.applyTheme.mockClear();
 
       // Rapidly click to toggle themes
@@ -163,7 +157,6 @@ describe('ThemeToggle', () => {
       fireEvent.click(button);
       fireEvent.click(button);
 
-      expect(mockThemeUtils.setStoredTheme).toHaveBeenCalledTimes(3);
       expect(mockThemeUtils.applyTheme).toHaveBeenCalledTimes(3);
     });
   });

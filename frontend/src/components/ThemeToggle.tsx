@@ -3,12 +3,11 @@ import { type Theme, themeUtils } from '../utils/theme';
 import './ThemeToggle.css';
 
 const ThemeToggle: React.FC = () => {
-  const [theme, setTheme] = useState<Theme>(() => themeUtils.getStoredTheme());
+  const [theme, setTheme] = useState<Theme>(() => themeUtils.getSystemTheme());
 
   useEffect(() => {
     // Apply initial theme
     themeUtils.applyTheme(theme);
-    themeUtils.setStoredTheme(theme);
   }, [theme]);
 
   const toggleTheme = () => {

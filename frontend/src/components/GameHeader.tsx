@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useGameStateRedux } from '../hooks/useGameStateRedux';
-import StatsModal from './StatsModal';
 import ThemeToggle from './ThemeToggle';
 import MobileNavDrawer from './MobileNavDrawer';
 
@@ -12,7 +11,6 @@ interface GameHeaderProps {
 
 const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpenHowToPlay }) => {
   const { error, clearError } = useGameStateRedux();
-  const [showStats, setShowStats] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
   const location = useLocation();
 
@@ -59,29 +57,6 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
             )}
           </div>
           <div className="mode-controls">
-            {isGameRoute && (
-              <button
-                className="stats-button"
-                onClick={() => setShowStats(true)}
-                title="Game Statistics"
-                aria-label="View game statistics"
-              >
-                <div className="stats-icon">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <rect x="2" y="12" width="1" height="2" />
-                    <rect x="7" y="7" width="1" height="7" />
-                    <rect x="12" y="2" width="1" height="12" />
-                  </svg>
-                </div>
-              </button>
-            )}
             {!isGameRoute && (
               <nav className="nav-links desktop-nav">
                 <Link
@@ -114,7 +89,6 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
         )}
       </header>
 
-      <StatsModal isOpen={showStats} onClose={() => setShowStats(false)} />
       <MobileNavDrawer
         isOpen={showMobileNav}
         onClose={() => setShowMobileNav(false)}

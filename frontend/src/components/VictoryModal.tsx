@@ -145,6 +145,39 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
             <div className="stat-label">{gaveUp ? 'Steps tried' : 'Steps to solve'}</div>
             <div className="stat-value">{operationCount}</div>
           </div>
+
+          {false && !gaveUp && (
+            <div className="stat-item">
+              <div className="stat-label">Cryptographic Signature Message</div>
+              <div className="modal-value-container">
+                <span className="stat-value address-value" title={proof.signature}>
+                  {proof.signature}
+                </span>
+                <button
+                  className="copy-button"
+                  onClick={() => navigator.clipboard.writeText(proof.signature)}
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          )}
+          {false && !gaveUp && (
+            <div className="stat-item">
+              <div className="stat-label">Cryptographic Signature</div>
+              <div className="modal-value-container">
+                <span className="stat-value address-value" title={proof.signature}>
+                  {proof.signature}
+                </span>
+                <button
+                  className="copy-button"
+                  onClick={() => navigator.clipboard.writeText(proof.signature)}
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="victory-actions">
