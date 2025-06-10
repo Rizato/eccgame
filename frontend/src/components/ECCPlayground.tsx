@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react'
 import type { Challenge } from '../types/game';
 import { useDailyCalculatorRedux } from '../hooks/useDailyCalculatorRedux';
 import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { createSignature, getP2PKHAddress } from '../utils/crypto';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { getP2PKHAddress } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
 import './ECCPlayground.css';
 import {
@@ -16,33 +16,19 @@ import ECCGraph from './ECCGraph';
 import { Modal } from './Modal';
 import { VictoryModal } from './VictoryModal';
 import type { ECPoint } from '../types/ecc';
-import { useGameStateRedux } from '../hooks/useGameStateRedux.ts';
 
 interface ECCPlaygroundProps {
+  challenge: Challenge;
   isPracticeMode?: boolean;
+  practicePrivateKey?: string;
 }
 
-const ECCPlayground: React.FC<ECCPlaygroundProps> = ({ isPracticeMode = false }) => {
-  // Get challenge from Redux state based on mode
-  const dailyChallenge = useAppSelector(state => state.game.challenge);
-  const practiceChallenge = useAppSelector(
-    state =>
-      ({
-        id: state.practiceMode.challengeId,
-        p2pkh_address: state.practiceMode.challengeAddress,
-        public_key: state.practiceMode.challengePublicKey,
-        tags: state.practiceMode.challengeTags,
-      }) as Challenge
-  );
-  const practicePrivateKey = useAppSelector(state => state.practiceMode.practicePrivateKey);
-
-  const challenge = isPracticeMode ? practiceChallenge : dailyChallenge;
-
-  if (!challenge || !challenge.public_key) {
-    return null;
-  }
+const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
+  challenge,
+  isPracticeMode = false,
+  practicePrivateKey,
+}) => {
   // Use the appropriate calculator hook based on mode
-  const { gaveUp } = useGameStateRedux();
   const dailyCalculator = useDailyCalculatorRedux(challenge.public_key);
   const practiceCalculator = usePracticeCalculatorRedux(
     challenge.public_key,
@@ -50,6 +36,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({ isPracticeMode = false })
   );
 
   // Get game state for give up functionality
+  const gameState = useAppSelector(state => state.game);
   const dispatch = useAppDispatch();
 
   // Select the appropriate calculator based on mode
@@ -72,7 +59,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({ isPracticeMode = false })
   } = calculator;
 
   const [challengeAddress, setChallengeAddress] = useState<string>('');
-  const [signature, setSignature] = useState<string>('');
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
@@ -83,16 +69,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({ isPracticeMode = false })
   const victoryPrivateKey = useMemo(() => {
     return calculateChallengePrivateKeyFromGraph(challenge, graph);
   }, [challenge, graph]);
-
-  useEffect(() => {
-    const calculateSignature = async (privateKey: bigint) => {
-      const signature = await createSignature(privateKey.toString(16));
-      setSignature(signature);
-    };
-    if (hasWon && gaveUp && victoryPrivateKey !== undefined) {
-      calculateSignature(victoryPrivateKey);
-    }
-  }, [hasWon, gaveUp, victoryPrivateKey]);
 
   // Calculate total number of operations by summing all bundled edges
   const totalOperationCount = useMemo(() => {
@@ -288,9 +264,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({ isPracticeMode = false })
         operationCount={totalOperationCount}
         challengeAddress={challengeAddress}
         victoryPrivateKey={victoryPrivateKey ? '0x' + victoryPrivateKey.toString(16) : ''}
-        signature={signature}
         isPracticeMode={isPracticeMode}
-        gaveUp={gaveUp}
+        gaveUp={gameState.gaveUp}
       />
     </div>
   );

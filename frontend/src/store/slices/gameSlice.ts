@@ -46,7 +46,14 @@ const gameSlice = createSlice({
   reducers: {
     setGameMode: (state, action: PayloadAction<GameMode>) => {
       state.gameMode = action.payload;
-      state.challenge = null;
+      if (action.payload === 'practice') {
+        // Clear challenge state when switching to practice
+        state.challenge = null;
+        state.hasWon = false;
+        state.gaveUp = false;
+        state.loading = false;
+        state.error = null;
+      }
     },
     setChallenge: (state, action: PayloadAction<Challenge | null>) => {
       state.loading = false;
@@ -64,9 +71,19 @@ const gameSlice = createSlice({
     clearError: state => {
       state.error = null;
     },
+    setChallenges: (state, action: PayloadAction<Challenge[]>) => {
+      state.challenges = action.payload;
+    },
   },
 });
 
-export const { setGameMode, setChallenge, setError, setHasWon, setGaveUp, clearError } =
-  gameSlice.actions;
+export const {
+  setGameMode,
+  setChallenge,
+  setError,
+  setHasWon,
+  setGaveUp,
+  clearError,
+  setChallenges,
+} = gameSlice.actions;
 export default gameSlice.reducer;

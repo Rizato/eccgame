@@ -1,25 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useGameStateRedux } from '../hooks/useGameStateRedux';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import {
-  openHowToPlayModal,
-  openMobileNav,
-  selectShowMobileNav,
-  selectShowErrorBanner,
-} from '../store/slices/uiSlice';
 import ThemeToggle from './ThemeToggle';
 import MobileNavDrawer from './MobileNavDrawer';
 
 interface GameHeaderProps {
   showErrorBanner?: boolean;
+  onOpenHowToPlay?: () => void;
 }
 
-const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner }) => {
+const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpenHowToPlay }) => {
   const { error, clearError } = useGameStateRedux();
-  const dispatch = useAppDispatch();
-  const showMobileNav = useAppSelector(selectShowMobileNav);
-  const showErrorBannerState = useAppSelector(selectShowErrorBanner);
+  const [showMobileNav, setShowMobileNav] = useState(false);
   const location = useLocation();
 
   const isGameRoute = ['/', '/practice'].includes(location.pathname);
@@ -31,7 +23,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner }) => {
           <div className="header-left">
             <button
               className="mobile-nav-button"
-              onClick={() => dispatch(openMobileNav())}
+              onClick={() => setShowMobileNav(true)}
               aria-label="Open navigation menu"
             >
               <svg
@@ -81,19 +73,15 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner }) => {
                 </Link>
               </nav>
             )}
-            {isGameRoute && (
-              <button
-                className="how-to-play-button"
-                onClick={() => dispatch(openHowToPlayModal())}
-                title="How to Play"
-              >
+            {onOpenHowToPlay && (
+              <button className="how-to-play-button" onClick={onOpenHowToPlay} title="How to Play">
                 ?
               </button>
             )}
             <ThemeToggle />
           </div>
         </div>
-        {(showErrorBanner ?? showErrorBannerState) && error && (
+        {showErrorBanner && error && (
           <div className="error-banner">
             <span>{error}</span>
             <button onClick={clearError}>×</button>
@@ -101,7 +89,11 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner }) => {
         )}
       </header>
 
-      <MobileNavDrawer />
+      <MobileNavDrawer
+        isOpen={showMobileNav}
+        onClose={() => setShowMobileNav(false)}
+        onOpenHowToPlay={onOpenHowToPlay}
+      />
     </>
   );
 };

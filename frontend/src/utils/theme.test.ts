@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { themeUtils } from './theme';
+import { type Theme, themeUtils } from './theme';
 
 // Mock window.matchMedia
 const mockMatchMedia = vi.fn();

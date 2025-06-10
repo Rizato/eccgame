@@ -25,7 +25,6 @@ export function useGameStateRedux() {
     gameMode: gameState.gameMode,
     challenge: gameState.challenge,
     loading: gameState.loading,
-    gaveUp: gameState.gaveUp,
     error: gameState.error,
     hasWon: gameState.hasWon,
     // Actions

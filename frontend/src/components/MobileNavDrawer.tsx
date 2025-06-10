@@ -1,16 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { closeMobileNav, openHowToPlayModal, selectShowMobileNav } from '../store/slices/uiSlice';
 import './MobileNavDrawer.css';
 
-const MobileNavDrawer: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const isOpen = useAppSelector(selectShowMobileNav);
-  const location = useLocation();
+interface MobileNavDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onOpenHowToPlay?: () => void;
+}
 
-  const onClose = () => dispatch(closeMobileNav());
+const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClose, onOpenHowToPlay }) => {
+  const location = useLocation();
 
   if (!isOpen) return null;
 
@@ -47,11 +47,11 @@ const MobileNavDrawer: React.FC = () => {
 
           <div className="mobile-nav-section">
             <h4>Information</h4>
-            {['/', '/practice'].includes(location.pathname) && (
+            {onOpenHowToPlay && (
               <button
                 className="mobile-nav-link"
                 onClick={() => {
-                  dispatch(openHowToPlayModal());
+                  onOpenHowToPlay();
                   onClose();
                 }}
               >
