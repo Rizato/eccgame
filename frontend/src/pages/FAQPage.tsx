@@ -18,10 +18,11 @@ const FAQPage: React.FC = () => {
             <h2>Why does this exist?</h2>
             <p>
               While learning about elliptic curve cryptography, I came to appreciate the
-              computational difficulty it presents. So I built something to make that reality
-              tangible. This project is a thought experiment you can explore. It's a treasure hunt
-              with no map, a lottery with astronomically low odds, and a challenge with no known
-              efficient solution. That's the appeal.
+              computational difficulty it presents. No matter what ECC operations you perform, the
+              result is always ambiguous... at least for a computer. So I built something so that
+              humans can manually play with the points and see if human intuition reveals something
+              new. It doesn't, but its still fun to play, psychologically like a free lottery, but
+              with effectively impossible odds.
             </p>
           </section>
 

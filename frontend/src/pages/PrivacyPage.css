@@ -36,6 +36,14 @@
   color: var(--text-color);
 }
 
+.last-updated {
+  margin: 8px 0 0 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  font-style: italic;
+}
+
 .privacy-content {
   display: flex;
   flex-direction: column;
@@ -61,6 +69,21 @@
   line-height: 1.6;
   font-size: 16px;
   color: var(--text-secondary);
+}
+
+.privacy-section p + p {
+  margin-top: 12px;
+}
+
+.privacy-section ul {
+  margin: 12px 0;
+  padding-left: 24px;
+  color: var(--text-secondary);
+}
+
+.privacy-section li {
+  margin-bottom: 8px;
+  line-height: 1.6;
 }
 
 @media (max-width: 768px) {
