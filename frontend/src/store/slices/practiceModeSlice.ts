@@ -13,14 +13,21 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 
 interface PracticeModeState {
   practicePrivateKey: string;
-  practiceChallenge: Challenge | null;
+  // Flattened challenge properties
+  challengeId: number | null;
+  challengeAddress: string;
+  challengePublicKey: string;
+  challengeTags: string[];
   difficulty: Difficulty;
   isGenerating: boolean;
 }
 
 const initialState: PracticeModeState = {
   practicePrivateKey: '',
-  practiceChallenge: null,
+  challengeId: null,
+  challengeAddress: '',
+  challengePublicKey: '',
+  challengeTags: [],
   difficulty: 'easy',
   isGenerating: false,
 };
@@ -81,7 +88,23 @@ const practiceModeSlice = createSlice({
       state.practicePrivateKey = action.payload;
     },
     setPracticeChallenge: (state, action: PayloadAction<Challenge | null>) => {
-      state.practiceChallenge = action.payload;
+      if (action.payload) {
+        state.challengeId = action.payload.id ?? 0;
+        state.challengeAddress = action.payload.p2pkh_address;
+        state.challengePublicKey = action.payload.public_key;
+        state.challengeTags = action.payload.tags;
+      } else {
+        state.challengeId = null;
+        state.challengeAddress = '';
+        state.challengePublicKey = '';
+        state.challengeTags = [];
+      }
+    },
+    clearPracticeChallenge: state => {
+      state.challengeId = null;
+      state.challengeAddress = '';
+      state.challengePublicKey = '';
+      state.challengeTags = [];
     },
   },
   extraReducers: builder => {
@@ -92,7 +115,11 @@ const practiceModeSlice = createSlice({
       .addCase(generatePracticeChallenge.fulfilled, (state, action) => {
         state.isGenerating = false;
         state.practicePrivateKey = action.payload.privateKey;
-        state.practiceChallenge = action.payload.challenge;
+        const challenge = action.payload.challenge;
+        state.challengeId = challenge.id ?? 0;
+        state.challengeAddress = challenge.p2pkh_address;
+        state.challengePublicKey = challenge.public_key;
+        state.challengeTags = challenge.tags;
       })
       .addCase(generatePracticeChallenge.rejected, state => {
         state.isGenerating = false;
@@ -100,6 +127,10 @@ const practiceModeSlice = createSlice({
   },
 });
 
-export const { setDifficulty, setPracticePrivateKey, setPracticeChallenge } =
-  practiceModeSlice.actions;
+export const {
+  setDifficulty,
+  setPracticePrivateKey,
+  setPracticeChallenge,
+  clearPracticeChallenge,
+} = practiceModeSlice.actions;
 export default practiceModeSlice.reducer;

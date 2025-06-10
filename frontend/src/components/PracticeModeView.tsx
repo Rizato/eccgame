@@ -2,14 +2,10 @@ import React from 'react';
 import GameHeader from './GameHeader';
 import PracticeMode from './PracticeMode';
 
-interface PracticeModeViewProps {
-  onOpenHowToPlay?: () => void;
-}
-
-const PracticeModeView: React.FC<PracticeModeViewProps> = ({ onOpenHowToPlay }) => {
+const PracticeModeView: React.FC = () => {
   return (
     <div className="ecc-game-page">
-      <GameHeader onOpenHowToPlay={onOpenHowToPlay} />
+      <GameHeader />
       <main className="game-main">
         <PracticeMode />
       </main>

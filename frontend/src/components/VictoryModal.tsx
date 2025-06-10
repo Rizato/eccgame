@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import './VictoryModal.css';
 import { generateShareMessage, shareMessage } from '../utils/gameUtils';
 import type { SavedPoint } from '../types/ecc.ts';
+import { getPublicKeyFromPrivate } from '../utils/crypto.ts';
 
 interface VictoryModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface VictoryModalProps {
   savedPoints: SavedPoint[];
   isPracticeMode?: boolean;
   victoryPrivateKey: string;
+  signature: string;
   gaveUp?: boolean;
 }
 
@@ -22,6 +24,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   challengeAddress,
   victoryPrivateKey,
   isPracticeMode,
+  signature,
   gaveUp = false,
 }) => {
   const [shareStatus, setShareStatus] = useState<string | null>(null);
@@ -146,32 +149,52 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
             <div className="stat-value">{operationCount}</div>
           </div>
 
-          {false && !gaveUp && (
+          {signature && !gaveUp && (
             <div className="stat-item">
               <div className="stat-label">Cryptographic Signature Message</div>
               <div className="modal-value-container">
-                <span className="stat-value address-value" title={proof.signature}>
-                  {proof.signature}
+                <span className="stat-value address-value">
+                  {getPublicKeyFromPrivate(victoryPrivateKey)}
                 </span>
                 <button
                   className="copy-button"
-                  onClick={() => navigator.clipboard.writeText(proof.signature)}
+                  onClick={() =>
+                    navigator.clipboard.writeText(getPublicKeyFromPrivate(victoryPrivateKey))
+                  }
                 >
                   Copy
                 </button>
               </div>
             </div>
           )}
-          {false && !gaveUp && (
+          {signature && !gaveUp && (
             <div className="stat-item">
               <div className="stat-label">Cryptographic Signature</div>
               <div className="modal-value-container">
-                <span className="stat-value address-value" title={proof.signature}>
-                  {proof.signature}
+                <span className="stat-value address-value">{signature}</span>
+                <button
+                  className="copy-button"
+                  onClick={() => navigator.clipboard.writeText(signature)}
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          )}
+          {signature && !gaveUp && (
+            <div className="stat-item">
+              <div className="stat-label">Bitcoin-cli Verification Command</div>
+              <div className="modal-value-container">
+                <span className="stat-value address-value">
+                  {`bitcoin-cli verifymessage "${challengeAddress}" "${signature}" "${getPublicKeyFromPrivate(victoryPrivateKey)}"`}
                 </span>
                 <button
                   className="copy-button"
-                  onClick={() => navigator.clipboard.writeText(proof.signature)}
+                  onClick={() =>
+                    navigator.clipboard.writeText(
+                      `bitcoin-cli verifymessage "${challengeAddress}" "${signature}" "${getPublicKeyFromPrivate(victoryPrivateKey)}"`
+                    )
+                  }
                 >
                   Copy
                 </button>

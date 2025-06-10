@@ -1,21 +1,16 @@
 import React from 'react';
-import { useGameStateRedux } from '../hooks/useGameStateRedux';
 import { useAppSelector } from '../store/hooks';
 import ChallengeInfo from './ChallengeInfo';
 import ECCPlayground from './ECCPlayground';
 
 const DailyChallenge: React.FC = () => {
-  const { challenge, handleSolve } = useGameStateRedux();
   const graph = useAppSelector(state => state.dailyCalculator.graph);
 
+  // TODO Move this to ChallengeInfo
   // Count total operations by summing all bundled edges
   const operationCount = Object.values(graph.edges).reduce((total, edge) => {
     return total + (edge.bundleCount ? Number(edge.bundleCount) : 1);
   }, 0);
-
-  if (!challenge) {
-    return null; // This shouldn't happen as ErrorState handles null challenges
-  }
 
   return (
     <div className="daily-challenge-container">
@@ -26,7 +21,7 @@ const DailyChallenge: React.FC = () => {
       </div>
 
       <div className="playground-container">
-        <ECCPlayground challenge={challenge} onSolve={handleSolve} isPracticeMode={false} />
+        <ECCPlayground isPracticeMode={false} />
       </div>
     </div>
   );

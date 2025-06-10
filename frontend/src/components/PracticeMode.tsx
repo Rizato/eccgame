@@ -6,14 +6,10 @@ import './PlaceholderLayout.css';
 import './PracticeMode.css';
 
 const PracticeMode: React.FC = () => {
-  const {
-    practicePrivateKey,
-    practiceChallenge,
-    difficulty,
-    isGenerating,
-    generatePracticeChallenge,
-  } = usePracticeModeRedux();
+  const { practiceChallenge, difficulty, isGenerating, generatePracticeChallenge } =
+    usePracticeModeRedux();
 
+  // TODO Move these both to practice mode redux
   // Initialize with first challenge
   useEffect(() => {
     if (!practiceChallenge || isGenerating) {
@@ -28,14 +24,6 @@ const PracticeMode: React.FC = () => {
     }
   }, []);
 
-  const handleSolve = async (submittedPrivateKey: string) => {
-    if (submittedPrivateKey === practicePrivateKey) {
-      alert('🎉 Congratulations! You solved the practice challenge!');
-    } else {
-      alert("❌ That's not quite right. Keep trying!");
-    }
-  };
-
   return (
     <div className="daily-challenge-container">
       <div className="challenge-info-sidebar">
@@ -45,49 +33,7 @@ const PracticeMode: React.FC = () => {
       </div>
 
       <div className="playground-container">
-        {!practiceChallenge || isGenerating ? (
-          <div className="playground-placeholder">
-            <div className="placeholder-playground">
-              <div className="placeholder-graph">
-                <div className="placeholder-graph-header">
-                  <div className="placeholder-title">ECC Graph</div>
-                  <div className="placeholder-legend">
-                    <div className="placeholder-legend-item"></div>
-                    <div className="placeholder-legend-item"></div>
-                    <div className="placeholder-legend-item"></div>
-                  </div>
-                </div>
-                <div className="placeholder-graph-area"></div>
-              </div>
-              <div className="placeholder-calculator">
-                <div className="placeholder-calculator-header">Calculator</div>
-                <div className="placeholder-buttons">
-                  <div className="placeholder-button-row">
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                  </div>
-                  <div className="placeholder-button-row">
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <ECCPlayground
-            challenge={practiceChallenge}
-            onSolve={handleSolve}
-            isPracticeMode={true}
-            practicePrivateKey={practicePrivateKey}
-          />
-        )}
+        <ECCPlayground isPracticeMode={true} />
       </div>
     </div>
   );

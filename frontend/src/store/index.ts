@@ -1,8 +1,13 @@
 import { type Action, configureStore, type ThunkAction } from '@reduxjs/toolkit';
+import calculatorReducer from './slices/calculatorSlice';
+import dailyModeReducer from './slices/dailyModeSlice';
 import dailyCalculatorReducer from './slices/eccCalculatorSlice';
 import gameReducer from './slices/gameSlice';
+import graphReducer from './slices/graphSlice';
 import practiceCalculatorReducer from './slices/practiceCalculatorSlice';
 import practiceModeReducer from './slices/practiceModeSlice';
+import savedPointsReducer from './slices/savedPointsSlice';
+import uiReducer from './slices/uiSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +15,12 @@ export const store = configureStore({
     dailyCalculator: dailyCalculatorReducer,
     practiceCalculator: practiceCalculatorReducer,
     practiceMode: practiceModeReducer,
+    // New flattened slices
+    graph: graphReducer,
+    calculator: calculatorReducer,
+    savedPoints: savedPointsReducer,
+    dailyMode: dailyModeReducer,
+    ui: uiReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
@@ -35,6 +46,9 @@ export const store = configureStore({
           'practiceCalculator',
           'practiceMode',
           'game.challenge', // Challenge objects may contain related crypto data
+          'graph', // Graph nodes contain BigInt privateKey
+          'savedPoints', // Saved points may contain BigInt privateKey
+          'dailyMode', // Daily mode contains ECPoint with BigInt
         ],
         // Ignore all actions that might contain or trigger BigInt handling
         ignoredActions: [
