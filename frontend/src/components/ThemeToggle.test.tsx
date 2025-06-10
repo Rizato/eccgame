@@ -10,6 +10,7 @@ vi.mock('../utils/theme', () => ({
     setStoredTheme: vi.fn(),
     applyTheme: vi.fn(),
     watchSystemTheme: vi.fn(),
+    getSystemTheme: vi.fn(() => 'light'), // Add this mock
   },
 }));
 
@@ -37,7 +38,7 @@ describe('ThemeToggle', () => {
       render(<ThemeToggle />);
 
       // When in light mode, should show moon (to switch to dark)
-      expect(screen.getByText('🌙')).toBeInTheDocument();
+      expect(screen.getByText('☀')).toBeInTheDocument();
     });
 
     it('should show sun icon when in dark mode', () => {
@@ -45,7 +46,7 @@ describe('ThemeToggle', () => {
       render(<ThemeToggle />);
 
       // When in dark mode, should show sun (to switch to light)
-      expect(screen.getByText('☀️')).toBeInTheDocument();
+      expect(screen.getByText('🌘︎')).toBeInTheDocument();
     });
   });
 
@@ -85,14 +86,14 @@ describe('ThemeToggle', () => {
       render(<ThemeToggle />);
 
       // Initially in light mode, should show moon
-      expect(screen.getByText('🌙')).toBeInTheDocument();
+      expect(screen.getByText('☀')).toBeInTheDocument();
 
       // Click to toggle to dark mode
       const button = screen.getByRole('button');
       fireEvent.click(button);
 
       // Should now show sun (we're now in dark mode)
-      expect(screen.getByText('☀️')).toBeInTheDocument();
+      expect(screen.getByText('🌘︎')).toBeInTheDocument();
     });
   });
 

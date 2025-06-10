@@ -3,17 +3,10 @@ import { CURVE_N, getGeneratorPoint, pointMultiply, pointToPublicKey } from './e
 import {
   createEmptyGraph,
   addNode,
-  addEdge,
-  findNodeByPoint,
-  hasPath,
-  findPath,
   ensureOperationInGraph,
-  propagatePrivateKeyFromNodes,
   calculateChallengePrivateKeyFromGraph,
-  canSolveChallenge,
-  getSolutionPath,
 } from './graphOperations';
-import type { Challenge } from '../types/api';
+import type { Challenge } from '../types/game';
 import type { PointGraph } from '../types/ecc';
 
 describe('Graph Operations', () => {
@@ -136,14 +129,10 @@ describe('Graph Operations', () => {
   describe('calculateChallengePrivateKeyFromGraph', () => {
     it('should return undefined when challenge node not in graph', () => {
       const challenge: Challenge = {
-        uuid: 'test-challenge',
+        id: 1,
         public_key: pointToPublicKey(pointMultiply(5n, generatorPoint)),
         p2pkh_address: 'test-address',
-        metadata: [],
-        explorer_link: '',
-        active: true,
-        active_date: '2024-01-01T00:00:00Z',
-        created_at: '2024-01-01T00:00:00Z',
+        tags: [],
       };
 
       const result = calculateChallengePrivateKeyFromGraph(challenge, graph);
@@ -153,14 +142,10 @@ describe('Graph Operations', () => {
     it('should return stored private key when already calculated', () => {
       const challengePoint = pointMultiply(7n, generatorPoint);
       const challenge: Challenge = {
-        uuid: 'test-challenge',
+        id: 1,
         public_key: pointToPublicKey(challengePoint),
         p2pkh_address: 'test-address',
-        metadata: [],
-        explorer_link: '',
-        active: true,
-        active_date: '2024-01-01T00:00:00Z',
-        created_at: '2024-01-01T00:00:00Z',
+        tags: [],
       };
 
       addNode(graph, challengePoint, {
@@ -174,47 +159,34 @@ describe('Graph Operations', () => {
       expect(result).toBe(7n);
     });
 
-    it('should calculate private key using graph traversal', () => {
+    it('should calculate private key when propagated through ensureOperationInGraph', () => {
       const challengePoint = pointMultiply(10n, generatorPoint);
       const challenge: Challenge = {
-        uuid: 'test-challenge',
+        id: 1,
         public_key: pointToPublicKey(challengePoint),
         p2pkh_address: 'test-address',
-        metadata: [],
-        explorer_link: '',
-        active: true,
-        active_date: '2024-01-01T00:00:00Z',
-        created_at: '2024-01-01T00:00:00Z',
+        tags: [],
       };
 
-      const generatorNode = addNode(graph, generatorPoint, {
+      // Add generator node with private key
+      addNode(graph, generatorPoint, {
         id: 'generator',
         label: 'Generator',
         privateKey: 1n,
         isGenerator: true,
       });
 
+      // Use ensureOperationInGraph to create the path and propagate private keys
       const point5G = pointMultiply(5n, generatorPoint);
-      const node5G = addNode(graph, point5G, {
-        id: '5g',
-        label: '5G',
-      });
-
-      const challengeNode = addNode(graph, challengePoint, {
-        id: 'challenge',
-        label: 'Challenge',
-        isChallenge: true,
-      });
-
-      addEdge(graph, generatorNode.id, node5G.id, {
-        id: 'edge1',
+      ensureOperationInGraph(graph, generatorPoint, point5G, {
+        id: 'op1',
         type: 'multiply',
         description: '×5',
         value: '5',
       });
 
-      addEdge(graph, node5G.id, challengeNode.id, {
-        id: 'edge2',
+      ensureOperationInGraph(graph, point5G, challengePoint, {
+        id: 'op2',
         type: 'multiply',
         description: '×2',
         value: '2',
@@ -225,111 +197,78 @@ describe('Graph Operations', () => {
     });
   });
 
-  describe('canSolveChallenge', () => {
-    it('should return false when challenge node not in graph', () => {
-      const challenge: Challenge = {
-        uuid: 'test-challenge',
-        public_key: pointToPublicKey(pointMultiply(5n, generatorPoint)),
-        p2pkh_address: 'test-address',
-        metadata: [],
-        explorer_link: '',
-        active: true,
-        active_date: '2024-01-01T00:00:00Z',
-        created_at: '2024-01-01T00:00:00Z',
-      };
-
-      const result = canSolveChallenge(challenge, graph);
-      expect(result).toBe(false);
-    });
-
-    it('should return true when path exists between challenge and generator', () => {
-      const challengePoint = pointMultiply(5n, generatorPoint);
-      const challenge: Challenge = {
-        uuid: 'test-challenge',
-        public_key: pointToPublicKey(challengePoint),
-        p2pkh_address: 'test-address',
-        metadata: [],
-        explorer_link: '',
-        active: true,
-        active_date: '2024-01-01T00:00:00Z',
-        created_at: '2024-01-01T00:00:00Z',
-      };
-
+  describe('connectedToG propagation', () => {
+    it('should propagate connectedToG from generator node', () => {
       const generatorNode = addNode(graph, generatorPoint, {
         id: 'generator',
         label: 'Generator',
+        privateKey: 1n,
         isGenerator: true,
       });
+      generatorNode.connectedToG = true;
 
-      const challengeNode = addNode(graph, challengePoint, {
-        id: 'challenge',
-        label: 'Challenge',
-        isChallenge: true,
+      const point2G = pointMultiply(2n, generatorPoint);
+      ensureOperationInGraph(graph, generatorPoint, point2G, {
+        id: 'op1',
+        type: 'multiply',
+        description: '×2',
+        value: '2',
       });
 
-      addEdge(graph, challengeNode.id, generatorNode.id, {
-        id: 'edge1',
-        type: 'divide',
-        description: '÷5',
-        value: '5',
-      });
+      const node2G = Object.values(graph.nodes).find(
+        node => node.point.x === point2G.x && node.point.y === point2G.y
+      );
 
-      const result = canSolveChallenge(challenge, graph);
-      expect(result).toBe(true);
-    });
-  });
-
-  describe('getSolutionPath', () => {
-    it('should return empty array when challenge node not in graph', () => {
-      const challenge: Challenge = {
-        uuid: 'test-challenge',
-        public_key: pointToPublicKey(pointMultiply(5n, generatorPoint)),
-        p2pkh_address: 'test-address',
-        metadata: [],
-        explorer_link: '',
-        active: true,
-        active_date: '2024-01-01T00:00:00Z',
-        created_at: '2024-01-01T00:00:00Z',
-      };
-
-      const result = getSolutionPath(challenge, graph);
-      expect(result).toEqual([]);
+      expect(node2G?.connectedToG).toBe(true);
     });
 
-    it('should return path descriptions for simple path', () => {
-      const challengePoint = pointMultiply(5n, generatorPoint);
-      const challenge: Challenge = {
-        uuid: 'test-challenge',
-        public_key: pointToPublicKey(challengePoint),
-        p2pkh_address: 'test-address',
-        metadata: [],
-        explorer_link: '',
-        active: true,
-        active_date: '2024-01-01T00:00:00Z',
-        created_at: '2024-01-01T00:00:00Z',
-      };
-
+    it('should propagate connectedToG through multiple operations', () => {
       const generatorNode = addNode(graph, generatorPoint, {
         id: 'generator',
         label: 'Generator',
+        privateKey: 1n,
         isGenerator: true,
       });
+      generatorNode.connectedToG = true;
 
-      const challengeNode = addNode(graph, challengePoint, {
-        id: 'challenge',
-        label: 'Challenge',
-        isChallenge: true,
+      const point2G = pointMultiply(2n, generatorPoint);
+      const point5G = pointMultiply(5n, generatorPoint);
+      const point10G = pointMultiply(10n, generatorPoint);
+
+      // Create a chain: G -> 2G -> 10G (via ×5) and also 5G -> 10G (via ×2)
+      ensureOperationInGraph(graph, generatorPoint, point2G, {
+        id: 'op1',
+        type: 'multiply',
+        description: '×2',
+        value: '2',
       });
 
-      addEdge(graph, challengeNode.id, generatorNode.id, {
-        id: 'edge1',
-        type: 'divide',
-        description: '÷5',
+      // Add 5G without connection to G initially
+      addNode(graph, point5G, {
+        id: '5g',
+        label: '5G',
+      });
+
+      ensureOperationInGraph(graph, point2G, point10G, {
+        id: 'op2',
+        type: 'multiply',
+        description: '×5',
         value: '5',
       });
 
-      const result = getSolutionPath(challenge, graph);
-      expect(result).toEqual(['÷5']);
+      // Now connect 5G to 10G - this should propagate connectedToG back to 5G
+      ensureOperationInGraph(graph, point5G, point10G, {
+        id: 'op3',
+        type: 'multiply',
+        description: '×2',
+        value: '2',
+      });
+
+      const node5G = Object.values(graph.nodes).find(
+        node => node.point.x === point5G.x && node.point.y === point5G.y
+      );
+
+      expect(node5G?.connectedToG).toBe(true);
     });
   });
 });

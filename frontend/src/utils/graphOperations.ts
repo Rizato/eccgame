@@ -129,87 +129,6 @@ export function getAllConnectedEdges(
 }
 
 /**
- * Check if there's a path between two nodes using BFS (bidirectional)
- */
-export function hasPath(graph: PointGraph, fromNodeId: string, toNodeId: string): boolean {
-  if (fromNodeId === toNodeId) return true;
-  // Fast exit when one has a private key and the other does not, as adding them to the graph should have propagated this
-  // We cannot rely on this completely, as in practice mode all nodes have private keys already
-  const fromHasPrivateKey = graph.nodes[fromNodeId].privateKey !== undefined;
-  const toHasPrivateKey = graph.nodes[toNodeId].privateKey !== undefined;
-  if ((fromHasPrivateKey || toHasPrivateKey) && !(fromHasPrivateKey && toHasPrivateKey))
-    return false;
-
-  const visited = new Set<string>();
-  const queue = [fromNodeId];
-  visited.add(fromNodeId);
-
-  while (queue.length > 0) {
-    const currentNodeId = queue.shift()!;
-
-    // Check all connected edges (both directions)
-    const connections = getAllConnectedEdges(graph, currentNodeId);
-    for (const { edge, direction } of connections) {
-      // Get the connected node (opposite end of the edge)
-      const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
-
-      if (connectedNodeId === toNodeId) {
-        return true;
-      }
-
-      if (!visited.has(connectedNodeId)) {
-        visited.add(connectedNodeId);
-        queue.push(connectedNodeId);
-      }
-    }
-  }
-
-  return false;
-}
-
-/**
- * Find the shortest path between two nodes and return the operations (bidirectional)
- */
-export function findPath(
-  graph: PointGraph,
-  fromNodeId: string,
-  toNodeId: string
-): Operation[] | null {
-  if (fromNodeId === toNodeId) return [];
-
-  const visited = new Set<string>();
-  const queue: Array<{ nodeId: string; path: Operation[] }> = [{ nodeId: fromNodeId, path: [] }];
-  visited.add(fromNodeId);
-
-  while (queue.length > 0) {
-    const { nodeId: currentNodeId, path } = queue.shift()!;
-
-    // Check all connected edges (both directions)
-    const connections = getAllConnectedEdges(graph, currentNodeId);
-    for (const { edge, direction } of connections) {
-      const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
-
-      // Get effective operations (handles bundled edges)
-      const operation =
-        direction === 'outgoing' ? edge.operation : reverseOperation(edge.operation);
-
-      const newPath = [...path, operation];
-
-      if (connectedNodeId === toNodeId) {
-        return newPath;
-      }
-
-      if (!visited.has(connectedNodeId)) {
-        visited.add(connectedNodeId);
-        queue.push({ nodeId: connectedNodeId, path: newPath });
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
  * Reverse an operation for backward traversal
  */
 export function reverseOperation(operation: Operation): Operation {
@@ -230,69 +149,6 @@ export function reverseOperation(operation: Operation): Operation {
 }
 
 /**
- * Calculate private key for a node by traversing to nodes with known private keys (bidirectional)
- */
-export function calculateNodePrivateKey(graph: PointGraph, nodeId: string): bigint | undefined {
-  const node = graph.nodes[nodeId];
-  if (!node) return undefined;
-  if (node.privateKey !== undefined) return node.privateKey;
-
-  // Use BFS to find a path to any node with a known private key (bidirectional)
-  const visited = new Set<string>();
-  const queue: Array<{
-    nodeId: string;
-    path: Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }>;
-  }> = [{ nodeId, path: [] }];
-  visited.add(nodeId);
-
-  while (queue.length > 0) {
-    const { nodeId: currentNodeId, path } = queue.shift()!;
-
-    // Check all connected edges (both directions)
-    const connections = getAllConnectedEdges(graph, currentNodeId);
-    for (const connection of connections) {
-      const { edge, direction } = connection;
-      const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
-      const connectedNode = graph.nodes[connectedNodeId];
-
-      if (connectedNode?.privateKey !== undefined) {
-        // Found a node with known private key, calculate through the path
-        const fullPath = [...path, connection];
-        return calculateKeyThroughBidirectionalPath(connectedNode.privateKey, fullPath);
-      }
-
-      if (!visited.has(connectedNodeId)) {
-        visited.add(connectedNodeId);
-        queue.push({ nodeId: connectedNodeId, path: [...path, connection] });
-      }
-    }
-  }
-
-  return undefined;
-}
-
-/**
- * Calculate private key by applying operations along a bidirectional path
- */
-function calculateKeyThroughBidirectionalPath(
-  startingKey: bigint,
-  path: Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }>
-): bigint {
-  // Build the sequence of operations to get from startNodeId to targetNodeId
-  let currentKey = startingKey;
-
-  for (const { edge, direction } of path) {
-    // Apply operation based on direction
-    const operation = direction === 'incoming' ? edge.operation : reverseOperation(edge.operation);
-
-    // Apply the operations
-    currentKey = calculateKeyFromOperations([operation], currentKey);
-  }
-
-  return currentKey;
-}
-
-/**
  * Calculate the private key for any point using graph connectivity
  */
 export function calculatePrivateKeyFromGraph(
@@ -306,12 +162,7 @@ export function calculatePrivateKeyFromGraph(
   }
 
   // If we already have the private key stored, return it
-  if (node.privateKey !== undefined) {
-    return node.privateKey;
-  }
-
-  // Use graph traversal to calculate the private key
-  return calculateNodePrivateKey(graph, node.id);
+  return node.privateKey;
 }
 
 /**
@@ -328,54 +179,7 @@ export function calculateChallengePrivateKeyFromGraph(
     return undefined;
   }
 
-  // If we already have the private key stored, return it
-  if (challengeNode.privateKey !== undefined) {
-    return challengeNode.privateKey;
-  }
-
-  // Use graph traversal to calculate the private key
-  return calculateNodePrivateKey(graph, challengeNode.id);
-}
-
-/**
- * Check if the challenge can be solved (has a path to generator)
- */
-export function canSolveChallenge(challenge: Challenge, graph: PointGraph): boolean {
-  const challengePoint = publicKeyToPoint(challenge.public_key);
-  const challengeNode = findNodeByPoint(graph, challengePoint);
-
-  if (!challengeNode) {
-    return false;
-  }
-
-  // Find generator node
-  const generatorNode = Object.values(graph.nodes).find(node => node.isGenerator);
-  if (!generatorNode) {
-    return false;
-  }
-
-  return hasPath(graph, challengeNode.id, generatorNode.id);
-}
-
-/**
- * Get the operations needed to solve the challenge
- */
-export function getSolutionPath(challenge: Challenge, graph: PointGraph): string[] {
-  const challengePoint = publicKeyToPoint(challenge.public_key);
-  const challengeNode = findNodeByPoint(graph, challengePoint);
-
-  if (!challengeNode) {
-    return [];
-  }
-
-  // Find generator node
-  const generatorNode = Object.values(graph.nodes).find(node => node.isGenerator);
-  if (!generatorNode) {
-    return [];
-  }
-
-  const operations = findPath(graph, challengeNode.id, generatorNode.id);
-  return operations ? operations.map(op => op.description) : [];
+  return challengeNode.privateKey;
 }
 
 /**
@@ -426,6 +230,9 @@ export function ensureOperationInGraph(
 
   // Propagate private keys if one node has a key and the other doesn't
   propagatePrivateKeyFromNodes(graph, fromNode, toNode, operation);
+
+  // Propagate connectedToG property between the two nodes
+  propagateConnectedToGFromNodes(graph, fromNode, toNode);
 }
 
 /**
@@ -576,5 +383,83 @@ function propagatePrivateKeyRecursively(
     } catch (error) {
       console.warn(`Failed to calculate private key for node ${connectedNodeId}:`, error);
     }
+  }
+}
+
+/**
+ * Propagate connectedToG property between two nodes if one is connected and the other isn't
+ */
+export function propagateConnectedToGFromNodes(
+  graph: PointGraph,
+  fromNode: GraphNode,
+  toNode: GraphNode
+): void {
+  // Exit if neither node is connected to G
+  if (!fromNode.connectedToG && !toNode.connectedToG) {
+    return;
+  }
+
+  // Exit if both nodes are already connected to G
+  if (fromNode.connectedToG && toNode.connectedToG) {
+    return;
+  }
+
+  // If fromNode is connected to G and toNode isn't, propagate to toNode
+  if (fromNode.connectedToG && !toNode.connectedToG) {
+    toNode.connectedToG = true;
+    // Recursively propagate from toNode, but add fromNode to visited already
+    propagateConnectedToGRecursively(graph, toNode.id, new Set([fromNode.id]));
+  }
+  // If toNode is connected to G and fromNode isn't, propagate to fromNode
+  else if (toNode.connectedToG && !fromNode.connectedToG) {
+    fromNode.connectedToG = true;
+    // Recursively propagate from fromNode, but add toNode to visited already
+    propagateConnectedToGRecursively(graph, fromNode.id, new Set([toNode.id]));
+  }
+}
+
+// Helper function to get all connected node IDs
+function getConnectedNodeIds(graph: PointGraph, nodeId: string): string[] {
+  const connectedIds = new Set<string>();
+  const connections = getAllConnectedEdges(graph, nodeId);
+
+  for (const { edge, direction } of connections) {
+    const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
+    connectedIds.add(connectedNodeId);
+  }
+
+  return Array.from(connectedIds);
+}
+
+// Recursively propagate connectedToG from a starting node
+function propagateConnectedToGRecursively(
+  graph: PointGraph,
+  nodeId: string,
+  visited: Set<string>
+): void {
+  if (visited.has(nodeId)) {
+    return;
+  }
+  visited.add(nodeId);
+
+  const node = graph.nodes[nodeId];
+  if (!node || !node.connectedToG) {
+    return;
+  }
+
+  // Find all connected nodes
+  const connectedNodeIds = getConnectedNodeIds(graph, nodeId);
+
+  for (const connectedNodeId of connectedNodeIds) {
+    const connectedNode = graph.nodes[connectedNodeId];
+    if (!connectedNode || connectedNode.connectedToG) {
+      continue; // Skip if already connected to G
+    }
+
+    // Mark as connected to G
+    connectedNode.connectedToG = true;
+
+    // Continue propagating from the newly connected node
+    propagateConnectedToGRecursively(graph, connectedNodeId, visited);
   }
 }

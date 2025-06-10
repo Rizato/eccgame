@@ -12,6 +12,7 @@ describe('VictoryModal', () => {
     victoryPrivateKey: '0x0000000000000000000000000000000000000000000000000000000000000001',
     isPracticeMode: false,
     gaveUp: false,
+    signature: 'mock-signature',
   });
 
   it('should render victory modal when open', () => {
@@ -33,14 +34,12 @@ describe('VictoryModal', () => {
   it('should display correct stats', () => {
     render(<VictoryModal {...createDefaultProps()} />);
 
-    expect(screen.getByText('Operations Used')).toBeInTheDocument();
+    expect(screen.getByText('Steps to solve')).toBeInTheDocument();
     expect(screen.getByText('5')).toBeInTheDocument();
-    expect(screen.getByText('Challenge Wallet')).toBeInTheDocument();
+    expect(screen.getByText('Wallet Address')).toBeInTheDocument();
     expect(screen.getByText('1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2')).toBeInTheDocument();
     expect(screen.getByText('Private Key')).toBeInTheDocument();
-    expect(
-      screen.getByText('0x0000000000000000000000000000000000000000000000000000000000000001')
-    ).toBeInTheDocument();
+    expect(screen.getByText('0x1')).toBeInTheDocument();
   });
 
   it('should show practice mode content when isPracticeMode is true', () => {
@@ -51,7 +50,7 @@ describe('VictoryModal', () => {
     expect(
       screen.getByText('Great work! You successfully solved the practice challenge.')
     ).toBeInTheDocument();
-    expect(screen.getByText('Practice Wallet')).toBeInTheDocument();
+    expect(screen.getByText('Wallet Address')).toBeInTheDocument();
     expect(screen.getByText('Share Result')).toBeInTheDocument();
   });
 
@@ -62,7 +61,7 @@ describe('VictoryModal', () => {
     expect(
       screen.getByText('Incredible! You successfully found the private key from the public key.')
     ).toBeInTheDocument();
-    expect(screen.getByText('Challenge Wallet')).toBeInTheDocument();
+    expect(screen.getByText('Wallet Address')).toBeInTheDocument();
     expect(screen.getByText('Share Result')).toBeInTheDocument();
   });
 

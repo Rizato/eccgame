@@ -3,7 +3,6 @@ import {
   base58CheckEncode,
   bytesToHex,
   createSignature,
-  generateSolutionFromPrivateKey,
   getP2PKHAddress,
   getPublicKeyFromPrivate,
   hexToBytes,
@@ -72,60 +71,24 @@ describe('crypto utilities', () => {
     });
 
     it('should throw error for invalid private key', () => {
-      expect(() => getPublicKeyFromPrivate('invalid')).toThrow();
+      expect(() => getPublicKeyFromPrivate('xyz')).toThrow(); // Non-hex characters
     });
   });
 
   describe('createSignature', () => {
     it('should create signature for valid inputs', async () => {
       const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
-      const challengeUuid = '550e8400-e29b-41d4-a716-446655440000';
 
-      const signature = await createSignature(privateKey, challengeUuid);
+      const signature = await createSignature(privateKey);
 
       expect(signature).toHaveLength(128); // 64 bytes = 128 hex chars
       expect(/^[0-9a-f]+$/i.test(signature)).toBe(true);
     });
 
     it('should throw error for invalid private key', async () => {
-      const invalidPrivateKey = 'invalid';
-      const challengeUuid = '550e8400-e29b-41d4-a716-446655440000';
+      const invalidPrivateKey = 'xyz'; // Non-hex characters
 
-      await expect(createSignature(invalidPrivateKey, challengeUuid)).rejects.toThrow();
-    });
-  });
-
-  describe('generateSolutionFromPrivateKey', () => {
-    it('should generate solution object with public key and signature', async () => {
-      const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
-      const challengeUuid = '550e8400-e29b-41d4-a716-446655440000';
-
-      const solution = await generateSolutionFromPrivateKey(privateKey, challengeUuid);
-
-      expect(solution).toHaveProperty('public_key');
-      expect(solution).toHaveProperty('signature');
-      expect(solution.public_key).toHaveLength(66);
-      expect(solution.signature).toHaveLength(128);
-    });
-
-    it('should throw error for invalid private key', async () => {
-      const invalidPrivateKey = 'invalid';
-      const challengeUuid = '550e8400-e29b-41d4-a716-446655440000';
-
-      await expect(
-        generateSolutionFromPrivateKey(invalidPrivateKey, challengeUuid)
-      ).rejects.toThrow('Invalid private key format or value');
-    });
-
-    it('should generate consistent results for same inputs', async () => {
-      const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
-      const challengeUuid = '550e8400-e29b-41d4-a716-446655440000';
-
-      const solution1 = await generateSolutionFromPrivateKey(privateKey, challengeUuid);
-      const solution2 = await generateSolutionFromPrivateKey(privateKey, challengeUuid);
-
-      expect(solution1.public_key).toBe(solution2.public_key);
-      expect(solution1.signature).toBe(solution2.signature);
+      await expect(createSignature(invalidPrivateKey)).rejects.toThrow();
     });
   });
 
