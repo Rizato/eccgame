@@ -22,6 +22,7 @@ export interface GraphNode {
   label: string;
   isGenerator?: boolean;
   isChallenge?: boolean;
+  connectedToG?: boolean;
 }
 
 export interface PointGraph {

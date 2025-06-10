@@ -426,6 +426,9 @@ export function ensureOperationInGraph(
 
   // Propagate private keys if one node has a key and the other doesn't
   propagatePrivateKeyFromNodes(graph, fromNode, toNode, operation);
+
+  // Propagate connectedToG property through the graph
+  propagateConnectedToG(graph);
 }
 
 /**
@@ -576,5 +579,63 @@ function propagatePrivateKeyRecursively(
     } catch (error) {
       console.warn(`Failed to calculate private key for node ${connectedNodeId}:`, error);
     }
+  }
+}
+
+// Propagate connectedToG property through the graph
+export function propagateConnectedToG(graph: PointGraph): void {
+  // Find all nodes with connectedToG = true and propagate from them
+  const startNodes = Object.entries(graph.nodes)
+    .filter(([_, node]) => node.connectedToG === true)
+    .map(([nodeId, _]) => nodeId);
+
+  for (const nodeId of startNodes) {
+    propagateConnectedToGRecursively(graph, nodeId, new Set<string>());
+  }
+}
+
+// Helper function to get all connected node IDs
+function getConnectedNodeIds(graph: PointGraph, nodeId: string): string[] {
+  const connectedIds = new Set<string>();
+  const connections = getAllConnectedEdges(graph, nodeId);
+
+  for (const { edge, direction } of connections) {
+    const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
+    connectedIds.add(connectedNodeId);
+  }
+
+  return Array.from(connectedIds);
+}
+
+// Recursively propagate connectedToG from a starting node
+function propagateConnectedToGRecursively(
+  graph: PointGraph,
+  nodeId: string,
+  visited: Set<string>
+): void {
+  if (visited.has(nodeId)) {
+    return;
+  }
+  visited.add(nodeId);
+
+  const node = graph.nodes[nodeId];
+  if (!node || !node.connectedToG) {
+    return;
+  }
+
+  // Find all connected nodes
+  const connectedNodeIds = getConnectedNodeIds(graph, nodeId);
+
+  for (const connectedNodeId of connectedNodeIds) {
+    const connectedNode = graph.nodes[connectedNodeId];
+    if (!connectedNode || connectedNode.connectedToG) {
+      continue; // Skip if already connected to G
+    }
+
+    // Mark as connected to G
+    connectedNode.connectedToG = true;
+
+    // Continue propagating from the newly connected node
+    propagateConnectedToGRecursively(graph, connectedNodeId, visited);
   }
 }

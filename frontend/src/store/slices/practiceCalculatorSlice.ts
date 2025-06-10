@@ -3,12 +3,7 @@ import { getP2PKHAddress } from '../../utils/crypto';
 import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
 import { ensureOperationInGraph } from '../../utils/graphOperations';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
-import {
-  createEmptyGraph,
-  addNode,
-  hasPath,
-  calculateNodePrivateKey,
-} from '../../utils/graphOperations';
+import { createEmptyGraph, addNode, calculateNodePrivateKey } from '../../utils/graphOperations';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
 interface PracticeCalculatorState {
@@ -40,6 +35,8 @@ const initializeGraph = (): { graph: PointGraph; generatorNodeId: string } => {
     privateKey: 1n,
     isGenerator: true,
   });
+  // Mark generator as connected to itself
+  generatorNode.connectedToG = true;
   return { graph, generatorNodeId: generatorNode.id };
 };
 
@@ -218,6 +215,8 @@ const practiceCalculatorSlice = createSlice({
         privateKey: 1n,
         isGenerator: true,
       });
+      // Mark generator as connected to itself
+      generatorNode.connectedToG = true;
       state.generatorNodeId = generatorNode.id;
 
       // Don't clear saved points when switching to generator
@@ -313,11 +312,11 @@ const practiceCalculatorSlice = createSlice({
       state.savedPoints = state.savedPoints.filter(point => point.id !== pointId);
     },
     checkWinCondition: state => {
-      // Win condition: there's a path from challenge to generator in the graph
+      // Win condition: challenge node is connected to generator (has connectedToG property)
       if (state.challengeNodeId && state.generatorNodeId) {
-        const hasConnection = hasPath(state.graph, state.challengeNodeId, state.generatorNodeId);
+        const challengeNode = state.graph.nodes[state.challengeNodeId];
 
-        if (hasConnection && !state.hasWon) {
+        if (challengeNode?.connectedToG && !state.hasWon) {
           state.hasWon = true;
           state.showVictoryModal = true;
         }
