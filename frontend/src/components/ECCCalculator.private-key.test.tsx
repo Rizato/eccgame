@@ -55,7 +55,7 @@ describe('ECCCalculator', () => {
         renderWithStore(<ECCCalculator {...createDefaultProps()} />);
       });
 
-      expect(screen.getByText('Current Point')).toBeInTheDocument();
+      expect(screen.getByText('Private Key:')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
       expect(screen.getByText('×')).toBeInTheDocument();
       expect(screen.getByText('÷')).toBeInTheDocument();

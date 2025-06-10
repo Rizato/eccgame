@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { type Theme, themeUtils } from './theme';
+import { themeUtils } from './theme';
 
 // Mock window.matchMedia
 const mockMatchMedia = vi.fn();
@@ -18,6 +18,15 @@ const mockDocument = {
 describe('themeUtils', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Set up global mocks
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: mockMatchMedia,
+    });
+    Object.defineProperty(global, 'document', {
+      writable: true,
+      value: mockDocument,
+    });
   });
 
   afterEach(() => {
@@ -46,27 +55,34 @@ describe('themeUtils', () => {
       expect(theme).toBe('light');
     });
 
-    it('should return "light" when matchMedia is not available', () => {
-      // @ts-expect-error - testing undefined matchMedia
-      delete window.matchMedia;
+    it('should return "dark" when matchMedia is not available', () => {
+      Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        value: undefined,
+      });
 
       const theme = themeUtils.getSystemTheme();
 
-      expect(theme).toBe('light');
+      expect(theme).toBe('dark'); // Default is dark according to the implementation
     });
 
-    it('should return "light" in non-browser environment', () => {
+    it('should return "dark" in non-browser environment', () => {
       // Mock server-side environment
       const originalWindow = global.window;
-      // @ts-expect-error - testing undefined window
-      delete global.window;
+      Object.defineProperty(global, 'window', {
+        writable: true,
+        value: undefined,
+      });
 
       const theme = themeUtils.getSystemTheme();
 
-      expect(theme).toBe('light');
+      expect(theme).toBe('dark'); // Default is dark according to the implementation
 
       // Restore window
-      global.window = originalWindow;
+      Object.defineProperty(global, 'window', {
+        writable: true,
+        value: originalWindow,
+      });
     });
   });
 

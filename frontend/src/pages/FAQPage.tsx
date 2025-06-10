@@ -29,8 +29,12 @@ const FAQPage: React.FC = () => {
             <h2>Can I actually win Bitcoin from playing?</h2>
             <p>
               No. The targets are real Bitcoin addresses with unspent funds, but the private keys
-              are unknown and, for all practical purposes, unrecoverable. The only way to win is to
-              already possess the private key. The game doesn't help you find it.
+              are unknown and, for all practical purposes, unrecoverable.
+            </p>
+            <p>
+              The only way to win is to already possess the private key, or to have broken ECC. This
+              game does not help someone to develop the algorithm, a textbook would be better, and I
+              don't posses any of the keys.
             </p>
           </section>
 

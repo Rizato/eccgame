@@ -55,7 +55,7 @@ describe('ECCCalculator', () => {
         renderWithStore(<ECCCalculator {...createDefaultProps()} />);
       });
 
-      expect(screen.getByText('Current Point')).toBeInTheDocument();
+      expect(screen.getByText('Private Key:')).toBeInTheDocument();
       expect(screen.getByText('☆')).toBeInTheDocument();
       expect(screen.getByDisplayValue('')).toBeInTheDocument();
     });
@@ -192,7 +192,7 @@ describe('ECCCalculator', () => {
       });
 
       // Component should still render but buttons should be disabled
-      expect(screen.getByText('Current Point')).toBeInTheDocument();
+      expect(screen.getByText('Private Key:')).toBeInTheDocument();
     });
 
     it('should handle saved points', async () => {
@@ -203,7 +203,7 @@ describe('ECCCalculator', () => {
         renderWithStore(<ECCCalculator {...props} />);
       });
 
-      expect(screen.getByText('Current Point')).toBeInTheDocument();
+      expect(screen.getByText('Private Key:')).toBeInTheDocument();
     });
   });
 });

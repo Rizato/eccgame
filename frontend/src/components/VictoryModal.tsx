@@ -13,7 +13,7 @@ interface VictoryModalProps {
   savedPoints: SavedPoint[];
   isPracticeMode?: boolean;
   victoryPrivateKey: string;
-  signature: string;
+  signature?: string;
   gaveUp?: boolean;
 }
 
