@@ -69,8 +69,10 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   const generatorPoint = getGeneratorPoint();
 
   const victoryPrivateKey = useMemo(() => {
-    return calculateChallengePrivateKeyFromGraph(challenge, graph);
-  }, [challenge, graph]);
+    if (hasWon) {
+      return calculateChallengePrivateKeyFromGraph(challenge, graph);
+    }
+  }, [hasWon, challenge, graph]);
 
   useEffect(() => {
     const calculateSignature = async (privateKey: bigint) => {
