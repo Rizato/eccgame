@@ -1,29 +1,9 @@
 {
   "challenges": [
     {
-      "p2pkh_address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
-      "public_key": "04d02b1873a0863cd042cc717da31cea0e9b61ff87bbdfac5a2d67bb2bcff93b32c5bd8d5c5de0b0fe8c3b8f0a6a6e7b1a0e5c2c3a7b6f0d9e8c5a4b3e2f1a0b9c8d7e6f5a4b3c2",
-      "tags": ["beginner", "secp256k1"]
-    },
-    {
-      "p2pkh_address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-      "public_key": "0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8",
-      "tags": ["famous", "genesis"]
-    },
-    {
-      "p2pkh_address": "1HLoD9E4SDFFPDiYfNYnkBLQ85Y51J3Zb1",
-      "public_key": "04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f",
-      "tags": ["intermediate", "puzzle"]
-    },
-    {
-      "p2pkh_address": "12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX",
-      "public_key": "04c591c0e7e5a5e7e8e89e9b94e0c2d1b0f5a3a6c5e8f1d0e6c2a8b5f3e7d9c4a1b8e6f2d5c9a3b7e0f4d8c1a6b9e2f5d7c0a4b8e1f6d3c7a0b5e9f2d6c8a3",
-      "tags": ["advanced", "random"]
-    },
-    {
-      "p2pkh_address": "1Dorian4RoXcnBv9hnQ4Y2C1an6NJ4UrjX",
-      "public_key": "04a0434d9e47f3c86235477c7b1ae6ae5d3442d49b1943c2b752a68e2a47e247c7893aba425419bc27a3b6c7e693a24c696f794c2ed877a1593cbee53b037368d7",
-      "tags": ["pattern", "repeating"]
+      "p2pkh_address": "13v4woGGfudJAUEDRFvSWDU2gkwxgSJAjq",
+      "public_key": "0245c4ddd02a5e2cf8cbfad717a92f55071f9daa9868c240fc8e6646c7a055b421",
+      "tags": ["test", "mine", "7501234"]
     }
   ]
 }

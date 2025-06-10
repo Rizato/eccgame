@@ -11,6 +11,7 @@ import {
   findNodeByPoint,
   calculatePrivateKeyFromGraph,
 } from '../utils/graphOperations';
+import { createSignature } from '../utils/crypto';
 import ECCCalculator from './ECCCalculator';
 import ECCGraph from './ECCGraph';
 import { Modal } from './Modal';
@@ -62,13 +63,26 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
+  const [signature, setSignature] = useState<string>('');
 
   const calculatorDisplayRef = useRef<((value: string) => void) | null>(null);
   const generatorPoint = getGeneratorPoint();
 
   const victoryPrivateKey = useMemo(() => {
-    return calculateChallengePrivateKeyFromGraph(challenge, graph);
-  }, [challenge, graph]);
+    if (hasWon) {
+      return calculateChallengePrivateKeyFromGraph(challenge, graph);
+    }
+  }, [hasWon, challenge, graph]);
+
+  useEffect(() => {
+    const calculateSignature = async (privateKey: bigint) => {
+      const signature = await createSignature(privateKey.toString(16));
+      setSignature(signature);
+    };
+    if (hasWon && victoryPrivateKey !== undefined) {
+      calculateSignature(victoryPrivateKey);
+    }
+  }, [hasWon, victoryPrivateKey]);
 
   // Calculate total number of operations by summing all bundled edges
   const totalOperationCount = useMemo(() => {
@@ -264,6 +278,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         operationCount={totalOperationCount}
         challengeAddress={challengeAddress}
         victoryPrivateKey={victoryPrivateKey ? '0x' + victoryPrivateKey.toString(16) : ''}
+        signature={signature}
         isPracticeMode={isPracticeMode}
         gaveUp={gameState.gaveUp}
       />

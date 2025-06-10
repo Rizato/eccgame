@@ -1,7 +1,7 @@
 import { calculateKeyFromOperations } from './privateKeyCalculation';
 import { pointMultiply, getGeneratorPoint, publicKeyToPoint } from './ecc';
 import type { ECPoint, GraphNode, GraphEdge, PointGraph, Operation } from '../types/ecc';
-import type { Challenge } from '../types/api';
+import type { Challenge } from '../types/game';
 
 /**
  * Create a hash key for a point for lookup purposes
@@ -133,6 +133,12 @@ export function getAllConnectedEdges(
  */
 export function hasPath(graph: PointGraph, fromNodeId: string, toNodeId: string): boolean {
   if (fromNodeId === toNodeId) return true;
+  // Fast exit when one has a private key and the other does not, as adding them to the graph should have propagated this
+  // We cannot rely on this completely, as in practice mode all nodes have private keys already
+  const fromHasPrivateKey = graph.nodes[fromNodeId].privateKey !== undefined;
+  const toHasPrivateKey = graph.nodes[toNodeId].privateKey !== undefined;
+  if ((fromHasPrivateKey || toHasPrivateKey) && !(fromHasPrivateKey && toHasPrivateKey))
+    return false;
 
   const visited = new Set<string>();
   const queue = [fromNodeId];
