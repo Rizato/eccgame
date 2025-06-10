@@ -3,10 +3,12 @@ import calculatorReducer from './slices/calculatorSlice';
 import dailyModeReducer from './slices/dailyModeSlice';
 import dailyCalculatorReducer from './slices/eccCalculatorSlice';
 import gameReducer from './slices/gameSlice';
+import gameManagementReducer from './slices/gameManagementSlice';
 import graphReducer from './slices/graphSlice';
 import practiceCalculatorReducer from './slices/practiceCalculatorSlice';
 import practiceModeReducer from './slices/practiceModeSlice';
 import savedPointsReducer from './slices/savedPointsSlice';
+import savePointModalReducer from './slices/savePointModalSlice';
 import uiReducer from './slices/uiSlice';
 
 export const store = configureStore({
@@ -21,6 +23,8 @@ export const store = configureStore({
     savedPoints: savedPointsReducer,
     dailyMode: dailyModeReducer,
     ui: uiReducer,
+    gameManagement: gameManagementReducer,
+    savePointModal: savePointModalReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

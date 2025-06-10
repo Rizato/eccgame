@@ -5,17 +5,27 @@ import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
 import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
 import './ChallengeInfo.css';
 
-interface ChallengeInfoProps {
-  operationCount?: number;
-}
-
-const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => {
+const ChallengeInfo: React.FC = () => {
   const dispatch = useAppDispatch();
   const gameMode = useAppSelector(state => state.game.gameMode);
   const challenge = useAppSelector(state => state.game.challenge);
-  const practiceChallenge = useAppSelector(state => state.practiceMode.practiceChallenge);
+  const practiceChallenge = useAppSelector(state => ({
+    id: state.practiceMode.challengeId,
+    p2pkh_address: state.practiceMode.challengeAddress,
+    public_key: state.practiceMode.challengePublicKey,
+    tags: state.practiceMode.challengeTags,
+  }));
   const hasWon = useAppSelector(state => state.game.hasWon);
   const gaveUp = useAppSelector(state => state.game.gaveUp);
+
+  // Calculate operation count from graph
+  const operationCount = useAppSelector(state => {
+    const isPracticeMode = state.game.gameMode === 'practice';
+    const graph = isPracticeMode ? state.practiceCalculator.graph : state.dailyCalculator.graph;
+    return Object.values(graph.edges).reduce((total, edge) => {
+      return total + (edge.bundleCount ? Number(edge.bundleCount) : 1);
+    }, 0);
+  });
 
   const { practicePrivateKey, setDifficulty, generatePracticeChallenge, isGenerating } =
     usePracticeModeRedux();
