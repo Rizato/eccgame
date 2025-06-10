@@ -270,9 +270,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         isOpen={showVictoryModal}
         onClose={() => {
           setShowVictoryModal(false);
-          if (isPracticeMode) {
-            // Allow continuing in practice mode
-          }
         }}
         savedPoints={savedPoints}
         operationCount={totalOperationCount}

@@ -7,7 +7,6 @@ import {
   createEmptyGraph,
   addNode,
 } from '../../utils/graphOperations';
-import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
 interface PracticeCalculatorState {
@@ -198,7 +197,6 @@ const practiceCalculatorSlice = createSlice({
       state.challengeNodeId = challengeNode.id;
 
       // Don't clear saved points when switching to challenge
-      cleanupDanglingNodes(state.graph, state.savedPoints);
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -224,7 +222,6 @@ const practiceCalculatorSlice = createSlice({
       state.generatorNodeId = generatorNode.id;
 
       // Don't clear saved points when switching to generator
-      cleanupDanglingNodes(state.graph, state.savedPoints);
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -271,13 +268,6 @@ const practiceCalculatorSlice = createSlice({
       };
 
       state.savedPoints.push(savedPoint);
-
-      // Create bundled edge for the saved point path (only if currentNode exists)
-      if (currentNode) {
-        addBundledEdgeForNewSave(state.graph, currentNode.id, state.savedPoints);
-        // Clean up dangling nodes and edges when saving a point
-        cleanupDanglingNodes(state.graph, state.savedPoints);
-      }
     },
     loadSavedPoint: (state, action: PayloadAction<SavedPoint>) => {
       const savedPoint = action.payload;
@@ -299,8 +289,6 @@ const practiceCalculatorSlice = createSlice({
       }
 
       // Clean up dangling nodes and edges when loading a point
-      cleanupDanglingNodes(state.graph, state.savedPoints);
-
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;

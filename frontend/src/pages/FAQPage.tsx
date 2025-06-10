@@ -17,11 +17,11 @@ const FAQPage: React.FC = () => {
           <section className="faq-section">
             <h2>Why does this exist?</h2>
             <p>
-              While digging into elliptic curve cryptography (ECC) during some downtime, I came to
-              fully appreciate how unbreakable it is under classical computing. So I built something
-              to make that reality tangible. This project is a thought experiment you can poke at.
-              It's a treasure hunt with no map, a lottery with no odds, and a challenge you cannot
-              beat. That's the appeal.
+              While learning about elliptic curve cryptography, I came to appreciate the
+              computational difficulty it presents. So I built something to make that reality
+              tangible. This project is a thought experiment you can explore. It's a treasure hunt
+              with no map, a lottery with astronomically low odds, and a challenge with no known
+              efficient solution. That's the appeal.
             </p>
           </section>
 
@@ -32,25 +32,26 @@ const FAQPage: React.FC = () => {
               are unknown and, for all practical purposes, unrecoverable.
             </p>
             <p>
-              The only way to win is to already possess the private key, or to have broken ECC. This
-              game does not help someone to develop the algorithm, a textbook would be better, and I
-              don't posses any of the keys.
+              The only way to win is to already possess the private key or to have solved the
+              elliptic curve discrete logarithm problem. This game won't help you develop such an
+              algorithm. A textbook would be better. I don't possess any of the keys.
             </p>
           </section>
 
           <section className="faq-section">
             <h2>Is this ethical?</h2>
             <p>
-              Yes. The game uses real, unspent Bitcoin addresses to make the stakes tangible. But
-              the challenge is impossible to solve through random guessing. The game just presents
-              an easy to understand ECC point manipulating calculator. However, you cannot glean
-              anything from one unknown ECC point, and no matter the operations to modify it, what
-              it is is always ambiguous. No data the game returns can assist in recovering a key.
-              This reinforces, rather than weakens, the reality of ECC's security.
+              Yes. The game uses real, unspent Bitcoin addresses to make the stakes tangible, but
+              the challenge is computationally infeasible to solve through random guessing. The game
+              presents an easy-to-understand ECC point calculator. However, you cannot glean
+              anything useful from unknown ECC points. No matter what operations you perform, the
+              relationships remain ambiguous. No data returned by the game can assist in recovering
+              a private key. This reinforces, rather than weakens, the computational difficulty
+              underlying ECC's security.
             </p>
             <p>
-              Anyone who is seriously trying to crack SECP256K1 is not going to be playing a game at
-              human speeds.
+              Anyone seriously attempting to solve the discrete logarithm problem wouldn't be
+              playing a browser game and manually clicking operations.
             </p>
           </section>
 
@@ -69,29 +70,23 @@ const FAQPage: React.FC = () => {
             <h2>How do you know the solutions?</h2>
             <p>
               I don't. That's the premise of public key cryptography. I know the public keys because
-              they're on the bitcoin blockchain, public for the whole world, and I know the
-              deterministic math that generates them. When private key, it produces public key. If
-              the public keys match, then the private key has been found.
+              they're on the Bitcoin blockchain for the whole world to see, and I know the
+              deterministic math that generates them. Given a private key, it produces a specific
+              public key. If the public keys match, then the private key has been found.
             </p>
           </section>
 
           <section className="faq-section">
             <h2>How does it work?</h2>
             <p>
-              Behind the scenes there is a graph (data structure, not visual) where the nodes are
-              points representing public keys, and the edges are the scalar value between them. It
-              starts with just the generator point G, and the challenge wallet. On each calculator
-              operation, and new node is created, and a new edge from the previous point to the new
-              point based on the calculator operation. If the previous point had a known
-              scalar/private key, then the new point will as well, because we know the start and the
-              operation. So when working from G, we always know the scalar/private key. When working
-              backwards from the challenge wallet, we do not know the scalar/private key. If this
-              graph ever has a complete connection from G to the challenge wallet, then the
-              scalar/private key for the challenge is known.
-            </p>
-            <p>
-              However, due to the performance in browswer for testing connectivity, operations are
-              bundled into single nodes and edges when saved.
+              Behind the scenes, there's a graph where nodes represent public keys and edges
+              represent scalar relationships between them. It starts with the generator point G and
+              the challenge wallet. Each calculator operation creates a new node and edge based on
+              the operation performed. If the previous point had a known private key, the new point
+              will too, since we know both the starting point and the operation. Working from G, we
+              always know the private key. Working backwards from the challenge wallet, we don't. If
+              this graph ever connects G to the challenge wallet, then the challenge's private key
+              becomes known.
             </p>
           </section>
 
@@ -99,9 +94,9 @@ const FAQPage: React.FC = () => {
             <h2>Why keep playing if nobody can win?</h2>
             <p>
               Because that's the point. This isn't a game you beat. It's a demonstration of what
-              unbreakable security looks like. The visual feedback, the scale of the keyspace, and
-              the mathematical terrain are here to show you what you're up against. You're not
-              chasing a win. You're exploring a system that doesn't bend.
+              computationally hard problems look like. The visual feedback, the scale of the
+              keyspace, and the mathematical terrain show you what you're up against. You're not
+              chasing a win, but understanding the scale of the challenge.
             </p>
           </section>
         </div>
