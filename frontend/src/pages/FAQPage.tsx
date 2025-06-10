@@ -35,34 +35,18 @@ const FAQPage: React.FC = () => {
           </section>
 
           <section className="faq-section">
-            <h2>How do you know the answers?</h2>
-            <p>
-              I don't. That's the premise of public key cryptography. I know the public keys because
-              they're public, and I know the deterministic math that generates them. When someone
-              enters a private key, it produces a matching public key. If that matches the target,
-              and the submitted signature verifies, the server can confirm it. The private key never
-              leaves the client.
-            </p>
-          </section>
-
-          <section className="faq-section">
-            <h2>Are the private keys sent to your server?</h2>
-            <p>
-              No. Your private key is used only on your device to sign a message that includes your
-              public key, the current day, and your anonymous session ID. Only the public key and
-              signature are sent. The session ID is discarded immediately after validation. No
-              private key material is transmitted or stored.
-            </p>
-          </section>
-
-          <section className="faq-section">
             <h2>Is this ethical?</h2>
             <p>
               Yes. The game uses real, unspent Bitcoin addresses to make the stakes tangible. But
-              the challenge is mathematically impossible to solve through guessing. Feedback is
-              intentionally ambiguous. Graphs don't reveal anything actionable. No data the game
-              returns can assist in recovering a key. This reinforces, rather than weakens, the
-              reality of ECC's security.
+              the challenge is impossible to solve through random guessing. The game just presents
+              an easy to understand ECC point manipulating calculator. However, you cannot glean
+              anything from one unknown ECC point, and no matter the operations to modify it, what
+              it is is always ambiguous. No data the game returns can assist in recovering a key.
+              This reinforces, rather than weakens, the reality of ECC's security.
+            </p>
+            <p>
+              Anyone who is seriously trying to crack SECP256K1 is not going to be playing a game at
+              human speeds.
             </p>
           </section>
 
@@ -78,23 +62,42 @@ const FAQPage: React.FC = () => {
           </section>
 
           <section className="faq-section">
+            <h2>How do you know the solutions?</h2>
+            <p>
+              I don't. That's the premise of public key cryptography. I know the public keys because
+              they're on the bitcoin blockchain, public for the whole world, and I know the
+              deterministic math that generates them. When private key, it produces public key. If
+              the public keys match, then the private key has been found.
+            </p>
+          </section>
+
+          <section className="faq-section">
+            <h2>How does it work?</h2>
+            <p>
+              Behind the scenes there is a graph (data structure, not visual) where the nodes are
+              points representing public keys, and the edges are the scalar value between them. It
+              starts with just the generator point G, and the challenge wallet. On each calculator
+              operation, and new node is created, and a new edge from the previous point to the new
+              point based on the calculator operation. If the previous point had a known
+              scalar/private key, then the new point will as well, because we know the start and the
+              operation. So when working from G, we always know the scalar/private key. When working
+              backwards from the challenge wallet, we do not know the scalar/private key. If this
+              graph ever has a complete connection from G to the challenge wallet, then the
+              scalar/private key for the challenge is known.
+            </p>
+            <p>
+              However, due to the performance in browswer for testing connectivity, operations are
+              bundled into single nodes and edges when saved.
+            </p>
+          </section>
+
+          <section className="faq-section">
             <h2>Why keep playing if nobody can win?</h2>
             <p>
               Because that's the point. This isn't a game you beat. It's a demonstration of what
               unbreakable security looks like. The visual feedback, the scale of the keyspace, and
               the mathematical terrain are here to show you what you're up against. You're not
               chasing a win. You're exploring a system that doesn't bend.
-            </p>
-          </section>
-
-          <section className="faq-section">
-            <h2>What is the server actually verifying?</h2>
-            <p>
-              To ensure fairness and prevent guess replays, the client signs a hash of their public
-              key, the day's challenge identifier, and their temporary session ID. The server checks
-              this signature against the submitted public key. This proves the player holds the
-              private key, and prevents people from copying or replaying shared valid submissions.
-              The session ID is discarded after use and never logged or linked to identity.
             </p>
           </section>
         </div>
