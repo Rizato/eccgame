@@ -31,7 +31,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   if (!isOpen) return null;
 
-  const victoryPublicKey = getPublicKeyFromPrivate(victoryPrivateKey);
+  const victoryPublicKey = !gaveUp ? getPublicKeyFromPrivate(victoryPrivateKey) : '';
   const getVictoryTitle = () => {
     if (gaveUp) {
       return 'Gave Up.';
@@ -150,34 +150,6 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
             <div className="stat-value">{operationCount}</div>
           </div>
 
-          {signature && !gaveUp && (
-            <div className="stat-item">
-              <div className="stat-label">Cryptographic Signature Message</div>
-              <div className="modal-value-container">
-                <span className="stat-value address-value">{victoryPublicKey}</span>
-                <button
-                  className="copy-button"
-                  onClick={() => navigator.clipboard.writeText(victoryPublicKey)}
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-          )}
-          {signature && !gaveUp && (
-            <div className="stat-item">
-              <div className="stat-label">Cryptographic Signature</div>
-              <div className="modal-value-container">
-                <span className="stat-value address-value">{signature}</span>
-                <button
-                  className="copy-button"
-                  onClick={() => navigator.clipboard.writeText(signature)}
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-          )}
           {signature && !gaveUp && (
             <div className="stat-item">
               <div className="stat-label">Bitcoin-cli Verification Command</div>
