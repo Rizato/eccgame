@@ -31,7 +31,8 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   if (!isOpen) return null;
 
-  const victoryPublicKey = !gaveUp ? getPublicKeyFromPrivate(victoryPrivateKey) : '';
+  const victoryPublicKey =
+    !gaveUp && victoryPrivateKey ? getPublicKeyFromPrivate(victoryPrivateKey) : '';
   const getVictoryTitle = () => {
     if (gaveUp) {
       return 'Gave Up.';
