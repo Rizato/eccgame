@@ -19,10 +19,9 @@ const FAQPage: React.FC = () => {
             <p>
               While learning about elliptic curve cryptography, I came to appreciate the
               computational difficulty it presents. No matter what ECC operations you perform, the
-              result is always ambiguous... at least for a computer. So I built something so that
-              humans can manually play with the points and see if human intuition reveals something
-              new. It doesn't, but its still fun to play, psychologically like a free lottery, but
-              with effectively impossible odds.
+              result is always ambiguous. So I built something that lets humans manually play with
+              the points and see if human intuition reveals something new. It doesn't, but it's
+              still fun to play.
             </p>
           </section>
 
@@ -35,7 +34,18 @@ const FAQPage: React.FC = () => {
             <p>
               The only way to win is to already possess the private key or to have solved the
               elliptic curve discrete logarithm problem. This game won't help you develop such an
-              algorithm. A textbook would be better. I don't possess any of the keys.
+              algorithm. A textbook on quantum computing and billions of dollars for R&D would be
+              better.
+            </p>
+          </section>
+
+          <section className="faq-section">
+            <h2>Why keep playing if nobody can win?</h2>
+            <p>
+              Because that's the point. This isn't a game you beat. It's a demonstration of what
+              computationally hard problems look like. The visual feedback, the scale of the
+              keyspace, and the mathematical terrain show you what you're up against. You're not
+              chasing a win, but understanding how ECC protects Bitcoin users' wallets.
             </p>
           </section>
 
@@ -52,7 +62,7 @@ const FAQPage: React.FC = () => {
             </p>
             <p>
               Anyone seriously attempting to solve the discrete logarithm problem wouldn't be
-              playing a browser game and manually clicking operations.
+              playing a browser game and manually clicking buttons on a calculator.
             </p>
           </section>
 
@@ -72,8 +82,9 @@ const FAQPage: React.FC = () => {
             <p>
               I don't. That's the premise of public key cryptography. I know the public keys because
               they're on the Bitcoin blockchain for the whole world to see, and I know the
-              deterministic math that generates them. Given a private key, it produces a specific
-              public key. If the public keys match, then the private key has been found.
+              deterministic math that generates them. When the calculator executes an operation to
+              create a new private key, it produces a specific public key. If the public keys match,
+              then the private key has been found.
             </p>
           </section>
 
@@ -88,16 +99,6 @@ const FAQPage: React.FC = () => {
               always know the private key. Working backwards from the challenge wallet, we don't. If
               this graph ever connects G to the challenge wallet, then the challenge's private key
               becomes known.
-            </p>
-          </section>
-
-          <section className="faq-section">
-            <h2>Why keep playing if nobody can win?</h2>
-            <p>
-              Because that's the point. This isn't a game you beat. It's a demonstration of what
-              computationally hard problems look like. The visual feedback, the scale of the
-              keyspace, and the mathematical terrain show you what you're up against. You're not
-              chasing a win, but understanding the scale of the challenge.
             </p>
           </section>
         </div>
