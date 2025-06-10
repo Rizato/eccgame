@@ -1,9 +1,13 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getP2PKHAddress } from '../../utils/crypto';
 import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
-import { ensureOperationInGraph } from '../../utils/graphOperations';
+import {
+  createEmptyGraph,
+  addNode,
+  calculatePrivateKeyFromGraph,
+  ensureOperationInGraph,
+} from '../../utils/graphOperations';
 import { addBundledEdgeForNewSave, cleanupDanglingNodes } from '../../utils/operationBundling';
-import { createEmptyGraph, addNode, calculateNodePrivateKey } from '../../utils/graphOperations';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
 interface DailyCalculatorState {
@@ -282,7 +286,7 @@ const dailyCalculatorSlice = createSlice({
 
       // If the saved point doesn't have a private key, try to calculate it from the graph
       if (!node.privateKey) {
-        const calculatedKey = calculateNodePrivateKey(state.graph, node.id);
+        const calculatedKey = calculatePrivateKeyFromGraph(node.point, state.graph);
         if (calculatedKey) {
           node.privateKey = calculatedKey;
         }

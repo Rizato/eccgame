@@ -4,16 +4,10 @@ import {
   createEmptyGraph,
   addNode,
   addEdge,
-  findNodeByPoint,
-  hasPath,
-  findPath,
   ensureOperationInGraph,
-  propagatePrivateKeyFromNodes,
   calculateChallengePrivateKeyFromGraph,
-  canSolveChallenge,
-  getSolutionPath,
 } from './graphOperations';
-import type { Challenge } from '../types/api';
+import type { Challenge } from '../types/game';
 import type { PointGraph } from '../types/ecc';
 
 describe('Graph Operations', () => {
