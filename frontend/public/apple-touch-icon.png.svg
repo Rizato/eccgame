@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" width="180" height="180">
+  <defs>
+    <filter id="shadowApple" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="3" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded rectangle background for iOS -->
+  <rect x="10" y="10" width="160" height="160" rx="32" ry="32" fill="#0f172a" filter="url(#shadowApple)" stroke="#334155" stroke-width="3"/>
+
+  <!-- ECC text -->
+  <text x="90" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="42" font-weight="bold" text-anchor="middle" fill="white">
+    ECC
+  </text>
+</svg>
