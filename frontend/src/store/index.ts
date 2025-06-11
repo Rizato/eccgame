@@ -64,7 +64,7 @@ export const store = configureStore({
     }),
   // Enable Redux DevTools
   // Redux DevTools with BigInt serialization support
-  devTools: process.env.NODE_ENV !== 'production' && {
+  devTools: import.meta.env.DEV && {
     serialize: {
       replacer: (_key: string, value: any) => {
         if (typeof value === 'bigint') {

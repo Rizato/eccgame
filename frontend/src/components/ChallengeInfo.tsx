@@ -175,7 +175,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
               <code className="address-code">{currentChallenge.p2pkh_address}</code>
               {!isPracticeMode && (
                 <a
-                  href={`https://blockstream.info/address/${currentChallenge.p2pkh_address}`}
+                  href={`${import.meta.env.VITE_EXPLORER_BASE_URL}${currentChallenge.p2pkh_address}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="explorer-link"

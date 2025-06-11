@@ -28,14 +28,6 @@ const PracticeMode: React.FC = () => {
     }
   }, []);
 
-  const handleSolve = async (submittedPrivateKey: string) => {
-    if (submittedPrivateKey === practicePrivateKey) {
-      alert('🎉 Congratulations! You solved the practice challenge!');
-    } else {
-      alert("❌ That's not quite right. Keep trying!");
-    }
-  };
-
   return (
     <div className="daily-challenge-container">
       <div className="challenge-info-sidebar">
@@ -83,7 +75,6 @@ const PracticeMode: React.FC = () => {
         ) : (
           <ECCPlayground
             challenge={practiceChallenge}
-            onSolve={handleSolve}
             isPracticeMode={true}
             practicePrivateKey={practicePrivateKey}
           />

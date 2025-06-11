@@ -34,7 +34,7 @@ export function generateShareMessage({
 ${shortAddress}
 🏆 I solved the private key in just ${operationCount} steps!
 
-https://cryptoplayground.com`;
+${import.meta.env.VITE_APP_URL || 'https://cryptoplayground.com'}`;
   }
 
   // Gave up
@@ -42,7 +42,7 @@ https://cryptoplayground.com`;
 ${shortAddress}
 🤷 I gave up after ${operationCount} steps!
 
-https://cryptoplayground.com`;
+${import.meta.env.VITE_APP_URL || 'https://cryptoplayground.com'}`;
 }
 
 /**

@@ -5,7 +5,7 @@ import ChallengeInfo from './ChallengeInfo';
 import ECCPlayground from './ECCPlayground';
 
 const DailyChallenge: React.FC = () => {
-  const { challenge, handleSolve } = useGameStateRedux();
+  const { challenge } = useGameStateRedux();
   const graph = useAppSelector(state => state.dailyCalculator.graph);
 
   // Count total operations by summing all bundled edges
@@ -26,7 +26,7 @@ const DailyChallenge: React.FC = () => {
       </div>
 
       <div className="playground-container">
-        <ECCPlayground challenge={challenge} onSolve={handleSolve} isPracticeMode={false} />
+        <ECCPlayground challenge={challenge} isPracticeMode={false} />
       </div>
     </div>
   );

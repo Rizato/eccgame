@@ -5,7 +5,7 @@
  * component interface in isolation to verify the full workflow is possible.
  */
 import React from 'react';
-import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import HowToPlayModal from '../components/HowToPlayModal';
@@ -96,7 +96,7 @@ describe('Complete User Journey - Interface Testing', () => {
     // Create a simplified calculator interface mock
     const MockCalculatorInterface = () => {
       const [display, setDisplay] = React.useState('');
-      const [savedPoints, setSavedPoints] = React.useState<string[]>([]);
+      const [_savedPoints, setSavedPoints] = React.useState<string[]>([]);
       const [showSaveModal, setShowSaveModal] = React.useState(false);
       const [operations, setOperations] = React.useState<string[]>([]);
 
