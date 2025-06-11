@@ -68,7 +68,10 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
                 </button>
               )}
               {!isPracticeMode && (
-                <button className="give-up-button header-give-up disabled" disabled>
+                <button
+                  className="give-up-button combined-control-button header-give-up disabled"
+                  disabled
+                >
                   Give Up
                 </button>
               )}
@@ -157,7 +160,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
               {showGiveUpButton && (
                 <button
                   onClick={handleGiveUp}
-                  className={`give-up-button header-give-up ${!enableGiveUpButton ? 'disabled' : ''}`}
+                  className={`details-button give-up-button header-give-up ${!enableGiveUpButton ? 'disabled' : ''}`}
                   disabled={!enableGiveUpButton}
                   title={
                     !enableGiveUpButton
