@@ -30,8 +30,13 @@ export function usePracticeCalculatorRedux(challengePublicKey: string, practiceP
       challengePublicKey !== practiceState.challengePublicKey ||
       practicePrivateKey !== practiceState.practicePrivateKey
     ) {
-      // Only dispatch if we have a valid private key
-      if (practicePrivateKey && practicePrivateKey.length > 0) {
+      // Only dispatch if we have a valid public key and private key
+      if (
+        challengePublicKey &&
+        challengePublicKey.length > 0 &&
+        practicePrivateKey &&
+        practicePrivateKey.length > 0
+      ) {
         // Clear the practice state first if this is a new challenge (not just initialization)
         if (
           practiceState.challengePublicKey &&

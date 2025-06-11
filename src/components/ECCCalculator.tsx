@@ -80,6 +80,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     const isAtGenerator =
       currentPoint.x === generatorPoint.x && currentPoint.y === generatorPoint.y;
 
+    if (!challengePublicKey) return isAtGenerator;
+
     try {
       const challengePoint = publicKeyToPoint(challengePublicKey);
       const isAtChallenge =

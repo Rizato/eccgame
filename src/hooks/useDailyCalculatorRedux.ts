@@ -25,7 +25,11 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
 
   // Update challenge public key when it changes
   useEffect(() => {
-    if (challengePublicKey !== dailyState.challengePublicKey) {
+    if (
+      challengePublicKey !== dailyState.challengePublicKey &&
+      challengePublicKey &&
+      challengePublicKey.length > 0
+    ) {
       dispatch(setChallengePublicKey(challengePublicKey));
     }
   }, [challengePublicKey, dailyState.challengePublicKey, dispatch]);

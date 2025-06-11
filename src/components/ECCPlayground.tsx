@@ -18,7 +18,7 @@ import type { ECPoint } from '../types/ecc';
 import type { Challenge } from '../types/game';
 
 interface ECCPlaygroundProps {
-  challenge: Challenge;
+  challenge?: Challenge | null;
   isPracticeMode?: boolean;
   practicePrivateKey?: string;
 }
@@ -29,9 +29,9 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   practicePrivateKey,
 }) => {
   // Use the appropriate calculator hook based on mode
-  const dailyCalculator = useDailyCalculatorRedux(challenge.public_key);
+  const dailyCalculator = useDailyCalculatorRedux(challenge?.public_key || '');
   const practiceCalculator = usePracticeCalculatorRedux(
-    challenge.public_key,
+    challenge?.public_key || '',
     practicePrivateKey || ''
   );
 
@@ -84,7 +84,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   }, [resetToChallenge, resetToGenerator, loadSavedPoint]);
 
   const victoryPrivateKey = useMemo(() => {
-    if (hasWon) {
+    if (hasWon && challenge) {
       return calculateChallengePrivateKeyFromGraph(challenge, graph);
     }
   }, [hasWon, challenge, graph]);
@@ -108,12 +108,18 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Reset current point when challenge changes
   useEffect(() => {
-    calculatorFunctionsRef.current.resetToChallenge(challenge.public_key);
-  }, [challenge.public_key]);
+    if (challenge) {
+      calculatorFunctionsRef.current.resetToChallenge(challenge.public_key);
+    }
+  }, [challenge]);
 
   // Calculate challenge address (this doesn't change during the session)
   useEffect(() => {
     const calculateChallengeAddress = async () => {
+      if (!challenge) {
+        setChallengeAddress('');
+        return;
+      }
       try {
         const challengePoint = publicKeyToPoint(challenge.public_key);
         const pubKey = pointToPublicKey(challengePoint);
@@ -125,7 +131,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     };
 
     calculateChallengeAddress();
-  }, [challenge.public_key, isPracticeMode, dispatch]);
+  }, [challenge, isPracticeMode, dispatch]);
 
   // Save current point (wrapper around Redux action)
   const saveCurrentPoint = useCallback(
@@ -153,12 +159,12 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         const isGenerator = point.x === generatorPoint.x && point.y === generatorPoint.y;
         if (isGenerator) {
           calculatorFunctionsRef.current.resetToGenerator();
-        } else {
+        } else if (challenge) {
           calculatorFunctionsRef.current.resetToChallenge(challenge.public_key);
         }
       }
     },
-    [savedPoints, generatorPoint.x, generatorPoint.y, challenge.public_key]
+    [savedPoints, generatorPoint.x, generatorPoint.y, challenge]
   );
 
   const handlePointClick = useCallback(async (point: ECPoint) => {
@@ -178,6 +184,27 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       }
     }
   }, []);
+
+  // Handle loading state - show empty interface when challenge is not available
+  if (!challenge) {
+    return (
+      <div className="ecc-playground">
+        <div className="playground-content">
+          <div className="graph-calculator-integrated">
+            <ECCGraph challengePublicKey="" onPointClick={() => {}} />
+            <ECCCalculator
+              currentPoint={{ x: 0n, y: 0n, isInfinity: true }}
+              challengePublicKey=""
+              onPointChange={() => {}}
+              onError={() => {}}
+              onSavePoint={() => {}}
+              isLocked={true}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ecc-playground">
@@ -228,12 +255,15 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
           // Check for special points
           const generatorPoint = getGeneratorPoint();
-          const challengePoint = publicKeyToPoint(challenge.public_key);
-
           if (modalPoint.x === generatorPoint.x && modalPoint.y === generatorPoint.y) {
             return 'Generator (G) Point Information';
-          } else if (modalPoint.x === challengePoint.x && modalPoint.y === challengePoint.y) {
-            return 'Challenge Point Information';
+          }
+
+          if (challenge) {
+            const challengePoint = publicKeyToPoint(challenge.public_key);
+            if (modalPoint.x === challengePoint.x && modalPoint.y === challengePoint.y) {
+              return 'Challenge Point Information';
+            }
           }
 
           // Look up point information from the graph

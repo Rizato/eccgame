@@ -2,9 +2,7 @@ import React, { useEffect } from 'react';
 import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import ChallengeInfo from './ChallengeInfo';
 import ECCPlayground from './ECCPlayground';
-import './PlaceholderLayout.css';
 import './PracticeMode.css';
-import PlaceholderLayout from './PlaceholderLayout.tsx';
 
 const PracticeMode: React.FC = () => {
   const {
@@ -38,15 +36,11 @@ const PracticeMode: React.FC = () => {
       </div>
 
       <div className="playground-container">
-        {!practiceChallenge || isGenerating ? (
-          <PlaceholderLayout message="Generating practice wallet..." isPracticeMode={true} />
-        ) : (
-          <ECCPlayground
-            challenge={practiceChallenge}
-            isPracticeMode={true}
-            practicePrivateKey={practicePrivateKey}
-          />
-        )}
+        <ECCPlayground
+          challenge={!practiceChallenge || isGenerating ? null : practiceChallenge}
+          isPracticeMode={true}
+          practicePrivateKey={practicePrivateKey}
+        />
       </div>
     </div>
   );

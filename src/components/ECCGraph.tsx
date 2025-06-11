@@ -66,22 +66,24 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
     };
     allPoints.push(generatorEntry);
 
-    // Always add original challenge point
-    const originalPoint = publicKeyToPoint(challengePublicKey);
-    const originalX = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.x);
-    const originalY = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.y);
+    // Add original challenge point if available
+    if (challengePublicKey) {
+      const originalPoint = publicKeyToPoint(challengePublicKey);
+      const originalX = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.x);
+      const originalY = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.y);
 
-    const originalEntry: GraphPoint = {
-      id: 'original',
-      x: originalX,
-      y: originalY,
-      label: 'Wallet',
-      color: '#f59e0b', // amber
-      description: 'Wallet point',
-      point: originalPoint,
-      type: 'challenge',
-    };
-    allPoints.push(originalEntry);
+      const originalEntry: GraphPoint = {
+        id: 'original',
+        x: originalX,
+        y: originalY,
+        label: 'Wallet',
+        color: '#f59e0b', // amber
+        description: 'Wallet point',
+        point: originalPoint,
+        type: 'challenge',
+      };
+      allPoints.push(originalEntry);
+    }
 
     // Add saved points
     savedPoints.forEach(savedPoint => {
