@@ -77,7 +77,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
       y: originalY,
       label: 'Wallet',
       color: '#f59e0b', // amber
-      description: 'Original challenge point',
+      description: 'Wallet point',
       point: originalPoint,
       type: 'challenge',
     };

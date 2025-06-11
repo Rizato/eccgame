@@ -93,12 +93,11 @@ const FAQPage: React.FC = () => {
             <p>
               Behind the scenes, there's a graph where nodes represent public keys and edges
               represent scalar relationships between them. It starts with the generator point G and
-              the challenge wallet. Each calculator operation creates a new node and edge based on
-              the operation performed. If the previous point had a known private key, the new point
-              will too, since we know both the starting point and the operation. Working from G, we
-              always know the private key. Working backwards from the challenge wallet, we don't. If
-              this graph ever connects G to the challenge wallet, then the challenge's private key
-              becomes known.
+              the wallet. Each calculator operation creates a new node and edge based on the
+              operation performed. If the previous point had a known private key, the new point will
+              too, since we know both the starting point and the operation. Working from G, we
+              always know the private key. Working backwards from the wallet, we don't. If this
+              graph ever connects G to the wallet, then the wallet's private key becomes known.
             </p>
           </section>
         </div>

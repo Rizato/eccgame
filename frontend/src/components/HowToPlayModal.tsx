@@ -23,130 +23,140 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
 
         <div className="how-to-play-content">
           <section className="how-to-play-section">
-            <h3>Daily Challenges</h3>
+            <h3>Gameplay</h3>
             <p>
-              Every day, we present you with an Bitcoin wallet address that mined a block during the
-              50 bitcoin block reward, but has never spent it (with some exceptions for notable
-              Satoshi addresses).
+              Find the private key for a Bitcoin wallet using only its public key. Too bad it's
+              impossible.
             </p>
-
-            <p>
-              Your challenge is to find the private key for the wallet from the public key using an
-              elliptic curve cryptography (ECC) calculator.
-            </p>
-
-            <p>
-              The game is quite literally impossible, and the only way to win is to already have the
-              private key. If you have struggled to grasp the reality of how large 2^256 really is,
-              this game will help you.
-            </p>
-          </section>
-
-          <section className="how-to-play-section">
-            <h3>Game Modes</h3>
             <div className="game-modes">
               <div className="mode-item">
-                <h4>Daily Challenge</h4>
-                <p>
-                  The main challenge - a new cryptographic puzzle every day. Find the private key to
-                  win, but that isn't ever going to happen.
-                </p>
+                <h4>Daily Mode</h4>
+                <p>Real Bitcoin wallets. No matter how hard you try, you will never solve them.</p>
               </div>
               <div className="mode-item">
                 <h4>Practice Mode</h4>
-
-                <p>
-                  Practice mode gives you private key ahead of time, so you can understand how the
-                  operations work, and devise a strategy to use in the{' '}
-                  <strong>Daily Challenge</strong>.
-                </p>
-                <p>Plus, it lets you actually get a win, which feels nice.</p>
-              </div>
-            </div>
-            <div className="tip-box">
-              <strong>💡 Pro tip:</strong> Try hard mode in Practice and invert the{' '}
-              <a href="https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Double-and-add">
-                double and add
-              </a>{' '}
-              algorithm to really see how impossible this is.
-            </div>
-          </section>
-
-          <section className="how-to-play-section">
-            <h3>The ECC Calculator</h3>
-            <p>
-              You have access to a powerful ECC calculator that can perform unlimited operations:
-            </p>
-            <ul>
-              <li>
-                <strong>Multiply:</strong> Multiply your current point by any number (e.g., × 2, ×
-                1000)
-              </li>
-              <li>
-                <strong>Divide:</strong> Divide your current point by any number (e.g., ÷ 2, ÷ 7)
-              </li>
-              <li>
-                <strong>Add:</strong> Add another point to your current point
-              </li>
-              <li>
-                <strong>Subtract:</strong> Subtract another point from your current point
-              </li>
-            </ul>
-            <div className="visual-example">
-              <h4>Example Operations:</h4>
-              <div className="operation-examples">
-                <div className="example-item">
-                  <code>G × 2</code> → <span>Point at 2G</span>
-                </div>
-                <div className="example-item">
-                  <code>2G × 5</code> → <span>Point at 10G</span>
-                </div>
-                <div className="example-item">
-                  <code>10G ÷ 2</code> → <span>Back to 5G</span>
-                </div>
+                <p>Learn ECC operations with a wallet that has a known private key.</p>
               </div>
             </div>
           </section>
 
           <section className="how-to-play-section">
-            <h3>Save Points</h3>
-            <p>
-              Click the <strong>save button (☆)</strong> to save interesting points during your
-              exploration. You can load these saved points later to continue from where you left
-              off.
-            </p>
+            <h3>Using the Calculator</h3>
+            <div className="calculator-guide">
+              <div className="calc-operations">
+                <h4>Basic Operations:</h4>
+                <ul>
+                  <li>
+                    <strong>Add/Subtract:</strong> Combine different points using scalar values
+                  </li>
+                  <li>
+                    <strong>Multiply/Divide:</strong> <code>× 2</code>, <code>× 1000</code> - Jump
+                    to different points on the curve
+                  </li>
+                </ul>
+              </div>
+
+              <div className="calc-workflow">
+                <h4>How to Use:</h4>
+                <ol>
+                  <li>
+                    <strong>
+                      Try to connect the generator G with the Wallet using calculator operations
+                    </strong>
+                  </li>
+                  <li>
+                    <strong>Start at the Daily/Practice Wallet or G</strong>
+                  </li>
+                  <li>
+                    <strong>Enter an operation</strong> and press Enter or click = to execute
+                  </li>
+                  <li>
+                    <strong>Use quick operators (+1, -1, ×2, ÷2)</strong> to explore the curve
+                    quickly
+                  </li>
+                  <li>
+                    <strong>Save interesting points</strong> with the star button
+                  </li>
+                  <li>
+                    <strong>
+                      Reset the calculator to any known point on the graph to start over
+                    </strong>
+                  </li>
+                  <li>
+                    <strong>
+                      Copy scalars from known points to the calculator using the copy button
+                    </strong>
+                  </li>
+                </ol>
+              </div>
+            </div>
           </section>
 
           <section className="how-to-play-section">
-            <h3>Winning & Sharing</h3>
-            <p>
-              If you already have the private key, and for some reason put it into this site like a
-              psychopath, you will see:
-            </p>
-            <ul>
-              <li>The number of operations to solver</li>
-              <li>The challenge wallet address</li>
-              <li>The discovered private key</li>
-              <li>
-                A <strong>share button</strong> to celebrate your achievement
-              </li>
-            </ul>
-            <p>
-              <strong>Share your wins!</strong> Help spread the word about ECC Crypto Playground and
-              challenge your friends to solve it in fewer steps.
-            </p>
+            <h3>Reading the Graph</h3>
+            <div className="graph-guide">
+              <div className="graph-elements">
+                <h4>What You See:</h4>
+                <ul>
+                  <li>
+                    <strong>Current Point:</strong> Your current position (highlighted)
+                  </li>
+                  <li>
+                    <strong>Generator Point:</strong> The SECP256K1 generator point (G)
+                  </li>
+                  <li>
+                    <strong>Wallet Point:</strong> The wallet you need to solve
+                  </li>
+                  <li>
+                    <strong>Saved Points:</strong> Points you've bookmarked
+                  </li>
+                </ul>
+              </div>
+
+              <div className="graph-navigation">
+                <h4>Graph Controls:</h4>
+                <ul>
+                  <li>
+                    <strong>Click Points:</strong> See coordinates and details
+                  </li>
+                  <li>
+                    <strong>Reset to Point:</strong> Start calculating from a different point
+                  </li>
+                  <li>
+                    <strong>Copy to Calculator:</strong> Load the private key scalar for a known
+                    point into the calculator
+                  </li>
+                </ul>
+              </div>
+
+              <div className="tip-box">
+                <strong>Graph Tip:</strong> Points on the graph are approximations due to the
+                challenge of representing 2^256 space on a limited screen
+              </div>
+            </div>
           </section>
 
           <section className="how-to-play-section">
-            <h3>Throwing in the towel</h3>
-            <p>
-              When you have hit that moment of clarity where you realize this is impossible, hit the{' '}
-              <strong> "Give Up"</strong> button. It will let you share the word about ECC Crypto
-              Playground, and your failures.
-            </p>
-            <div className="tip-box">
-              <strong>💡 Pro tip:</strong> Sharing your attempts helps others discover ECC Crypto
-              Playground to waste their time too!
+            <h3>Quick Start</h3>
+            <div className="quick-guide">
+              <ol>
+                <li>
+                  <strong>Start with Practice Mode</strong> to learn how the tools work
+                </li>
+                <li>
+                  <strong>Experiment with operations</strong> like multiply, divide, add, and
+                  subtract
+                </li>
+                <li>
+                  <strong>Save interesting points</strong> to create your own landmarks
+                </li>
+                <li>
+                  <strong>Try the Daily Challenge</strong> and accept inevitable defeat
+                </li>
+                <li>
+                  <strong>Share your attempts</strong> and spread the mathematical madness
+                </li>
+              </ol>
             </div>
           </section>
         </div>

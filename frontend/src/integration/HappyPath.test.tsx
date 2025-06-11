@@ -70,7 +70,6 @@ describe('Complete User Journey - Interface Testing', () => {
 
     // Verify welcome modal content is shown
     expect(screen.getByText('How to Use ECC Crypto Playground')).toBeInTheDocument();
-    expect(screen.getByText(/elliptic curve cryptography/i)).toBeInTheDocument();
     console.log('✅ Welcome modal displays with instructions');
 
     // User closes the welcome modal
