@@ -336,7 +336,7 @@
   font-size: 0.95rem;
 }
 
-.quick-guide li strong {
+strong {
   color: var(--primary);
   font-weight: 600;
 }

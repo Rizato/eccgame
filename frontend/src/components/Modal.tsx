@@ -297,7 +297,7 @@ export const Modal: React.FC<ModalProps> = ({
 
           {/* Action Buttons */}
           <div className="modal-actions">
-            {/* Set as Current Point button for all points */}
+            {/* Use as Current Point button for all points */}
             {onLoadPoint && point && (
               <button
                 className="action-button primary"
@@ -306,7 +306,7 @@ export const Modal: React.FC<ModalProps> = ({
                   onClose();
                 }}
               >
-                Set as Current Point
+                Use as Current Point
               </button>
             )}
           </div>

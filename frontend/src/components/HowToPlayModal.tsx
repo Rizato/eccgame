@@ -30,11 +30,11 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
             </p>
             <div className="game-modes">
               <div className="mode-item">
-                <h4>Daily Mode</h4>
+                <h3>Daily Mode</h3>
                 <p>Real Bitcoin wallets. No matter how hard you try, you will never solve them.</p>
               </div>
               <div className="mode-item">
-                <h4>Practice Mode</h4>
+                <h3>Practice Mode</h3>
                 <p>Learn ECC operations with a wallet that has a known private key.</p>
               </div>
             </div>
@@ -60,32 +60,14 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                 <h4>How to Use:</h4>
                 <ol>
                   <li>
-                    <strong>
-                      Try to connect the generator G with the Wallet using calculator operations
-                    </strong>
-                  </li>
-                  <li>
-                    <strong>Start at the Daily/Practice Wallet or G</strong>
-                  </li>
-                  <li>
-                    <strong>Enter an operation</strong> and press Enter or click = to execute
+                    <strong>Connect G with the Wallet</strong> using calculator operations
                   </li>
                   <li>
                     <strong>Use quick operators (+1, -1, ×2, ÷2)</strong> to explore the curve
                     quickly
                   </li>
                   <li>
-                    <strong>Save interesting points</strong> with the star button
-                  </li>
-                  <li>
-                    <strong>
-                      Reset the calculator to any known point on the graph to start over
-                    </strong>
-                  </li>
-                  <li>
-                    <strong>
-                      Copy scalars from known points to the calculator using the copy button
-                    </strong>
+                    <strong>Use the numpad</strong> to perform any operation you want
                   </li>
                 </ol>
               </div>
@@ -120,11 +102,11 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                     <strong>Click Points:</strong> See coordinates and details
                   </li>
                   <li>
-                    <strong>Reset to Point:</strong> Start calculating from a different point
+                    <strong>Use as current point:</strong> Start calculating from a saved point
                   </li>
                   <li>
-                    <strong>Copy to Calculator:</strong> Load the private key scalar for a known
-                    point into the calculator
+                    <strong>Copy to Calculator:</strong> Enter a the scalar for a known point into
+                    the calculator display
                   </li>
                 </ul>
               </div>
