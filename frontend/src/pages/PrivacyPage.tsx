@@ -28,7 +28,7 @@ const PrivacyPage: React.FC = () => {
             <h2>Information We Collect</h2>
             <p>
               We collect no personal information whatsoever. This cryptography playground operates
-              entirely without data collection, tracking, or analytics.
+              entirely client-side without data collection, tracking, or analytics.
             </p>
           </section>
 
@@ -48,7 +48,6 @@ const PrivacyPage: React.FC = () => {
               mechanisms. There are no third-party scripts that monitor your behavior or collect
               usage statistics.
             </p>
-            <p>Your interaction with this site is completely private and unmonitored.</p>
           </section>
 
           <section className="privacy-section">

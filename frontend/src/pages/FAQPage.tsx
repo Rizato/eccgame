@@ -89,7 +89,7 @@ const FAQPage: React.FC = () => {
           </section>
 
           <section className="faq-section">
-            <h2>How does it work?</h2>
+            <h2>How does the game work?</h2>
             <p>
               Behind the scenes, there's a graph where nodes represent public keys and edges
               represent scalar relationships between them. It starts with the generator point G and

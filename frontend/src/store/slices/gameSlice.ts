@@ -71,19 +71,9 @@ const gameSlice = createSlice({
     clearError: state => {
       state.error = null;
     },
-    setChallenges: (state, action: PayloadAction<Challenge[]>) => {
-      state.challenges = action.payload;
-    },
   },
 });
 
-export const {
-  setGameMode,
-  setChallenge,
-  setError,
-  setHasWon,
-  setGaveUp,
-  clearError,
-  setChallenges,
-} = gameSlice.actions;
+export const { setGameMode, setChallenge, setError, setHasWon, setGaveUp, clearError } =
+  gameSlice.actions;
 export default gameSlice.reducer;
