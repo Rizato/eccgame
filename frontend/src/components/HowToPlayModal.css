@@ -132,9 +132,9 @@
 }
 
 .how-to-play-section h4 {
-  margin: 16px 0 8px 0;
+  margin: 20px 0 12px 0;
   color: var(--text);
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
@@ -147,13 +147,19 @@
 
 .how-to-play-section ul {
   margin: 0 0 16px 0;
-  padding-left: 20px;
+  padding-left: 24px;
+  color: var(--text);
+}
+
+.how-to-play-section ol {
+  margin: 0 0 16px 0;
+  padding-left: 24px;
   color: var(--text);
 }
 
 .how-to-play-section li {
-  margin-bottom: 8px;
-  line-height: 1.5;
+  margin-bottom: 10px;
+  line-height: 1.6;
   font-size: 0.95rem;
 }
 
@@ -283,7 +289,7 @@
 .calc-examples,
 .graph-elements,
 .graph-navigation {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .calc-operations:last-child,
@@ -319,13 +325,13 @@
 }
 
 .quick-guide ol {
-  margin: 0;
+  margin: 0 0 16px 0;
   padding-left: 24px;
   color: var(--text);
 }
 
 .quick-guide li {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   line-height: 1.6;
   font-size: 0.95rem;
 }
@@ -402,7 +408,7 @@
   .calc-examples,
   .graph-elements,
   .graph-navigation {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
 
   .strategy-steps {
@@ -414,12 +420,20 @@
     font-size: 0.85rem;
   }
 
+  .how-to-play-section ul,
+  .how-to-play-section ol,
   .quick-guide ol {
     padding-left: 20px;
   }
 
+  .how-to-play-section li,
   .quick-guide li {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-size: 0.9rem;
+  }
+
+  .how-to-play-section h4 {
+    margin: 16px 0 10px 0;
+    font-size: 1rem;
   }
 }
