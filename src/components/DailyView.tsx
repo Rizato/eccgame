@@ -17,7 +17,7 @@ const DailyView: React.FC<DailyViewProps> = ({ onOpenHowToPlay }) => {
       <GameHeader showErrorBanner={true} onOpenHowToPlay={onOpenHowToPlay} />
       <main className="game-main">
         {loading && (
-          <PlaceholderLayout message="Loading today's challenge..." isPracticeMode={false} />
+          <PlaceholderLayout message="Loading today's wallet..." isPracticeMode={false} />
         )}
         {!loading && !challenge && <ErrorState />}
         {!loading && challenge && <DailyChallenge />}

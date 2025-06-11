@@ -4,6 +4,7 @@ import ChallengeInfo from './ChallengeInfo';
 import ECCPlayground from './ECCPlayground';
 import './PlaceholderLayout.css';
 import './PracticeMode.css';
+import PlaceholderLayout from './PlaceholderLayout.tsx';
 
 const PracticeMode: React.FC = () => {
   const {
@@ -38,40 +39,7 @@ const PracticeMode: React.FC = () => {
 
       <div className="playground-container">
         {!practiceChallenge || isGenerating ? (
-          <div className="playground-placeholder">
-            <div className="placeholder-playground">
-              <div className="placeholder-graph">
-                <div className="placeholder-graph-header">
-                  <div className="placeholder-title">ECC Graph</div>
-                  <div className="placeholder-legend">
-                    <div className="placeholder-legend-item"></div>
-                    <div className="placeholder-legend-item"></div>
-                    <div className="placeholder-legend-item"></div>
-                  </div>
-                </div>
-                <div className="placeholder-graph-area"></div>
-              </div>
-              <div className="placeholder-calculator">
-                <div className="placeholder-calculator-header">Calculator</div>
-                <div className="placeholder-buttons">
-                  <div className="placeholder-button-row">
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                  </div>
-                  <div className="placeholder-button-row">
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                    <div className="placeholder-calc-button"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <PlaceholderLayout message="Generating practice wallet..." isPracticeMode={true} />
         ) : (
           <ECCPlayground
             challenge={practiceChallenge}
