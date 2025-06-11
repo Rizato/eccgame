@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import DailyView from '../components/DailyView';
+import GameFooter from '../components/GameFooter';
 import HowToPlayModal from '../components/HowToPlayModal';
 import PracticeModeView from '../components/PracticeModeView';
-import GameFooter from '../components/GameFooter';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setGameMode, setError } from '../store/slices/gameSlice';
 import './ECCGamePage.css';

@@ -1,8 +1,8 @@
 import React, { type ReactNode, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { publicKeyToPoint } from '../utils/ecc';
-import type { Challenge } from '../types/game';
 import type { ECPoint } from '../types/ecc';
+import type { Challenge } from '../types/game';
 import './Modal.css';
 
 interface ModalProps {

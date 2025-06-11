@@ -1,5 +1,5 @@
-import { calculateKeyFromOperations } from './privateKeyCalculation';
 import { pointMultiply, getGeneratorPoint, publicKeyToPoint } from './ecc';
+import { calculateKeyFromOperations } from './privateKeyCalculation';
 import type { ECPoint, GraphNode, GraphEdge, PointGraph, Operation } from '../types/ecc';
 import type { Challenge } from '../types/game';
 

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import './VictoryModal.css';
+import { getPublicKeyFromPrivate } from '../utils/crypto.ts';
 import { generateShareMessage, shareMessage } from '../utils/gameUtils';
 import type { SavedPoint } from '../types/ecc.ts';
-import { getPublicKeyFromPrivate } from '../utils/crypto.ts';
 
 interface VictoryModalProps {
   isOpen: boolean;

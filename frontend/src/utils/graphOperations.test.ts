@@ -6,8 +6,8 @@ import {
   ensureOperationInGraph,
   calculateChallengePrivateKeyFromGraph,
 } from './graphOperations';
-import type { Challenge } from '../types/game';
 import type { PointGraph } from '../types/ecc';
+import type { Challenge } from '../types/game';
 
 describe('Graph Operations', () => {
   const generatorPoint = getGeneratorPoint();

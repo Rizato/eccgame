@@ -1,12 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
+import { configureStore } from '@reduxjs/toolkit';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
-import ECCGraph from './ECCGraph';
+import { describe, it, expect, vi } from 'vitest';
 import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
 import gameSlice from '../store/slices/gameSlice';
 import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
 import practiceModeSlice from '../store/slices/practiceModeSlice';
+import ECCGraph from './ECCGraph';
 
 // Mock crypto utilities
 vi.mock('../utils/crypto', () => ({

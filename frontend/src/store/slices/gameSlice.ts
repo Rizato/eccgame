@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { challenges } from '../../data/challenges.json';
 import type { Challenge } from '../../types/game';
 import type { AppThunk } from '../index.ts';
-import { challenges } from '../../data/challenges.json';
 
 export type GameMode = 'daily' | 'practice';
 

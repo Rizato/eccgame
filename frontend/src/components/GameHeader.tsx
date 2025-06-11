@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useGameStateRedux } from '../hooks/useGameStateRedux';
-import ThemeToggle from './ThemeToggle';
 import MobileNavDrawer from './MobileNavDrawer';
+import ThemeToggle from './ThemeToggle';
 
 interface GameHeaderProps {
   showErrorBanner?: boolean;

@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { CURVE_N } from './ecc.ts';
+import { createEmptyGraph, addNode, addEdge } from './graphOperations';
 import {
   addBundledEdgeForNewSave,
   cleanupDanglingNodes,
   createBundledEdgeForSavedPoint,
   isPointSaved,
 } from './operationBundling';
-import { createEmptyGraph, addNode, addEdge } from './graphOperations';
 import type { ECPoint, Operation, SavedPoint } from '../types/ecc';
 
 describe('Operation Bundling', () => {

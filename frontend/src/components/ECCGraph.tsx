@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
 import Decimal from 'decimal.js';
+import React, { useCallback } from 'react';
 import { useAppSelector } from '../store/hooks';
 import { CURVE_P, getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
 import type { ECPoint } from '../types/ecc';

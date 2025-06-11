@@ -2,8 +2,8 @@ import { lazy, Suspense } from 'react';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import './App.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import ECCGamePage from './pages/ECCGamePage';
 import LoadingState from './components/LoadingState';
+import ECCGamePage from './pages/ECCGamePage';
 
 // Lazy load non-critical routes
 const FAQPage = lazy(() => import('./pages/FAQPage'));

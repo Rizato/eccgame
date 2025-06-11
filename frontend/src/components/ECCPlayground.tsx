@@ -6,12 +6,12 @@ import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { getP2PKHAddress } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
 import './ECCPlayground.css';
+import { createSignature } from '../utils/crypto';
 import {
   calculateChallengePrivateKeyFromGraph,
   findNodeByPoint,
   calculatePrivateKeyFromGraph,
 } from '../utils/graphOperations';
-import { createSignature } from '../utils/crypto';
 import ECCCalculator from './ECCCalculator';
 import ECCGraph from './ECCGraph';
 import { Modal } from './Modal';

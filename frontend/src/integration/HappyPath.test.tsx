@@ -4,9 +4,9 @@
  * This single test demonstrates the complete user journey by testing each
  * component interface in isolation to verify the full workflow is possible.
  */
-import React from 'react';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import HowToPlayModal from '../components/HowToPlayModal';
 import { VictoryModal } from '../components/VictoryModal';
