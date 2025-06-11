@@ -174,8 +174,9 @@ export async function createSignature(privateKeyHex: string): Promise<string> {
   const publicKeyBytes = secp256k1.publicKeyCreate(privateKeyBytes, true); // Compressed format
 
   // Create message by concatenating public key
-  const messageBytes = new Uint8Array(publicKeyBytes.length);
-  messageBytes.set(publicKeyBytes, 0);
+  const message = bytesToHex(publicKeyBytes);
+  const encoder = new TextEncoder();
+  const messageBytes = encoder.encode(message);
 
   // Hash the message to get 32 bytes using SHA-256
   const hashBuffer = await crypto.subtle.digest('SHA-256', messageBytes);
