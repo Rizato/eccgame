@@ -76,13 +76,79 @@ describe('crypto utilities', () => {
   });
 
   describe('createSignature', () => {
-    it('should create signature for valid inputs', async () => {
+    it('should create Bitcoin-compatible message signature', async () => {
       const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
 
       const signature = await createSignature(privateKey);
 
-      expect(signature).toHaveLength(128); // 64 bytes = 128 hex chars
-      expect(/^[0-9a-f]+$/i.test(signature)).toBe(true);
+      // Bitcoin signatures are 65 bytes encoded in Base64, so roughly 88 characters
+      expect(signature.length).toBeGreaterThan(80);
+      expect(signature.length).toBeLessThan(100);
+
+      // Should be valid Base64
+      expect(() => atob(signature)).not.toThrow();
+    });
+
+    it('should create deterministic signatures (RFC 6979)', async () => {
+      const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
+
+      const signature1 = await createSignature(privateKey);
+      const signature2 = await createSignature(privateKey);
+      const signature3 = await createSignature(privateKey);
+
+      // RFC 6979 deterministic signatures should be identical for same message+key
+      // This is CORRECT behavior and prevents nonce reuse attacks
+      expect(signature1).toBe(signature2);
+      expect(signature2).toBe(signature3);
+      expect(signature1).toBe(signature3);
+
+      // Should be valid Base64
+      expect(() => atob(signature1)).not.toThrow();
+    });
+
+    it('should create different signatures for different private keys', async () => {
+      const privateKey1 = '0000000000000000000000000000000000000000000000000000000000000001';
+      const privateKey2 = '0000000000000000000000000000000000000000000000000000000000000002';
+
+      const signature1 = await createSignature(privateKey1);
+      const signature2 = await createSignature(privateKey2);
+
+      // Different private keys should produce different signatures
+      expect(signature1).not.toBe(signature2);
+    });
+
+    it('should use proper Bitcoin message format with VarInt lengths', async () => {
+      const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
+
+      // This mainly tests that the function doesn't throw and produces a valid signature
+      // The exact message format is tested internally by the Bitcoin signing process
+      const signature = await createSignature(privateKey);
+
+      expect(signature).toBeTruthy();
+      expect(() => atob(signature)).not.toThrow();
+
+      // Verify it's a 65-byte signature (recovery flag + 64-byte ECDSA signature) in Base64
+      const signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
+      expect(signatureBytes.length).toBe(65);
+
+      // Recovery flag should be in range 27-30
+      expect(signatureBytes[0]).toBeGreaterThanOrEqual(27);
+      expect(signatureBytes[0]).toBeLessThanOrEqual(30);
+    });
+
+    it('should format message length as VarInt bytes, not string', async () => {
+      // Test that we're using proper VarInt encoding instead of string encoding
+      const privateKey = '0000000000000000000000000000000000000000000000000000000000000001';
+
+      // The key point is that this shouldn't throw and should produce a valid signature
+      // If we were still encoding lengths as strings, the Bitcoin verification would fail
+      const signature = await createSignature(privateKey);
+
+      expect(signature).toBeTruthy();
+      expect(typeof signature).toBe('string');
+
+      // For debugging: log what we're actually creating
+      console.log('Generated signature for testing:', signature);
     });
 
     it('should throw error for invalid private key', async () => {

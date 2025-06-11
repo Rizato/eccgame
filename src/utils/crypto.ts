@@ -53,6 +53,38 @@ export function bytesToHex(bytes: Uint8Array): string {
 }
 
 /**
+ * Convert bytes to Base64 string
+ */
+export function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+/**
+ * Encode length as VarInt (Bitcoin's variable length integer format)
+ */
+function encodeVarInt(length: number): Uint8Array {
+  if (length < 0xfd) {
+    return new Uint8Array([length]);
+  } else if (length <= 0xffff) {
+    return new Uint8Array([0xfd, length & 0xff, (length >> 8) & 0xff]);
+  } else if (length <= 0xffffffff) {
+    return new Uint8Array([
+      0xfe,
+      length & 0xff,
+      (length >> 8) & 0xff,
+      (length >> 16) & 0xff,
+      (length >> 24) & 0xff,
+    ]);
+  } else {
+    throw new Error('VarInt too large');
+  }
+}
+
+/**
  * Validate private key (must be 256 bits / 32 bytes)
  */
 export function isValidPrivateKey(privateKeyHex: string): boolean {
@@ -161,7 +193,8 @@ export async function getP2PKHAddress(publicKeyHex: string): Promise<string> {
 }
 
 /**
- * Create signature using private key
+ * Create Bitcoin-compatible message signature using private key
+ * Uses Bitcoin's standard message signing format compatible with bitcoin-cli verifymessage
  */
 export async function createSignature(privateKeyHex: string): Promise<string> {
   const privateKeyBytes = hexToBytes(privateKeyHex.padStart(64, '0'));
@@ -173,17 +206,47 @@ export async function createSignature(privateKeyHex: string): Promise<string> {
   // Generate public key from private key
   const publicKeyBytes = secp256k1.publicKeyCreate(privateKeyBytes, true); // Compressed format
 
-  // Create message by concatenating public key
+  // Create Bitcoin message signature format
+  // Message format: [varint_length("Bitcoin Signed Message:\n")]["Bitcoin Signed Message:\n"][varint_length(message)][message]
   const message = bytesToHex(publicKeyBytes);
-  const encoder = new TextEncoder();
-  const messageBytes = encoder.encode(message);
+  const messageBuffer = new TextEncoder().encode(message);
 
-  // Hash the message to get 32 bytes using SHA-256
-  const hashBuffer = await crypto.subtle.digest('SHA-256', messageBytes);
-  const hashBytes = new Uint8Array(hashBuffer);
+  // Create the Bitcoin message format components
+  const magicString = 'Bitcoin Signed Message:\n';
+  const magicBuffer = new TextEncoder().encode(magicString);
+  const magicLength = encodeVarInt(magicBuffer.length); // Should be 0x18 (24 bytes)
+  const messageLength = encodeVarInt(messageBuffer.length);
 
-  // Create signature
-  const signature = secp256k1.ecdsaSign(hashBytes, privateKeyBytes);
+  // Combine all components: [magic_length][magic][message_length][message]
+  const fullMessage = new Uint8Array(
+    magicLength.length + magicBuffer.length + messageLength.length + messageBuffer.length
+  );
+  let offset = 0;
+  fullMessage.set(magicLength, offset);
+  offset += magicLength.length;
+  fullMessage.set(magicBuffer, offset);
+  offset += magicBuffer.length;
+  fullMessage.set(messageLength, offset);
+  offset += messageLength.length;
+  fullMessage.set(messageBuffer, offset);
 
-  return bytesToHex(signature.signature);
+  // Double SHA256 hash (Bitcoin standard)
+  const hash1 = await crypto.subtle.digest('SHA-256', fullMessage);
+  const hash2 = await crypto.subtle.digest('SHA-256', hash1);
+  const messageHash = new Uint8Array(hash2);
+
+  // Create signature with recovery info
+  // Note: secp256k1.ecdsaSign uses RFC 6979 deterministic nonces
+  // This means signatures will be identical for the same message+private key
+  // This is CORRECT and prevents nonce reuse attacks that could leak private keys
+  const signatureObj = secp256k1.ecdsaSign(messageHash, privateKeyBytes);
+
+  // Bitcoin signature format: recovery_id + 27 + signature
+  const recoveryFlag = 27 + signatureObj.recid;
+  const bitcoinSignature = new Uint8Array(65);
+  bitcoinSignature[0] = recoveryFlag;
+  bitcoinSignature.set(signatureObj.signature, 1);
+
+  // Return Base64 format for bitcoin-cli verifymessage compatibility
+  return bytesToBase64(bitcoinSignature);
 }
