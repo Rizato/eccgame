@@ -154,7 +154,7 @@ npm run build:prod
 npm run preview
 ```
 
-### 🌍 Deploy to Hosting
+### Deploy to Hosting
 
 
 #### Static Hosting (GitHub Pages, S3, etc.)
@@ -164,14 +164,14 @@ npm run build:prod
 # Upload dist/ contents to your hosting provider
 ```
 
-### 🔧 Environment Variables
+### Environment Variables
 
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `VITE_APP_URL` | Your domain URL for sharing | `https://cryptoplayground.com` |
 | `VITE_EXPLORER_BASE_URL` | Bitcoin explorer URL | `https://blockstream.info/address/` |
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -187,13 +187,12 @@ npm run test:watch
 npm test ECCCalculator.test.tsx
 ```
 
-### 📊 Coverage Goals
+### Coverage Goals
 - **Target**: >90% test coverage
 - **Current**: ~60% (and growing!)
 - **Focus Areas**: Components, utilities, and user interactions
 
-
-### 📖 Further Reading
+### Further Reading
 
 - [Elliptic Curve Cryptography](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography)
 - [Bitcoin's Use of ECC](https://bitcoin.org/bitcoin.pdf)
@@ -209,7 +208,7 @@ npm test ECCCalculator.test.tsx
 - **Open Source**: All code is auditable and transparent
 - **No Dependencies on External APIs**: Works completely offline after initial load
 
-### 🤝 Third-Party Licenses
+### Third-Party Licenses
 
 - **React**: MIT License
 - **TypeScript**: Apache-2.0 License
@@ -220,7 +219,7 @@ npm test ECCCalculator.test.tsx
 
 <div align="center">
 
-**🧩 Ready to try the impossible?**
+**Ready to try the impossible?**
 
 [![Play Now](https://img.shields.io/badge/Play_Now-🚀_eccgame.com-blue?style=for-the-badge&logo=bitcoin)](https://eccgame.com)
 
