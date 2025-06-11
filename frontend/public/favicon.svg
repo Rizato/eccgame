@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <style>
+      .coin-half { fill: #f7931a; }
+      .coin-edge { fill: #e8891e; }
+      .puzzle-half { fill: #2196f3; }
+      .puzzle-edge { fill: #1976d2; }
+      .text { fill: white; font-family: Arial, sans-serif; font-weight: bold; font-size: 6px; }
+      .small-text { fill: white; font-family: Arial, sans-serif; font-weight: bold; font-size: 4px; }
+    </style>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="#333" stroke="#666" stroke-width="1"/>
+
+  <!-- Left half - Bitcoin coin -->
+  <path d="M 1 16 A 15 15 0 0 1 16 1 L 16 16 Z" class="coin-half"/>
+  <path d="M 16 1 A 15 15 0 0 1 16 16" fill="none" stroke="#e8891e" stroke-width="1"/>
+
+  <!-- Bitcoin symbol on left -->
+  <g transform="translate(8,16)">
+    <path d="M-3,-6 L-3,6 M-1,-6 L-1,6 M-1,-6 L2,-6 Q4,-6 4,-4 Q4,-2 2,-2 L-1,-2 M-1,-2 L3,-2 Q5,-2 5,0 Q5,2 3,2 L-1,2 L-1,6"
+          fill="none" stroke="white" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="0" y="-8" text-anchor="middle" class="small-text">₿</text>
+  </g>
+
+  <!-- Right half - Puzzle piece -->
+  <path d="M 16 1 A 15 15 0 0 0 31 16 A 15 15 0 0 0 16 31 L 16 16 Z" class="puzzle-half"/>
+
+  <!-- Puzzle piece shape on right -->
+  <g transform="translate(24,16)">
+    <!-- Main puzzle piece body -->
+    <path d="M-6,-6 L2,-6 L2,-3 Q4,-3 4,-1 Q4,1 2,1 L2,4 Q0,4 -2,4 Q-4,4 -4,2 Q-4,0 -2,0 L-2,-3 Q-4,-3 -4,-5 Q-4,-6 -2,-6 Z"
+          class="puzzle-edge" stroke="#1976d2" stroke-width="0.5"/>
+    <text x="-2" y="-8" text-anchor="middle" class="small-text">ECC</text>
+  </g>
+
+  <!-- Central dividing line with subtle glow -->
+  <line x1="16" y1="1" x2="16" y2="31" stroke="#fff" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- Outer ring highlight -->
+  <circle cx="16" cy="16" r="14.5" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/>
+</svg>
