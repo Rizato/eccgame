@@ -114,7 +114,12 @@ const practiceCalculatorSlice = createSlice({
       state.selectedPoint = challengePoint;
 
       // Add challenge node to graph with known private key (only if privateKey is valid)
-      const nodeOptions: any = {
+      const nodeOptions: {
+        id: string;
+        label: string;
+        isChallenge: boolean;
+        privateKey?: bigint;
+      } = {
         id: 'challenge',
         label: 'Challenge Point',
         isChallenge: true,
@@ -124,7 +129,7 @@ const practiceCalculatorSlice = createSlice({
       if (privateKey && privateKey.length > 0 && /^[0-9a-fA-F]+$/.test(privateKey)) {
         try {
           nodeOptions.privateKey = BigInt('0x' + privateKey);
-        } catch (error) {
+        } catch {
           console.warn('Invalid private key format:', privateKey);
         }
       }
@@ -178,7 +183,12 @@ const practiceCalculatorSlice = createSlice({
       state.selectedPoint = challengePoint;
 
       // Ensure challenge node exists in graph with known private key
-      const nodeOptions: any = {
+      const nodeOptions: {
+        id: string;
+        label: string;
+        isChallenge: boolean;
+        privateKey?: bigint;
+      } = {
         id: 'challenge',
         label: 'Challenge Point',
         isChallenge: true,
@@ -188,7 +198,7 @@ const practiceCalculatorSlice = createSlice({
       if (privateKey && privateKey.length > 0 && /^[0-9a-fA-F]+$/.test(privateKey)) {
         try {
           nodeOptions.privateKey = BigInt('0x' + privateKey);
-        } catch (error) {
+        } catch {
           console.warn('Invalid private key format:', privateKey);
         }
       }

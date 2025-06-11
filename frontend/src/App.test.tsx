@@ -3,13 +3,14 @@ import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { store } from './store';
+import type { ReactNode } from 'react';
 
 // Mock react-router-dom
 vi.mock('react-router-dom', () => ({
-  BrowserRouter: ({ children }: any) => <div>{children}</div>,
-  Routes: ({ children }: any) => <div>{children}</div>,
-  Route: ({ element }: any) => element,
-  lazy: vi.fn(fn => {
+  BrowserRouter: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  Routes: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  Route: ({ element }: { element: ReactNode }) => element,
+  lazy: vi.fn((fn: () => unknown) => {
     const Component = vi.fn().mockImplementation(() => {
       const ActualComponent = fn();
       return ActualComponent;

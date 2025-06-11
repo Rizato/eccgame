@@ -19,14 +19,14 @@ const PracticeMode: React.FC = () => {
     if (!practiceChallenge || isGenerating) {
       generatePracticeChallenge();
     }
-  }, [difficulty]);
+  }, [generatePracticeChallenge, difficulty, isGenerating, practiceChallenge]);
 
   // Generate initial challenge on mount
   useEffect(() => {
     if (!practiceChallenge && !isGenerating) {
       generatePracticeChallenge();
     }
-  }, []);
+  });
 
   return (
     <div className="daily-challenge-container">

@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
-import type { Challenge } from '../types/game';
 import { useDailyCalculatorRedux } from '../hooks/useDailyCalculatorRedux';
 import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { getP2PKHAddress } from '../utils/crypto';
+import { getP2PKHAddress, createSignature } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
 import './ECCPlayground.css';
-import { createSignature } from '../utils/crypto';
 import {
   calculateChallengePrivateKeyFromGraph,
   findNodeByPoint,
@@ -17,6 +15,7 @@ import ECCGraph from './ECCGraph';
 import { Modal } from './Modal';
 import { VictoryModal } from './VictoryModal';
 import type { ECPoint } from '../types/ecc';
+import type { Challenge } from '../types/game';
 
 interface ECCPlaygroundProps {
   challenge: Challenge;
@@ -94,7 +93,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   // Reset current point when challenge changes
   useEffect(() => {
     resetToChallenge(challenge.public_key);
-  }, [challenge.public_key]);
+  }, [resetToChallenge, challenge.public_key]);
 
   // Calculate challenge address (this doesn't change during the session)
   useEffect(() => {
@@ -143,7 +142,14 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         }
       }
     },
-    [savedPoints, generatorPoint, challenge.public_key]
+    [
+      savedPoints,
+      generatorPoint,
+      challenge.public_key,
+      loadSavedPoint,
+      resetToChallenge,
+      resetToGenerator,
+    ]
   );
 
   const handlePointClick = useCallback(async (point: ECPoint) => {

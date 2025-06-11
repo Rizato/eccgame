@@ -63,7 +63,12 @@ describe('ErrorBoundary', () => {
 
     it('resets error state when clicking Return to Home', async () => {
       const user = userEvent.setup();
-      window.location = { href: '' } as any;
+
+      // Mock window.location
+      Object.defineProperty(window, 'location', {
+        value: { href: '' },
+        writable: true,
+      });
 
       render(
         <ErrorBoundary>

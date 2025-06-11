@@ -1,4 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import './ECCCalculator.css';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
+import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
 import { getP2PKHAddress } from '../utils/crypto';
 import {
   bigintToHex,
@@ -15,12 +19,8 @@ import {
   publicKeyToPoint,
 } from '../utils/ecc';
 import { calculatePrivateKeyFromGraph } from '../utils/graphOperations.ts';
-import './ECCCalculator.css';
 import { SavePointModal } from './SavePointModal';
 import type { ECPoint, Operation } from '../types/ecc.ts';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
-import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
@@ -247,7 +247,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [gameMode, currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickSubtractG = useCallback(() => {
     if (isLocked) return;
@@ -282,7 +282,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [gameMode, currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickDouble = useCallback(() => {
     if (isLocked) return;
@@ -317,7 +317,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [gameMode, currentPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickHalve = useCallback(() => {
     if (isLocked) return;
@@ -352,7 +352,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [gameMode, currentPoint, dispatch, onPointChange, onError, isLocked]);
 
   const quickNegate = useCallback(() => {
     if (isLocked) return;
@@ -387,7 +387,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [gameMode, currentPoint, dispatch, onPointChange, onError, isLocked]);
 
   const executeCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
@@ -478,16 +478,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [
-      currentPoint,
-      dispatch,
-      onPointChange,
-      onError,
-      quickAddG,
-      quickSubtractG,
-      isLocked,
-      generatorPoint,
-    ]
+    [gameMode, currentPoint, dispatch, onPointChange, onError, isLocked, generatorPoint]
   );
 
   // Assign the function to the ref so it can be called from setCalculatorOperation

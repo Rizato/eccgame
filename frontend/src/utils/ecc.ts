@@ -19,6 +19,7 @@ export const CURVE_N = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03
 /**
  * Convert elliptic.js point to our ECPoint format
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ellipticToPoint(ecPoint: any): ECPoint {
   if (ecPoint.isInfinity()) {
     return { x: 0n, y: 0n, isInfinity: true };

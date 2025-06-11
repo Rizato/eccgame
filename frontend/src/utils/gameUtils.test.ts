@@ -56,7 +56,7 @@ describe('gameUtils', () => {
   });
 
   describe('copyToClipboard', () => {
-    let originalClipboard: any;
+    let originalClipboard: typeof navigator.clipboard;
 
     beforeEach(() => {
       originalClipboard = navigator.clipboard;
@@ -119,8 +119,8 @@ describe('gameUtils', () => {
   });
 
   describe('shareMessage', () => {
-    let originalShare: any;
-    let originalClipboard: any;
+    let originalShare: typeof navigator.share;
+    let originalClipboard: typeof navigator.clipboard;
 
     beforeEach(() => {
       originalShare = navigator.share;

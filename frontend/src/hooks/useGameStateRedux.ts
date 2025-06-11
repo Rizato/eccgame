@@ -18,7 +18,7 @@ export function useGameStateRedux() {
     if (gameState.gameMode === 'daily' && !gameState.challenge) {
       dispatch(loadDailyChallenge());
     }
-  }, [gameState.gameMode, gameState.challenge]);
+  }, [dispatch, gameState.gameMode, gameState.challenge]);
 
   return {
     // State

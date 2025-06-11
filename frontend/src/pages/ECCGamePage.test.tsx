@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
-import ECCGamePage from './ECCGamePage';
 import { store } from '../store';
+import ECCGamePage from './ECCGamePage';
 
 describe('ECCGamePage', () => {
   const renderPage = (mode: 'daily' | 'practice' = 'daily') => {

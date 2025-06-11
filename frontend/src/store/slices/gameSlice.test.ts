@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
+import { describe, expect, it, vi } from 'vitest';
 import gameReducer, {
   setGameMode,
   setError,
@@ -73,13 +73,15 @@ describe('gameSlice', () => {
       preloadedState: {
         game: initialState,
       },
+      middleware: getDefaultMiddleware => getDefaultMiddleware(),
     });
 
     // Test with first date - should select challenge at index 2
     const date1 = new Date('2024-01-01');
     vi.setSystemTime(date1);
 
-    // Dispatch the thunk
+    // Dispatch the thunk - TypeScript doesn't understand thunk typing in tests
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     store.dispatch(loadDailyChallenge() as any);
 
     // Get the state after dispatch
@@ -105,8 +107,10 @@ describe('gameSlice', () => {
       preloadedState: {
         game: initialState,
       },
+      middleware: getDefaultMiddleware => getDefaultMiddleware(),
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     store2.dispatch(loadDailyChallenge() as any);
     const state2 = store2.getState().game;
 

@@ -15,7 +15,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         // Ignore BigInt values in Redux state since we're working with cryptographic operations
-        isSerializable: (value: any) => {
+        isSerializable: (value: unknown) => {
           // Allow BigInt values
           if (typeof value === 'bigint') {
             return true;
@@ -66,7 +66,7 @@ export const store = configureStore({
   // Redux DevTools with BigInt serialization support
   devTools: import.meta.env.DEV && {
     serialize: {
-      replacer: (_key: string, value: any) => {
+      replacer: (_key: string, value: unknown) => {
         if (typeof value === 'bigint') {
           return `0x${value.toString(16)})`;
         }
