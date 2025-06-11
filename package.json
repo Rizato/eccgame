@@ -1,5 +1,5 @@
 {
-  "name": "crypto-guesser-frontend",
+  "name": "ecc-crypto-playground",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -17,7 +17,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
-    "generate-icons": "./scripts/generate-icons.sh"
+    "generate-icons": "../scripts/generate-icons.sh"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",

@@ -141,27 +141,27 @@ If by some miracle you find a private key:
 ## 📁 Project Structure
 
 ```
-frontend/
-├── src/
-│   ├── components/          # React components
-│   │   ├── ECCCalculator.tsx    # Main calculator interface
-│   │   ├── ECCGraph.tsx         # Point visualization
-│   │   ├── VictoryModal.tsx     # Win celebration
-│   │   └── ...
-│   ├── pages/              # Page-level components
-│   │   ├── ECCGamePage.tsx     # Main game page
-│   │   ├── FAQPage.tsx         # Frequently asked questions
-│   │   └── PrivacyPage.tsx     # Privacy policy
-│   ├── store/              # Redux state management
-│   │   ├── slices/             # State slices
-│   │   └── index.ts            # Store configuration
-│   ├── utils/              # Utility functions
-│   │   ├── crypto.ts           # Cryptographic utilities
-│   │   ├── ecc.ts             # Elliptic curve math
-│   │   └── gameUtils.ts        # Game-specific helpers
-│   └── types/              # TypeScript type definitions
-├── public/                 # Static assets
-└── dist/                  # Production build output
+
+src/
+├── components/          # React components
+│   ├── ECCCalculator.tsx    # Main calculator interface
+│   ├── ECCGraph.tsx         # Point visualization
+│   ├── VictoryModal.tsx     # Win celebration
+│   └── ...
+├── pages/              # Page-level components
+│   ├── ECCGamePage.tsx     # Main game page
+│   ├── FAQPage.tsx         # Frequently asked questions
+│   └── PrivacyPage.tsx     # Privacy policy
+├── store/              # Redux state management
+│   ├── slices/             # State slices
+│   └── index.ts            # Store configuration
+├── utils/              # Utility functions
+│   ├── crypto.ts           # Cryptographic utilities
+│   ├── ecc.ts             # Elliptic curve math
+│   └── gameUtils.ts        # Game-specific helpers
+├── types/              # TypeScript type definitions
+public/                 # Static assets
+dist/                  # Production build output
 ```
 
 ## 🚀 Deployment
