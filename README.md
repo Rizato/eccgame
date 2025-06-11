@@ -110,7 +110,7 @@ VITE_EXPLORER_BASE_URL=https://blockstream.info/testnet/address/
 - **Redux Toolkit**: Predictable state container
 - **Real-time Updates**: Reactive UI updates
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 
