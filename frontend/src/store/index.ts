@@ -4,6 +4,7 @@ import gameReducer from './slices/gameSlice';
 import practiceCalculatorReducer from './slices/practiceCalculatorSlice';
 import practiceModeReducer from './slices/practiceModeSlice';
 import themeReducer from './slices/themeSlice';
+import uiReducer from './slices/uiSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     practiceCalculator: practiceCalculatorReducer,
     practiceMode: practiceModeReducer,
     theme: themeReducer,
+    ui: uiReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

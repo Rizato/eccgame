@@ -81,13 +81,14 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
             <ThemeToggle />
           </div>
         </div>
-        {showErrorBanner && error && (
-          <div className="error-banner">
-            <span>{error}</span>
-            <button onClick={clearError}>×</button>
-          </div>
-        )}
       </header>
+
+      {showErrorBanner && error && (
+        <div className="error-banner-absolute">
+          <span>{error}</span>
+          <button onClick={clearError}>×</button>
+        </div>
+      )}
 
       <MobileNavDrawer
         isOpen={showMobileNav}
