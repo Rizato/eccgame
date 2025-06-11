@@ -1,7 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { themeUtils } from '../utils/theme';
 import ThemeToggle from './ThemeToggle';
+import themeReducer from '../store/slices/themeSlice';
+import type { ReactNode } from 'react';
 
 // Mock the theme utils
 vi.mock('../utils/theme', () => ({
@@ -16,6 +20,24 @@ vi.mock('../utils/theme', () => ({
 
 const mockThemeUtils = vi.mocked(themeUtils);
 
+// Create a test store
+const createTestStore = (initialTheme: 'light' | 'dark' = 'light') => {
+  return configureStore({
+    reducer: {
+      theme: themeReducer,
+    },
+    preloadedState: {
+      theme: { theme: initialTheme },
+    },
+  });
+};
+
+// Helper function to render with provider
+const renderWithProvider = (ui: ReactNode, initialTheme: 'light' | 'dark' = 'light') => {
+  const store = createTestStore(initialTheme);
+  return render(<Provider store={store}>{ui}</Provider>);
+};
+
 describe('ThemeToggle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -27,7 +49,7 @@ describe('ThemeToggle', () => {
 
   describe('rendering', () => {
     it('should render theme toggle button', () => {
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />);
 
       expect(screen.getByRole('button')).toBeInTheDocument();
       expect(screen.getByLabelText(/switch to.*mode/i)).toBeInTheDocument();
@@ -35,26 +57,23 @@ describe('ThemeToggle', () => {
 
     it('should show correct icon for current theme', () => {
       mockThemeUtils.getSystemTheme.mockReturnValue('light');
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />);
 
       // When in light mode, should show moon (to switch to dark)
       expect(screen.getByText('☀')).toBeInTheDocument();
     });
 
     it('should show sun icon when in dark mode', () => {
-      mockThemeUtils.getSystemTheme.mockReturnValue('dark');
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />, 'dark');
 
-      // When in dark mode, should show sun (to switch to light)
+      // When in dark mode, should show moon icon
       expect(screen.getByText('🌘︎')).toBeInTheDocument();
     });
   });
 
   describe('theme initialization', () => {
     it('should apply initial theme on mount', () => {
-      mockThemeUtils.getSystemTheme.mockReturnValue('dark');
-
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />, 'dark');
 
       expect(mockThemeUtils.applyTheme).toHaveBeenCalledWith('dark');
     });
@@ -63,7 +82,7 @@ describe('ThemeToggle', () => {
   describe('theme changing', () => {
     it('should toggle from light to dark when clicked', () => {
       mockThemeUtils.getSystemTheme.mockReturnValue('light');
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />);
 
       const button = screen.getByRole('button');
       fireEvent.click(button);
@@ -72,8 +91,7 @@ describe('ThemeToggle', () => {
     });
 
     it('should toggle from dark to light when clicked', () => {
-      mockThemeUtils.getSystemTheme.mockReturnValue('dark');
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />, 'dark');
 
       const button = screen.getByRole('button');
       fireEvent.click(button);
@@ -83,7 +101,7 @@ describe('ThemeToggle', () => {
 
     it('should update icon when clicking to toggle theme', () => {
       mockThemeUtils.getSystemTheme.mockReturnValue('light');
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />);
 
       // Initially in light mode, should show moon
       expect(screen.getByText('☀')).toBeInTheDocument();
@@ -100,7 +118,7 @@ describe('ThemeToggle', () => {
   describe('accessibility', () => {
     it('should have proper ARIA attributes', () => {
       mockThemeUtils.getSystemTheme.mockReturnValue('light');
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />);
 
       const button = screen.getByRole('button');
       expect(button).toHaveAttribute('aria-label', 'Switch to dark mode');
@@ -111,8 +129,7 @@ describe('ThemeToggle', () => {
     });
 
     it('should update ARIA attributes when theme changes', () => {
-      mockThemeUtils.getSystemTheme.mockReturnValue('dark');
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />, 'dark');
 
       const button = screen.getByRole('button');
       expect(button).toHaveAttribute('aria-label', 'Switch to light mode');
@@ -123,7 +140,7 @@ describe('ThemeToggle', () => {
     });
 
     it('should be keyboard accessible', () => {
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />);
 
       const button = screen.getByRole('button');
 
@@ -142,11 +159,11 @@ describe('ThemeToggle', () => {
       // @ts-expect-error - testing invalid theme
       mockThemeUtils.getStoredTheme.mockReturnValue('invalid-theme');
 
-      expect(() => render(<ThemeToggle />)).not.toThrow();
+      expect(() => renderWithProvider(<ThemeToggle />)).not.toThrow();
     });
 
     it('should handle rapid theme changes', () => {
-      render(<ThemeToggle />);
+      renderWithProvider(<ThemeToggle />);
 
       const button = screen.getByRole('button');
 
@@ -158,6 +175,7 @@ describe('ThemeToggle', () => {
       fireEvent.click(button);
       fireEvent.click(button);
 
+      // Should be called 3 times: one for each click
       expect(mockThemeUtils.applyTheme).toHaveBeenCalledTimes(3);
     });
   });

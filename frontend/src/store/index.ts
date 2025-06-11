@@ -3,6 +3,7 @@ import dailyCalculatorReducer from './slices/eccCalculatorSlice';
 import gameReducer from './slices/gameSlice';
 import practiceCalculatorReducer from './slices/practiceCalculatorSlice';
 import practiceModeReducer from './slices/practiceModeSlice';
+import themeReducer from './slices/themeSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     dailyCalculator: dailyCalculatorReducer,
     practiceCalculator: practiceCalculatorReducer,
     practiceMode: practiceModeReducer,
+    theme: themeReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
