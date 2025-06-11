@@ -67,6 +67,22 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   const calculatorDisplayRef = useRef<((value: string) => void) | null>(null);
   const generatorPoint = getGeneratorPoint();
 
+  // Create stable refs for calculator functions to avoid dependency issues
+  const calculatorFunctionsRef = useRef({
+    resetToChallenge,
+    resetToGenerator,
+    loadSavedPoint,
+  });
+
+  // Update refs when functions change
+  useEffect(() => {
+    calculatorFunctionsRef.current = {
+      resetToChallenge,
+      resetToGenerator,
+      loadSavedPoint,
+    };
+  }, [resetToChallenge, resetToGenerator, loadSavedPoint]);
+
   const victoryPrivateKey = useMemo(() => {
     if (hasWon) {
       return calculateChallengePrivateKeyFromGraph(challenge, graph);
@@ -92,8 +108,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Reset current point when challenge changes
   useEffect(() => {
-    resetToChallenge(challenge.public_key);
-  }, [resetToChallenge, challenge.public_key]);
+    calculatorFunctionsRef.current.resetToChallenge(challenge.public_key);
+  }, [challenge.public_key]);
 
   // Calculate challenge address (this doesn't change during the session)
   useEffect(() => {
@@ -131,25 +147,18 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       );
 
       if (savedPoint) {
-        loadSavedPoint(savedPoint);
+        calculatorFunctionsRef.current.loadSavedPoint(savedPoint);
       } else {
         // Loading a base point (generator or challenge)
         const isGenerator = point.x === generatorPoint.x && point.y === generatorPoint.y;
         if (isGenerator) {
-          resetToGenerator();
+          calculatorFunctionsRef.current.resetToGenerator();
         } else {
-          resetToChallenge(challenge.public_key);
+          calculatorFunctionsRef.current.resetToChallenge(challenge.public_key);
         }
       }
     },
-    [
-      savedPoints,
-      generatorPoint,
-      challenge.public_key,
-      loadSavedPoint,
-      resetToChallenge,
-      resetToGenerator,
-    ]
+    [savedPoints, generatorPoint.x, generatorPoint.y, challenge.public_key]
   );
 
   const handlePointClick = useCallback(async (point: ECPoint) => {

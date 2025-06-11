@@ -47,6 +47,18 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   );
   const dispatch = useAppDispatch();
 
+  // Create stable dispatch function to avoid circular dependencies
+  const dispatchOperation = useCallback(
+    (operation: Parameters<typeof addDailyOperationToGraph>[0]) => {
+      if (gameMode === 'practice') {
+        dispatch(addPracticeOperationToGraph(operation));
+      } else {
+        dispatch(addDailyOperationToGraph(operation));
+      }
+    },
+    [dispatch, gameMode]
+  );
+
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
   const [pendingOperation, setPendingOperation] = useState<
     'multiply' | 'divide' | 'add' | 'subtract' | null
@@ -230,24 +242,19 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '1',
       };
 
-      // Add to graph through Redux using the appropriate action based on game mode
-      const addOperationAction =
-        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
-
-      dispatch(
-        addOperationAction({
-          fromPoint: currentPoint,
-          toPoint: newPoint,
-          operation,
-        })
-      );
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
 
       // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [gameMode, currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [currentPoint, generatorPoint, dispatchOperation, onPointChange, onError, isLocked]);
 
   const quickSubtractG = useCallback(() => {
     if (isLocked) return;
@@ -265,24 +272,19 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '1',
       };
 
-      // Add to graph through Redux using the appropriate action based on game mode
-      const addOperationAction =
-        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
-
-      dispatch(
-        addOperationAction({
-          fromPoint: currentPoint,
-          toPoint: newPoint,
-          operation,
-        })
-      );
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
 
       // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [gameMode, currentPoint, generatorPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [currentPoint, generatorPoint, dispatchOperation, onPointChange, onError, isLocked]);
 
   const quickDouble = useCallback(() => {
     if (isLocked) return;
@@ -300,24 +302,19 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '2',
       };
 
-      // Add to graph through Redux using the appropriate action based on game mode
-      const addOperationAction =
-        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
-
-      dispatch(
-        addOperationAction({
-          fromPoint: currentPoint,
-          toPoint: newPoint,
-          operation,
-        })
-      );
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
 
       // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [gameMode, currentPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [currentPoint, dispatchOperation, onPointChange, onError, isLocked]);
 
   const quickHalve = useCallback(() => {
     if (isLocked) return;
@@ -335,24 +332,19 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '2',
       };
 
-      // Add to graph through Redux using the appropriate action based on game mode
-      const addOperationAction =
-        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
-
-      dispatch(
-        addOperationAction({
-          fromPoint: currentPoint,
-          toPoint: newPoint,
-          operation,
-        })
-      );
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
 
       // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [gameMode, currentPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [currentPoint, dispatchOperation, onPointChange, onError, isLocked]);
 
   const quickNegate = useCallback(() => {
     if (isLocked) return;
@@ -370,24 +362,19 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         value: '',
       };
 
-      // Add to graph through Redux using the appropriate action based on game mode
-      const addOperationAction =
-        gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
-
-      dispatch(
-        addOperationAction({
-          fromPoint: currentPoint,
-          toPoint: newPoint,
-          operation,
-        })
-      );
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
 
       // Also notify parent for any UI updates
       onPointChange(newPoint, operation);
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [gameMode, currentPoint, dispatch, onPointChange, onError, isLocked]);
+  }, [currentPoint, dispatchOperation, onPointChange, onError, isLocked]);
 
   const executeCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
@@ -456,17 +443,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           value,
         };
 
-        // Add to graph through Redux using the appropriate action based on game mode
-        const addOperationAction =
-          gameMode === 'practice' ? addPracticeOperationToGraph : addDailyOperationToGraph;
-
-        dispatch(
-          addOperationAction({
-            fromPoint: currentPoint,
-            toPoint: newPoint,
-            operation: operationObj,
-          })
-        );
+        // Add to graph through Redux
+        dispatchOperation({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation: operationObj,
+        });
 
         onPointChange(newPoint, operationObj);
         // Keep the value in display for potential chaining
@@ -478,7 +460,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [gameMode, currentPoint, dispatch, onPointChange, onError, isLocked, generatorPoint]
+    [currentPoint, dispatchOperation, onPointChange, onError, isLocked, generatorPoint]
   );
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
