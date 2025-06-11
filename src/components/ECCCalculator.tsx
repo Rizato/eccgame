@@ -1,0 +1,809 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import './ECCCalculator.css';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
+import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
+import { getP2PKHAddress } from '../utils/crypto';
+import {
+  bigintToHex,
+  CURVE_N,
+  getGeneratorPoint,
+  hexToBigint,
+  isPointOnCurve,
+  pointAdd,
+  pointDivide,
+  pointMultiply,
+  pointNegate,
+  pointSubtract,
+  pointToPublicKey,
+  publicKeyToPoint,
+} from '../utils/ecc';
+import { calculatePrivateKeyFromGraph } from '../utils/graphOperations.ts';
+import { SavePointModal } from './SavePointModal';
+import type { ECPoint, Operation } from '../types/ecc.ts';
+
+interface ECCCalculatorProps {
+  currentPoint: ECPoint;
+  challengePublicKey: string; // Challenge public key for private key calculations
+  onPointChange: (point: ECPoint, operation: Operation) => void;
+  onError: (error: string | null) => void;
+  onSavePoint: (label?: string) => void;
+  isLocked?: boolean;
+  calculatorDisplayRef?: React.MutableRefObject<((value: string) => void) | null>;
+}
+
+const ECCCalculator: React.FC<ECCCalculatorProps> = ({
+  currentPoint,
+  challengePublicKey,
+  onPointChange,
+  onError,
+  onSavePoint,
+  isLocked = false,
+  calculatorDisplayRef,
+}) => {
+  const gameMode = useAppSelector(state => state.game.gameMode);
+  const { graph, savedPoints } = useAppSelector(state =>
+    gameMode === 'practice' ? state.practiceCalculator : state.dailyCalculator
+  );
+  const dispatch = useAppDispatch();
+
+  // Create stable dispatch function to avoid circular dependencies
+  const dispatchOperation = useCallback(
+    (operation: Parameters<typeof addDailyOperationToGraph>[0]) => {
+      if (gameMode === 'practice') {
+        dispatch(addPracticeOperationToGraph(operation));
+      } else {
+        dispatch(addDailyOperationToGraph(operation));
+      }
+    },
+    [dispatch, gameMode]
+  );
+
+  const [calculatorDisplay, setCalculatorDisplay] = useState('');
+  const [pendingOperation, setPendingOperation] = useState<
+    'multiply' | 'divide' | 'add' | 'subtract' | null
+  >(null);
+  const [lastOperationType, setLastOperationType] = useState<
+    'multiply' | 'divide' | 'add' | 'subtract' | null
+  >(null);
+  const [hexMode, setHexMode] = useState(false);
+  const [currentAddress, setCurrentAddress] = useState<string>('');
+  const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+
+  const generatorPoint = getGeneratorPoint();
+
+  // Check if current point is at a base point (generator or challenge)
+  const isAtBasePoint = useMemo(() => {
+    if (currentPoint.isInfinity) return false;
+
+    const isAtGenerator =
+      currentPoint.x === generatorPoint.x && currentPoint.y === generatorPoint.y;
+
+    if (!challengePublicKey) return isAtGenerator;
+
+    try {
+      const challengePoint = publicKeyToPoint(challengePublicKey);
+      const isAtChallenge =
+        currentPoint.x === challengePoint.x && currentPoint.y === challengePoint.y;
+      return isAtGenerator || isAtChallenge;
+    } catch {
+      return isAtGenerator;
+    }
+  }, [currentPoint, generatorPoint, challengePublicKey]);
+
+  // Calculate the actual private key for the current point using the graph
+  const currentPrivateKey = useMemo(() => {
+    return calculatePrivateKeyFromGraph(currentPoint, graph);
+  }, [currentPoint, graph]);
+
+  // Check if current point is already saved
+  const currentPointSavedInfo = useMemo(() => {
+    if (currentPoint.isInfinity) return null;
+
+    return savedPoints.find(
+      saved =>
+        !saved.point.isInfinity &&
+        saved.point.x === currentPoint.x &&
+        saved.point.y === currentPoint.y
+    );
+  }, [currentPoint, savedPoints]);
+
+  // Calculate current address asynchronously
+  useEffect(() => {
+    const calculateAddress = async () => {
+      if (currentPoint.isInfinity) {
+        setCurrentAddress('Point at Infinity');
+        return;
+      }
+
+      try {
+        const pubKey = pointToPublicKey(currentPoint);
+        const address = await getP2PKHAddress(pubKey);
+        setCurrentAddress(address);
+      } catch {
+        setCurrentAddress('Invalid');
+      }
+    };
+
+    calculateAddress();
+  }, [currentPoint]);
+
+  // Calculator functions
+  const clearCalculator = useCallback(() => {
+    setCalculatorDisplay('');
+    setPendingOperation(null);
+    setLastOperationType(null);
+    setHexMode(false);
+  }, []);
+
+  const toggleHexMode = useCallback(() => {
+    setCalculatorDisplay(prev => {
+      if (prev.startsWith('0x')) {
+        // Check if there are hex letters (A-F) in the value
+        const valueAfterPrefix = prev.slice(2);
+        const hasHexLetters = /[A-Fa-f]/.test(valueAfterPrefix);
+
+        if (hasHexLetters) {
+          // Don't allow removing 0x if there are hex letters
+          return prev;
+        }
+
+        // Remove 0x prefix only if no hex letters
+        setHexMode(false);
+        return valueAfterPrefix;
+      } else {
+        // Add 0x prefix
+        setHexMode(true);
+        return '0x' + prev;
+      }
+    });
+  }, []);
+
+  const addToCalculator = useCallback(
+    (value: string) => {
+      if (isLocked) return;
+      // Check if this is a hex digit (A-F)
+      const isHexDigit = /^[A-F]$/i.test(value);
+
+      setCalculatorDisplay(prev => {
+        const newValue = prev + value;
+
+        // Auto-enable hex mode if we're adding hex digits
+        if (isHexDigit && !prev.startsWith('0x')) {
+          setHexMode(true);
+          return '0x' + newValue;
+        }
+
+        return newValue;
+      });
+    },
+    [isLocked]
+  );
+
+  const backspaceCalculator = useCallback(() => {
+    if (isLocked) return;
+    setCalculatorDisplay(prev => {
+      const newValue = prev.slice(0, -1);
+
+      // If we removed the last character after 0x, remove the 0x too
+      if (newValue === '0x') {
+        setHexMode(false);
+        return '';
+      }
+
+      // Update hex mode state based on current value
+      if (!newValue.startsWith('0x') && hexMode) {
+        setHexMode(false);
+      } else if (newValue.startsWith('0x') && !hexMode) {
+        setHexMode(true);
+      }
+
+      return newValue;
+    });
+  }, [hexMode, isLocked]);
+
+  // Forward declare the executeCalculatorOperation function reference
+  const executeCalculatorOperationRef = useRef<
+    ((operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => void) | null
+  >(null);
+
+  const setCalculatorOperation = useCallback(
+    (operation: 'multiply' | 'divide' | 'add' | 'subtract') => {
+      if (isLocked) return;
+
+      // If there's a value in the display, set pending operation
+      if (calculatorDisplay.trim()) {
+        // If same operator is clicked, and it's already highlighted, then repeat the operation
+        if (lastOperationType === operation && pendingOperation === operation) {
+          executeCalculatorOperationRef.current?.(operation, calculatorDisplay.trim());
+        }
+        setPendingOperation(operation);
+      } else {
+        // Set the pending operation to highlight the operator
+        setPendingOperation(operation);
+      }
+    },
+    [calculatorDisplay, pendingOperation, lastOperationType, isLocked]
+  );
+
+  // Quick operation functions
+  const quickAddG = useCallback(() => {
+    if (isLocked) return;
+    try {
+      onError(null);
+      const newPoint = pointAdd(currentPoint, generatorPoint);
+      if (!isPointOnCurve(newPoint)) {
+        onError('Result is not on the curve');
+        return;
+      }
+      const operation: Operation = {
+        id: `op_${Date.now()}`,
+        type: 'add',
+        description: '+G',
+        value: '1',
+      };
+
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
+
+      // Also notify parent for any UI updates
+      onPointChange(newPoint, operation);
+    } catch (error) {
+      onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [currentPoint, generatorPoint, dispatchOperation, onPointChange, onError, isLocked]);
+
+  const quickSubtractG = useCallback(() => {
+    if (isLocked) return;
+    try {
+      onError(null);
+      const newPoint = pointSubtract(currentPoint, generatorPoint);
+      if (!isPointOnCurve(newPoint)) {
+        onError('Result is not on the curve');
+        return;
+      }
+      const operation: Operation = {
+        id: `op_${Date.now()}`,
+        type: 'subtract',
+        description: '-G',
+        value: '1',
+      };
+
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
+
+      // Also notify parent for any UI updates
+      onPointChange(newPoint, operation);
+    } catch (error) {
+      onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [currentPoint, generatorPoint, dispatchOperation, onPointChange, onError, isLocked]);
+
+  const quickDouble = useCallback(() => {
+    if (isLocked) return;
+    try {
+      onError(null);
+      const newPoint = pointMultiply(2n, currentPoint);
+      if (!isPointOnCurve(newPoint)) {
+        onError('Result is not on the curve');
+        return;
+      }
+      const operation: Operation = {
+        id: `op_${Date.now()}`,
+        type: 'multiply',
+        description: '×2',
+        value: '2',
+      };
+
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
+
+      // Also notify parent for any UI updates
+      onPointChange(newPoint, operation);
+    } catch (error) {
+      onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [currentPoint, dispatchOperation, onPointChange, onError, isLocked]);
+
+  const quickHalve = useCallback(() => {
+    if (isLocked) return;
+    try {
+      onError(null);
+      const newPoint = pointDivide(2n, currentPoint);
+      if (!isPointOnCurve(newPoint)) {
+        onError('Result is not on the curve');
+        return;
+      }
+      const operation: Operation = {
+        id: `op_${Date.now()}`,
+        type: 'divide',
+        description: '÷2',
+        value: '2',
+      };
+
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
+
+      // Also notify parent for any UI updates
+      onPointChange(newPoint, operation);
+    } catch (error) {
+      onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [currentPoint, dispatchOperation, onPointChange, onError, isLocked]);
+
+  const quickNegate = useCallback(() => {
+    if (isLocked) return;
+    try {
+      onError(null);
+      const newPoint = pointNegate(currentPoint);
+      if (!isPointOnCurve(newPoint)) {
+        onError('Result is not on the curve');
+        return;
+      }
+      const operation: Operation = {
+        id: `op_${Date.now()}`,
+        type: 'negate',
+        description: '±',
+        value: '',
+      };
+
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
+
+      // Also notify parent for any UI updates
+      onPointChange(newPoint, operation);
+    } catch (error) {
+      onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [currentPoint, dispatchOperation, onPointChange, onError, isLocked]);
+
+  const executeCalculatorOperation = useCallback(
+    (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
+      if (isLocked) return;
+      try {
+        onError(null);
+
+        // For scalar operations
+        if (!value.trim()) {
+          onError('Please enter a scalar value');
+          return;
+        }
+
+        let scalar: bigint;
+        try {
+          if (value.startsWith('0x')) {
+            scalar = hexToBigint(value);
+          } else if (value.includes('.')) {
+            onError('Decimal numbers not supported. Use integers or hex values.');
+            return;
+          } else {
+            scalar = BigInt(value);
+          }
+        } catch {
+          onError('Invalid scalar value');
+          return;
+        }
+
+        if (scalar <= 0n) {
+          onError('Scalar must be positive');
+          return;
+        }
+
+        if (scalar >= CURVE_N) {
+          scalar %= CURVE_N;
+        }
+
+        let newPoint: ECPoint;
+        let description: string;
+
+        const differencePoint = pointMultiply(scalar, generatorPoint);
+        if (operation === 'multiply') {
+          newPoint = pointMultiply(scalar, currentPoint);
+          description = `×${value}`;
+        } else if (operation === 'divide') {
+          newPoint = pointDivide(scalar, currentPoint);
+          description = `÷${value}`;
+        } else if (operation === 'add') {
+          newPoint = pointAdd(currentPoint, differencePoint);
+          description = `+${value}`;
+        } else {
+          newPoint = pointSubtract(currentPoint, differencePoint);
+          description = `-${value}`;
+        }
+
+        if (!isPointOnCurve(newPoint)) {
+          onError('Result is not on the curve');
+          return;
+        }
+
+        const operationObj: Operation = {
+          id: `op_${Date.now()}`,
+          type: operation,
+          point: operation === 'add' || operation === 'subtract' ? differencePoint : undefined,
+          description,
+          value,
+        };
+
+        // Add to graph through Redux
+        dispatchOperation({
+          fromPoint: currentPoint,
+          toPoint: newPoint,
+          operation: operationObj,
+        });
+
+        onPointChange(newPoint, operationObj);
+        // Keep the value in display for potential chaining
+        setCalculatorDisplay(value);
+        setLastOperationType(operation);
+        // Keep the operation highlighted so user can see what was just executed
+        setPendingOperation(operation);
+      } catch (error) {
+        onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    },
+    [currentPoint, dispatchOperation, onPointChange, onError, isLocked, generatorPoint]
+  );
+
+  // Assign the function to the ref so it can be called from setCalculatorOperation
+  executeCalculatorOperationRef.current = executeCalculatorOperation;
+
+  // Expose calculator display setter to parent
+  useEffect(() => {
+    if (calculatorDisplayRef) {
+      calculatorDisplayRef.current = (value: string) => {
+        clearCalculator();
+        setCalculatorDisplay(value);
+      };
+    }
+  }, [calculatorDisplayRef, clearCalculator]);
+
+  // Keyboard event handler
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Don't handle if user is typing in an input field (except our calculator)
+      if (
+        event.ctrlKey ||
+        (event.target instanceof HTMLInputElement &&
+          !event.target.classList.contains('calculator-input'))
+      ) {
+        return;
+      }
+
+      // Prevent default for keys we handle
+      const key = event.key;
+
+      // Numbers 0-9
+      if (/^[0-9]$/.test(key)) {
+        event.preventDefault();
+        addToCalculator(key);
+        return;
+      }
+
+      // Hex letters A-F
+      if (/^[A-Fa-f]$/.test(key)) {
+        event.preventDefault();
+        addToCalculator(key.toUpperCase());
+        return;
+      }
+
+      // Operators
+      switch (key) {
+        case '*':
+        case 'x':
+        case 'X':
+          event.preventDefault();
+          setCalculatorOperation('multiply');
+          break;
+        case '/':
+          event.preventDefault();
+          setCalculatorOperation('divide');
+          break;
+        case '+':
+          event.preventDefault();
+          setCalculatorOperation('add');
+          break;
+        case '-':
+          event.preventDefault();
+          setCalculatorOperation('subtract');
+          break;
+        case 'Enter':
+        case '=':
+          event.preventDefault();
+          if (pendingOperation && calculatorDisplay.trim()) {
+            executeCalculatorOperationRef.current?.(pendingOperation, calculatorDisplay.trim());
+          }
+          break;
+        case 'Backspace':
+          event.preventDefault();
+          backspaceCalculator();
+          break;
+        case 'Escape':
+          event.preventDefault();
+          clearCalculator();
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [
+    addToCalculator,
+    setCalculatorOperation,
+    backspaceCalculator,
+    clearCalculator,
+    pendingOperation,
+    calculatorDisplay,
+  ]);
+
+  return (
+    <div className={`calculator-section ${isLocked ? 'locked' : ''}`}>
+      {/* Current Point Display in Calculator */}
+      <div className="calculator-point-display">
+        <div className="point-display-header">
+          <div className="point-address">{currentAddress}</div>
+          <div className="point-display-actions">
+            <button
+              onClick={() => {
+                if (currentPointSavedInfo) {
+                  // Unsave the point
+                  if (gameMode === 'practice') {
+                    dispatch({
+                      type: 'practiceCalculator/unsaveSavedPoint',
+                      payload: currentPointSavedInfo.id,
+                    });
+                  } else {
+                    dispatch({
+                      type: 'dailyCalculator/unsaveSavedPoint',
+                      payload: currentPointSavedInfo.id,
+                    });
+                  }
+                } else {
+                  // Save the point
+                  setShowSaveModal(true);
+                }
+              }}
+              className={`save-point-button ${currentPointSavedInfo ? 'saved' : ''}`}
+              disabled={isLocked || isAtBasePoint}
+              title={
+                isAtBasePoint
+                  ? 'Cannot save at generator or challenge point'
+                  : currentPointSavedInfo
+                    ? `Unsave point "${currentPointSavedInfo.label}"`
+                    : 'Save current point'
+              }
+            >
+              {currentPointSavedInfo ? '★' : '☆'}
+            </button>
+          </div>
+        </div>
+        <div className="point-display-content">
+          <>
+            <div className="point-coordinates-compact desktop-only">
+              {currentPoint.isInfinity ? (
+                <span>Point at Infinity</span>
+              ) : (
+                <>
+                  <span>x: {bigintToHex(currentPoint.x)}</span>
+                  <span>y: {bigintToHex(currentPoint.y)}</span>
+                </>
+              )}
+            </div>
+            <div className="point-compressed-key desktop-only">
+              <span>
+                Compressed:{' '}
+                {currentPoint.isInfinity
+                  ? 'N/A (Point at Infinity)'
+                  : pointToPublicKey(currentPoint)}
+              </span>
+            </div>
+            {/* Private Key Display - always show to keep UI steady */}
+            <div className="point-private-key">
+              <div className="private-key-row">
+                <span>Private Key: </span>
+                {(() => {
+                  if (currentPoint.isInfinity) {
+                    return <span className="private-key-value">N/A (Point at Infinity)</span>;
+                  }
+
+                  if (currentPrivateKey === null || currentPrivateKey === undefined) {
+                    return <span className="private-key-value">Unknown</span>;
+                  }
+
+                  return (
+                    <span
+                      className="private-key-value clickable"
+                      onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                      title={
+                        privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
+                      }
+                    >
+                      {privateKeyHexMode
+                        ? '0x' + currentPrivateKey.toString(16)
+                        : currentPrivateKey.toString()}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+          </>
+        </div>
+      </div>
+
+      <div className="calculator-container">
+        <div className="calculator-display">
+          <input
+            type="text"
+            value={calculatorDisplay}
+            placeholder="0"
+            className="calculator-input"
+            readOnly
+          />
+        </div>
+        <div className="calculator-buttons">
+          <div className="calculator-main-grid">
+            <div className="number-section">
+              <div className="button-row top-row">
+                <button onClick={clearCalculator} className="calc-button clear">
+                  AC
+                </button>
+                <button onClick={quickAddG} className="calc-button quick-op add">
+                  +1
+                </button>
+                <button onClick={quickSubtractG} className="calc-button quick-op subtract">
+                  -1
+                </button>
+                <button onClick={quickDouble} className="calc-button quick-op multiply">
+                  ×2
+                </button>
+                <button onClick={quickHalve} className="calc-button quick-op divide">
+                  ÷2
+                </button>
+              </div>
+              <div className="button-row">
+                <button onClick={() => addToCalculator('7')} className="calc-button number">
+                  7
+                </button>
+                <button onClick={() => addToCalculator('8')} className="calc-button number">
+                  8
+                </button>
+                <button onClick={() => addToCalculator('9')} className="calc-button number">
+                  9
+                </button>
+                <button onClick={() => addToCalculator('A')} className="calc-button hex">
+                  A
+                </button>
+                <button onClick={() => addToCalculator('B')} className="calc-button hex">
+                  B
+                </button>
+              </div>
+              <div className="button-row">
+                <button onClick={() => addToCalculator('4')} className="calc-button number">
+                  4
+                </button>
+                <button onClick={() => addToCalculator('5')} className="calc-button number">
+                  5
+                </button>
+                <button onClick={() => addToCalculator('6')} className="calc-button number">
+                  6
+                </button>
+                <button onClick={() => addToCalculator('C')} className="calc-button hex">
+                  C
+                </button>
+                <button onClick={() => addToCalculator('D')} className="calc-button hex">
+                  D
+                </button>
+              </div>
+              <div className="button-row">
+                <button onClick={() => addToCalculator('1')} className="calc-button number">
+                  1
+                </button>
+                <button onClick={() => addToCalculator('2')} className="calc-button number">
+                  2
+                </button>
+                <button onClick={() => addToCalculator('3')} className="calc-button number">
+                  3
+                </button>
+                <button onClick={() => addToCalculator('E')} className="calc-button hex">
+                  E
+                </button>
+                <button onClick={() => addToCalculator('F')} className="calc-button hex">
+                  F
+                </button>
+              </div>
+              <div className="button-row">
+                <button onClick={() => addToCalculator('0')} className="calc-button number">
+                  0
+                </button>
+                <button
+                  onClick={toggleHexMode}
+                  className={`calc-button hex special ${hexMode ? 'active' : ''}`}
+                >
+                  0x
+                </button>
+                <button onClick={quickNegate} className="calc-button quick-op negate">
+                  ±
+                </button>
+                <button className="calc-button spacer"></button>
+                <button className="calc-button spacer"></button>
+              </div>
+            </div>
+            <div className="operations-column">
+              <button onClick={backspaceCalculator} className="calc-button backspace">
+                ⌫
+              </button>
+              <div className="operators-grid">
+                <button
+                  onClick={() => setCalculatorOperation('divide')}
+                  className={`calc-button operator ${pendingOperation === 'divide' ? 'highlighted' : ''}`}
+                >
+                  ÷
+                </button>
+                <button
+                  onClick={() => setCalculatorOperation('multiply')}
+                  className={`calc-button operator ${pendingOperation === 'multiply' ? 'highlighted' : ''}`}
+                >
+                  ×
+                </button>
+                <button
+                  onClick={() => setCalculatorOperation('subtract')}
+                  className={`calc-button operator ${pendingOperation === 'subtract' ? 'highlighted' : ''}`}
+                >
+                  -
+                </button>
+                <button
+                  onClick={() => setCalculatorOperation('add')}
+                  className={`calc-button operator ${pendingOperation === 'add' ? 'highlighted' : ''}`}
+                >
+                  +
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  if (pendingOperation && calculatorDisplay.trim()) {
+                    executeCalculatorOperationRef.current?.(
+                      pendingOperation,
+                      calculatorDisplay.trim()
+                    );
+                  }
+                }}
+                className="calc-button equals equals-square"
+              >
+                =
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <SavePointModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={label => onSavePoint(label)}
+        defaultLabel={`Point ${(savedPoints || []).length + 1}`}
+      />
+    </div>
+  );
+};
+
+export default ECCCalculator;

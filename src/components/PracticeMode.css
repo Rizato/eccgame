@@ -1,0 +1,7 @@
+/* Practice mode inherits all styling from ECCGamePage.css */
+/* This file is kept minimal to avoid duplicate styles */
+
+.playground-placeholder {
+  height: 100%;
+  width: 100%;
+}

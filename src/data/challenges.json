@@ -1,0 +1,9 @@
+{
+  "challenges": [
+    {
+      "p2pkh_address": "13v4woGGfudJAUEDRFvSWDU2gkwxgSJAjq",
+      "public_key": "0245c4ddd02a5e2cf8cbfad717a92f55071f9daa9868c240fc8e6646c7a055b421",
+      "tags": ["test", "mine", "7501234"]
+    }
+  ]
+}

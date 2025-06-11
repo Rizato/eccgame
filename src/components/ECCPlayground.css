@@ -1,0 +1,1040 @@
+.ecc-playground {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  background: var(--surface);
+  height: 100%;
+  overflow: hidden;
+}
+
+.playground-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.playground-header h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.practice-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.practice-badge {
+  background: var(--primary);
+  color: var(--text-inverse);
+  padding: var(--spacing-xs) var(--spacing);
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.progress-display {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.mode-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mode-badge {
+  background: var(--accent);
+  color: var(--text-inverse);
+  padding: var(--spacing-xs) var(--spacing);
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #fcc;
+  margin-bottom: 16px;
+}
+
+.playground-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Current Point Section */
+.current-point-section {
+  background: var(--background);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-header h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.point-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-button,
+.save-button,
+.reset-button {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: var(--card-background);
+  color: var(--text-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.toggle-button:hover,
+.save-button:hover,
+.reset-button:hover {
+  background: var(--surface-variant);
+}
+
+.save-button {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.reset-button {
+  background: #ff6b6b;
+  color: white;
+  border-color: #ff6b6b;
+}
+
+.point-display {
+  margin-top: 12px;
+}
+
+.infinity-point {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 20px;
+  background: var(--surface-variant);
+  border-radius: 6px;
+}
+
+.point-coordinates {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coordinate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coordinate label {
+  font-weight: 600;
+  min-width: 20px;
+  color: var(--text-primary);
+}
+
+.hex-value {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85rem;
+  background: var(--surface-variant);
+  padding: 4px 8px;
+  border-radius: 4px;
+  word-break: break-all;
+  color: var(--text-secondary);
+}
+
+.point-summary {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding: 8px;
+  background: var(--surface-variant);
+  border-radius: 4px;
+}
+
+.generator-reached {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 12px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.submit-solution {
+  background: white;
+  color: #4caf50;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  align-self: center;
+}
+
+.submit-solution:hover {
+  transform: translateY(-1px);
+}
+
+/* Operations Section */
+.operations-section {
+  background: var(--background);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.operation-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  background: var(--surface-variant);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.operation-tabs .tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.operation-tabs .tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+.operation-tabs .tab:hover:not(.active) {
+  background: var(--card-background);
+}
+
+.scalar-operation,
+.point-operation {
+  margin-top: 16px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.scalar-input,
+.point-select {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card-background);
+  color: var(--text-primary);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.scalar-input:focus,
+.point-select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.operation-button {
+  padding: 10px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+  align-self: flex-start;
+}
+
+.operation-button:hover {
+  background: var(--accent-color-dark);
+}
+
+.operation-help small {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+/* Saved Points Section */
+.saved-points-section {
+  background: var(--background);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.saved-points-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.saved-point-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--card-background);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.point-label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.point-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.load-button,
+.delete-button {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.load-button {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.delete-button {
+  background: #ff6b6b;
+  color: white;
+  border-color: #ff6b6b;
+}
+
+.load-button:hover {
+  background: var(--accent-color-dark);
+}
+
+.delete-button:hover {
+  background: #ff5252;
+}
+
+/* Operations History */
+.operations-history {
+  background: var(--background);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.operations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.operation-item {
+  padding: 6px 10px;
+  background: var(--surface-variant);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.more-operations {
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+/* Integrated Graph-Calculator Layout */
+.graph-calculator-integrated {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* Graph Section as Display */
+.graph-section.graph-display {
+  background: var(--surface-dim);
+  padding: var(--spacing);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.graph-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.formula {
+  color: var(--text-secondary);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.legend-grid {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--card-background);
+}
+
+/* ECC Graph */
+.ecc-graph {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.1);
+  flex: 1;
+}
+
+[data-theme='dark'] .ecc-graph {
+  background: var(--surface);
+}
+
+.graph-axes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Graph border inside axis markers */
+.graph-border {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  opacity: 0.7;
+  z-index: 1;
+}
+
+[data-theme='dark'] .graph-border {
+  border-color: #6b7280;
+}
+
+/* Vertical dashed line at G position */
+.generator-line {
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #3b82f6 0,
+    #3b82f6 5px,
+    transparent 5px,
+    transparent 10px
+  );
+  opacity: 0.6;
+  z-index: 1;
+}
+
+.axis-label {
+  position: absolute;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.x-label {
+  bottom: 10px;
+  right: 10px;
+}
+
+.y-label {
+  top: 10px;
+  left: 10px;
+}
+
+.curve-line {
+  display: none;
+}
+
+/* ECC Points */
+.ecc-point {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.point-dot {
+  width: 16px;
+  height: 16px;
+  background: var(--point-color, var(--primary));
+  border: 2px solid var(--card-background);
+  border-radius: 50%;
+  display: block;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Overlapping points get wider dots and gradient colors */
+.ecc-point.overlapping .point-dot {
+  width: 16px;
+  height: 16px;
+}
+
+.ecc-point.overlapping .point-label {
+  min-width: 80px;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  font-weight: 600;
+  padding: 2px 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.ecc-point.current .point-label {
+  border-radius: var(--radius-lg);
+  padding: 2px 6px;
+}
+
+.point-label {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-background);
+  color: var(--text-primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Range indicators */
+.range-indicator {
+  position: absolute;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.bottom-left {
+  bottom: 5px;
+  left: 5px;
+}
+
+.bottom-right {
+  bottom: 5px;
+  right: 5px;
+}
+
+.top-left {
+  top: 5px;
+  left: 5px;
+}
+
+/* Calculator Section */
+.calculator-section {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  height: 100%;
+  overflow: hidden;
+}
+
+.operations-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.operations-header h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.last-operation {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background: var(--surface-variant);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.quick-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quick-buttons-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quick-button {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  min-width: 60px;
+}
+
+.quick-button.add {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.quick-button.add:hover {
+  background: #059669;
+}
+
+.quick-button.subtract {
+  background: #f59e0b;
+  color: white;
+  border-color: #f59e0b;
+}
+
+.quick-button.subtract:hover {
+  background: #d97706;
+}
+
+.quick-button.multiply {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.quick-button.multiply:hover {
+  background: #2563eb;
+}
+
+.quick-button.divide {
+  background: #8b5cf6;
+  color: white;
+  border-color: #8b5cf6;
+}
+
+.quick-button.divide:hover {
+  background: #7c3aed;
+}
+
+.quick-button.reset {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.quick-button.reset:hover {
+  background: #dc2626;
+}
+
+/* Point Information Display */
+.point-info-display {
+  background: var(--background);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+  margin-top: 0;
+}
+
+.point-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.point-info-display h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.point-info-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.point-info-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.point-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.point-info-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.info-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 80px;
+  font-size: 0.9rem;
+}
+
+.info-value {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  word-break: break-all;
+  flex: 1;
+}
+
+.info-value.hex-value {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background: var(--surface-variant);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+/* Point Hover Effects */
+.ecc-point {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.ecc-point.hovered {
+  transform: translate(-50%, -50%) scale(1.2);
+  z-index: 100;
+}
+
+.ecc-point.current {
+  cursor: pointer;
+}
+
+/*.ecc-point.target {*/
+/*  animation: pulse 2s infinite;*/
+/*}*/
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.point-hover-info {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  z-index: 200;
+}
+
+.point-hover-info div:first-child {
+  font-size: 0.8rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.hover-address {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .ecc-playground {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+    height: auto;
+  }
+
+  .playground-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .playground-header h3 {
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  .practice-indicator,
+  .mode-indicator {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .point-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .toggle-button,
+  .save-button,
+  .reset-button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .operation-tabs {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .operation-tabs .tab {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  .ecc-graph {
+    margin: 0 auto;
+    display: block;
+  }
+
+  .legend-grid {
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    font-size: 0.7rem;
+  }
+
+  .graph-calculator-integrated {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    gap: 0;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    border-radius: var(--radius);
+    box-sizing: border-box;
+    height: auto;
+    min-height: 600px;
+    overflow: visible;
+  }
+
+  .graph-section.graph-display {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    height: auto;
+    min-height: 250px;
+    order: 1;
+    padding: var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .calculator-section {
+    order: 2;
+    padding: var(--spacing-sm);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
+    height: auto;
+    min-height: 350px;
+  }
+
+  .quick-buttons-vertical {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .operations-header {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .operations-header h4 {
+    font-size: 1rem;
+  }
+
+  .last-operation {
+    font-size: 0.75rem;
+    padding: 6px 8px;
+  }
+
+  .quick-button {
+    padding: 10px 8px;
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  .point-info-item {
+    flex-direction: column;
+    gap: 4px;
+    align-items: stretch;
+    padding: 6px 0;
+  }
+
+  .info-label {
+    min-width: auto;
+    font-size: 0.8rem;
+  }
+
+  .info-value {
+    font-size: 0.8rem;
+  }
+
+  .info-value.hex-value {
+    font-size: 0.7rem;
+    padding: 4px 6px;
+  }
+
+  .current-point-section,
+  .operations-section,
+  .saved-points-section,
+  .operations-history,
+  .point-info-display {
+    padding: 12px;
+  }
+
+  .section-header h4,
+  .point-info-display h4 {
+    font-size: 1rem;
+  }
+}
+
+/* Extra small mobile screens */
+@media (max-width: 480px) {
+  .graph-calculator-integrated {
+    border-radius: var(--radius-lg);
+    width: calc(100% + 8px);
+  }
+
+  .ecc-playground {
+    padding: 0;
+  }
+
+  .graph-section.graph-display,
+  .calculator-section {
+    padding: 6px;
+  }
+}

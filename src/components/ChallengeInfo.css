@@ -1,0 +1,503 @@
+.challenge-info-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.challenge-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-xs);
+}
+
+.header-give-up {
+  background: transparent;
+  border: 1px solid var(--error);
+  color: var(--error);
+  transition: all 0.2s ease;
+}
+
+.header-give-up:hover:not(:disabled) {
+  background: var(--error);
+  color: var(--text-inverse);
+  border-color: var(--error);
+  transform: translateY(-1px);
+}
+
+.header-give-up:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--text-light);
+  color: var(--text-light);
+}
+
+.header-give-up:disabled:hover {
+  transform: none;
+  background: transparent;
+}
+
+/* Loading placeholders */
+.loading-placeholder {
+  background: var(--surface-variant);
+  color: var(--text-dim);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.challenge-header h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.challenge-info-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  overflow: auto;
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-section label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.address-heading {
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.address-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.address-code {
+  font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.75rem;
+  color: var(--text);
+  background: var(--surface-variant);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  word-break: break-all;
+  line-height: 1.4;
+  flex: 1;
+  min-width: 200px;
+}
+
+.details-button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  min-height: 36px; /* Match give-up button height */
+}
+
+.details-button:hover {
+  background: var(--surface-variant);
+  transform: translateY(-1px);
+}
+
+/* Modal styles now use shared Modal component */
+
+.explorer-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.75rem;
+  padding: var(--spacing-sm);
+  background: rgb(99 102 241 / 0.1);
+  border: 1px solid rgb(99 102 241 / 0.2);
+  border-radius: var(--radius);
+  transition: all 0.2s;
+  display: inline-block;
+}
+
+.explorer-link:hover {
+  background: rgb(99 102 241 / 0.2);
+  text-decoration: underline;
+  transform: translateY(-1px);
+}
+
+.metadata-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  background: rgb(99 102 241 / 0.1);
+  color: var(--primary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid rgb(99 102 241 / 0.2);
+}
+
+.objective-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* Practice Controls */
+.practice-controls {
+  padding: var(--spacing);
+  background: var(--surface-variant);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: var(--spacing-sm);
+}
+
+.difficulty-selector {
+  margin-bottom: 12px;
+}
+
+.difficulty-selector label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+.difficulty-select {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+.difficulty-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+}
+
+.new-challenge-button {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing);
+  background: var(--primary);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.new-challenge-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Combined Control for Difficulty + New Challenge */
+.combined-control {
+  position: relative;
+  display: inline-block;
+}
+
+.combined-control-button {
+  position: relative;
+  padding: 0 var(--spacing);
+  font-size: var(--mobile-font-size);
+  display: flex;
+  align-items: center;
+}
+
+.difficulty-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.difficulty-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0 var(--spacing);
+  background: var(--surface);
+  color: var(--text);
+  border: none;
+  text-align: start;
+  cursor: pointer;
+  font-size: var(--mobile-font-size);
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border);
+  min-height: var(--mobile-button-height);
+}
+
+.difficulty-option:last-child {
+  border-bottom: none;
+}
+
+.difficulty-option:hover {
+  background: var(--surface-variant);
+}
+
+/* Private Key Input */
+.private-key-display-container {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.private-key-display {
+  color: var(--text);
+  background: var(--surface-variant);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-sm);
+  font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.75rem;
+  flex: 1;
+  text-align: start;
+  word-break: break-all;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.private-key-display.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.private-key-display.clickable:hover {
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+/* Give Up Button */
+.give-up-button-container {
+  margin-top: 8px;
+  display: flex;
+  justify-content: start;
+}
+
+.give-up-button {
+  background: transparent;
+  border: 1px solid var(--error);
+  color: var(--error);
+  padding: var(--spacing-sm) var(--spacing);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  min-height: 36px;
+}
+
+.give-up-button:hover {
+  background: var(--error-dark, #dc2626);
+  color: var(--text-inverse);
+  border-color: var(--error-dark, #dc2626);
+  transform: translateY(-1px);
+}
+
+.give-up-button:active {
+  transform: translateY(0);
+}
+
+/* Desktop only elements - hidden on mobile */
+.desktop-only {
+  display: block;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .challenge-info-container {
+    padding: var(--spacing-sm);
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-challenge-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .mobile-address {
+    font-size: 0.7rem;
+    min-width: 0;
+    flex: 1;
+    padding: 4px 6px;
+    word-break: break-all;
+    line-height: 1.2;
+    max-height: 2.4em;
+    overflow: hidden;
+  }
+
+  .mobile-challenge-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    min-height: 44px;
+    justify-content: space-around;
+  }
+
+  .mobile-new-button {
+    padding: 4px 6px;
+    font-size: 0.7rem;
+    min-width: auto;
+  }
+
+  .mobile-explorer {
+    font-size: 1rem;
+    padding: 4px 6px;
+    min-width: auto;
+    text-decoration: none;
+  }
+
+  .mobile-tags-button {
+    padding: 4px 6px;
+    font-size: 0.7rem;
+    min-width: auto;
+  }
+
+  .header-give-up {
+    padding: 0 var(--spacing);
+    font-size: var(--mobile-font-size);
+    min-width: auto;
+    min-height: var(--mobile-button-height);
+  }
+
+  .header-actions {
+    margin: var(--spacing-xs);
+    gap: var(--spacing-xs);
+  }
+
+  .address-row {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .address-code {
+    font-size: var(--mobile-font-size);
+    min-width: 0;
+    flex: 1;
+    padding: 0 var(--spacing);
+    min-height: var(--mobile-touch-min);
+    display: flex;
+    align-items: center;
+  }
+
+  .details-button {
+    flex-shrink: 0;
+    padding: 0 var(--spacing);
+    font-size: var(--mobile-font-size);
+    white-space: nowrap;
+    min-height: var(--mobile-button-height);
+    display: flex;
+    align-items: center;
+  }
+
+  .private-key-display {
+    font-size: var(--mobile-font-size);
+    min-height: var(--mobile-input-height);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing);
+  }
+
+  .explorer-link {
+    font-size: var(--mobile-font-size);
+    padding: 0 var(--spacing);
+    text-align: center;
+    min-height: var(--mobile-button-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .challenge-header h3 {
+    font-size: 1rem;
+  }
+
+  .info-section label {
+    font-size: 0.7rem;
+  }
+
+  .info-section {
+    gap: 4px;
+  }
+
+  .challenge-info-content {
+    gap: 6px;
+  }
+
+  .mobile-clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-clickable:hover {
+    background: var(--primary);
+    color: var(--text-inverse);
+    border-color: var(--primary);
+  }
+}

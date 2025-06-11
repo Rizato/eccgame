@@ -1,0 +1,297 @@
+:root {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    system-ui,
+    sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Modern Design System */
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --primary-light: #a5b4fc;
+  --secondary: #f1f5f9;
+  --accent: #f59e0b;
+  --accent-dark: #d97706;
+
+  --surface: #ffffff;
+  --surface-dim: #f8fafc;
+  --surface-bright: #ffffff;
+  --surface-variant: #f1f5f9;
+
+  --text: #0f172a;
+  --text-dim: #64748b;
+  --text-light: #94a3b8;
+  --text-inverse: #ffffff;
+
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+  --border-focus: #6366f1;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  --radius: 0.5rem;
+  --radius-sm: 0.25rem;
+  --radius-lg: 0.75rem;
+
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  --graph-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+
+  /* Mobile touch targets */
+  --mobile-touch-min: 44px;
+  --mobile-button-height: 44px;
+  --mobile-input-height: 44px;
+  --mobile-font-size: 0.875rem;
+  --mobile-font-size-sm: 0.75rem;
+}
+
+[data-theme='dark'] {
+  --primary: #818cf8;
+  --primary-dark: #6366f1;
+  --primary-light: #c7d2fe;
+  --secondary: #1e293b;
+  --accent: #fbbf24;
+  --accent-dark: #f59e0b;
+
+  --surface: #0f172a;
+  --surface-dim: #1e293b;
+  --surface-bright: #334155;
+  --surface-variant: #334155;
+
+  --text: #f8fafc;
+  --text-dim: #cbd5e1;
+  --text-light: #94a3b8;
+  --text-inverse: #0f172a;
+
+  --border: #334155;
+  --border-light: #475569;
+  --border-focus: #818cf8;
+
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #f87171;
+  --info: #60a5fa;
+
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+
+  --graph-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+}
+
+a {
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: inherit;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--primary-dark);
+}
+
+* {
+  box-sizing: border-box;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  height: 100vh;
+}
+
+/* Mobile scrolling */
+@media (max-width: 768px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #root {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+h3 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  color: var(--text);
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  color: var(--text);
+  font-weight: 500;
+}
+
+button {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: var(--spacing-sm) var(--spacing);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  background: var(--surface-bright);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+}
+
+button:hover {
+  background: var(--surface-variant);
+  border-color: var(--border-focus);
+  transform: translateY(-1px);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.button-primary {
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-color: var(--primary);
+}
+
+.button-primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.button-secondary {
+  background: var(--secondary);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.button-accent {
+  background: var(--accent);
+  color: var(--text-inverse);
+  border-color: var(--accent);
+}
+
+.button-accent:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+}
+
+input,
+textarea,
+select {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--spacing-sm) var(--spacing);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--border-focus);
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.2em;
+    line-height: 1.2;
+  }
+
+  button {
+    padding: 0.8em 1.4em;
+    font-size: 0.9em;
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+    min-height: 44px;
+    padding: 12px;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
