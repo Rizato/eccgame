@@ -259,8 +259,6 @@
   border-radius: 0 0 var(--radius) var(--radius);
   padding: var(--spacing);
   flex: 1;
-  overflow: hidden;
-  height: 100%;
 }
 
 .calculator-status {

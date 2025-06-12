@@ -10,15 +10,7 @@
   background: var(--surface);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-}
-
-@media (max-width: 768px) {
-  .ecc-game-page {
-    overflow: visible;
-    min-height: 100vh;
-    height: auto;
-  }
+  min-height: 90vh;
 }
 
 .game-header {
@@ -221,17 +213,9 @@
 
 .game-main {
   flex: 1;
-  overflow: hidden;
   padding: var(--spacing);
   display: flex;
   flex-direction: column;
-}
-
-@media (max-width: 768px) {
-  .game-main {
-    overflow: visible;
-    height: auto;
-  }
 }
 
 .loading-state,
@@ -296,15 +280,12 @@
 /* Single Page Layout - No Scrolling */
 .daily-challenge-container {
   display: flex;
-  height: 100%;
+  flex: 1;
   gap: var(--spacing);
-  overflow: hidden;
 }
 
 @media (max-width: 768px) {
   .daily-challenge-container {
-    overflow: visible;
-    height: auto;
     flex-direction: column;
   }
 }
@@ -314,14 +295,11 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 @media (max-width: 768px) {
   .challenge-info-sidebar {
     width: 100%;
-    overflow: visible;
-    height: auto;
   }
 }
 
@@ -339,16 +317,8 @@
 
 .playground-container {
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-@media (max-width: 768px) {
-  .playground-container {
-    overflow: visible;
-    height: auto;
-  }
 }
 
 /* Hide old scrollable layout */
@@ -393,16 +363,8 @@
 
 .playground-main {
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-@media (max-width: 768px) {
-  .playground-main {
-    overflow: visible;
-    height: auto;
-  }
 }
 
 /* Mobile responsive */
