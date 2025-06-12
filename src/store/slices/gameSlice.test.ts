@@ -1,12 +1,5 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { describe, expect, it, vi } from 'vitest';
-import gameReducer, {
-  setGameMode,
-  setError,
-  setHasWon,
-  clearError,
-  loadDailyChallenge,
-} from './gameSlice';
+import { describe, expect, it } from 'vitest';
+import gameReducer, { setGameMode, setError, setHasWon, clearError } from './gameSlice';
 import type { GameMode } from './gameSlice';
 import type { ChallengeData } from '../../types/game';
 
@@ -14,15 +7,15 @@ describe('gameSlice', () => {
   // Create test challenge data (without p2pkh_address)
   const testChallengeData: ChallengeData[] = [
     {
-      public_key: '0x1234567890abcdef',
+      public_key: '03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6',
       tags: ['test', 'challenge1'],
     },
     {
-      public_key: '0xfedcba0987654321',
+      public_key: '0296b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52',
       tags: ['test', 'challenge2'],
     },
     {
-      public_key: '0xabcdef1234567890',
+      public_key: '0311db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5c',
       tags: ['test', 'challenge3'],
     },
   ];
@@ -56,67 +49,5 @@ describe('gameSlice', () => {
   it('should handle setHasWon', () => {
     const actual = gameReducer(initialState, setHasWon(true));
     expect(actual.hasWon).toBe(true);
-  });
-
-  it.skip('loads a challenge based on date', () => {
-    // TODO: Update this test to mock fetch() for the new lazy loading approach
-    // Create a mock store with our test state
-    const store = configureStore({
-      reducer: {
-        game: gameReducer,
-      },
-      preloadedState: {
-        game: initialState,
-      },
-      middleware: getDefaultMiddleware => getDefaultMiddleware(),
-    });
-
-    // Test with first date - should select challenge at index 2
-    const date1 = new Date('2024-01-01');
-    vi.setSystemTime(date1);
-
-    // Dispatch the thunk - TypeScript doesn't understand thunk typing in tests
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    store.dispatch(loadDailyChallenge() as any);
-
-    // Get the state after dispatch
-    const state1 = store.getState().game;
-
-    // Calculate expected index: days since epoch % number of challenges
-    const daysSinceEpoch1 = Math.floor(date1.getTime() / (1000 * 60 * 60 * 24));
-    const expectedIndex1 = daysSinceEpoch1 % testChallengeData.length;
-
-    expect(state1.challenge).toBeDefined();
-    expect(state1.challenge?.id).toBe(expectedIndex1);
-
-    // Test with second date - should select a different challenge
-    const date2 = new Date('2024-01-02');
-    vi.setSystemTime(date2);
-
-    // Reset store for second test
-    const store2 = configureStore({
-      reducer: {
-        game: gameReducer,
-      },
-      preloadedState: {
-        game: initialState,
-      },
-      middleware: getDefaultMiddleware => getDefaultMiddleware(),
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    store2.dispatch(loadDailyChallenge() as any);
-    const state2 = store2.getState().game;
-
-    const daysSinceEpoch2 = Math.floor(date2.getTime() / (1000 * 60 * 60 * 24));
-    const expectedIndex2 = daysSinceEpoch2 % testChallengeData.length;
-
-    expect(state2.challenge).toBeDefined();
-    expect(state2.challenge?.id).toBe(expectedIndex2);
-
-    // Verify different challenges were selected
-    expect(state1.challenge?.id).not.toEqual(state2.challenge?.id);
-
-    vi.useRealTimers();
   });
 });

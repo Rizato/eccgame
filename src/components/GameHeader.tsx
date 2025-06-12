@@ -90,11 +90,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
         </div>
       )}
 
-      <MobileNavDrawer
-        isOpen={showMobileNav}
-        onClose={() => setShowMobileNav(false)}
-        onOpenHowToPlay={onOpenHowToPlay}
-      />
+      <MobileNavDrawer isOpen={showMobileNav} onClose={() => setShowMobileNav(false)} />
     </>
   );
 };

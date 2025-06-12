@@ -1,8 +1,8 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { challenges } from '../../data/challenges.json';
+import { getP2PKHAddress } from '../../utils/crypto';
 import type { Challenge, ChallengeData } from '../../types/game';
 import type { AppThunk } from '../index.ts';
-import { getP2PKHAddress } from '../../utils/crypto';
-import { challenges } from '../../data/challenges.json';
 
 export type GameMode = 'daily' | 'practice';
 

@@ -39,6 +39,7 @@
   --warning: #f59e0b;
   --error: #ef4444;
   --info: #3b82f6;
+  --purple: #a78bfa;
 
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -89,6 +90,7 @@
   --warning: #fbbf24;
   --error: #f87171;
   --info: #60a5fa;
+  --purple: #a78bfa;
 
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.5);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
@@ -123,9 +125,8 @@ html {
   background: var(--surface);
   color: var(--text);
   -webkit-tap-highlight-color: transparent;
-  /* Prevent iOS bounce scrolling on the entire document */
-  position: fixed;
-  overflow: hidden;
+  /* Allow scrolling on mobile devices */
+  overflow: auto;
 }
 
 body {
@@ -133,43 +134,38 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   background: var(--surface);
   color: var(--text);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   min-width: 320px;
-  /* Prevent iOS body scrolling */
-  position: fixed;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
 }
 
 #root {
   width: 100%;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  overflow: auto;
   position: relative;
 }
 
-/* Mobile scrolling - Use a scrollable container within the app */
+/* Mobile scrolling - Allow natural scrolling on mobile */
 @media (max-width: 768px) {
-  /* Keep html and body fixed to prevent iOS bounce */
+  /* Allow natural scrolling on mobile */
   html,
   body {
-    position: fixed;
     width: 100%;
-    height: 100%;
-    overflow: hidden;
+    min-height: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   #root {
-    height: 100%;
+    min-height: 100%;
     width: 100%;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Add smooth scrolling for any scrollable containers */

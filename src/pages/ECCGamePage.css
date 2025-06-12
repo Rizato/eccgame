@@ -4,13 +4,30 @@
   flex-direction: column;
 }
 
+/* Mobile: ensure proper scrolling context for sticky header */
+@media (max-width: 768px) {
+  .ecc-game-page-wrapper {
+    height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .ecc-game-page {
   flex: 1;
   width: 100%;
   background: var(--surface);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: 90vh;
+}
+
+/* Mobile: remove height constraints for proper sticky behavior */
+@media (max-width: 768px) {
+  .ecc-game-page {
+    min-height: auto;
+    flex: none;
+  }
 }
 
 .game-header {
@@ -20,6 +37,46 @@
   flex-shrink: 0;
   z-index: 100;
   box-shadow: var(--shadow);
+}
+
+/* Mobile sticky header */
+@media (max-width: 768px) {
+  .game-header {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-lg);
+    /* iOS Safari specific fixes */
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* iOS Safari specific sticky header fix */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 768px) {
+    .game-header {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: var(--surface);
+      /* Ensure proper stacking context */
+      transform: translateZ(0);
+      will-change: transform;
+    }
+
+    .game-main {
+      margin-top: 60px; /* Account for fixed header height */
+      overflow: visible;
+      height: auto;
+      min-height: calc(100vh - 60px);
+    }
+  }
 }
 
 .header-content {
@@ -213,7 +270,6 @@
 
 .game-main {
   flex: 1;
-  overflow: hidden;
   padding: var(--spacing);
   display: flex;
   flex-direction: column;
@@ -250,7 +306,7 @@
 
 .loading-state p,
 .error-state p {
-  color: var(--text-secondary);
+  color: var(--text-dim);
   margin: 0;
   font-size: 1.1rem;
 }
@@ -281,9 +337,14 @@
 /* Single Page Layout - No Scrolling */
 .daily-challenge-container {
   display: flex;
-  height: 100%;
+  flex: 1;
   gap: var(--spacing);
-  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .daily-challenge-container {
+    flex-direction: column;
+  }
 }
 
 .challenge-info-sidebar {
@@ -291,7 +352,12 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .challenge-info-sidebar {
+    width: 100%;
+  }
 }
 
 .challenge-info-card {
@@ -301,14 +367,13 @@
   padding: var(--spacing);
   flex: 1;
   overflow: auto;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
 }
 
 .playground-container {
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -355,7 +420,6 @@
 
 .playground-main {
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -428,9 +492,11 @@
   }
 
   .challenge-info-card {
-    padding: 0px;
+    padding: var(--spacing-sm);
     overflow: visible;
     height: auto;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: var(--spacing-sm);
   }
 
   .challenge-info-sidebar {

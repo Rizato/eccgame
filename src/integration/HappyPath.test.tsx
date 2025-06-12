@@ -136,7 +136,9 @@ describe('Complete User Journey - Interface Testing', () => {
           </button>
 
           {/* Clear and Save */}
-          <button onClick={() => setDisplay('')}>AC</button>
+          <button onClick={() => setDisplay('')} data-testid="clear-button">
+            C
+          </button>
           <button onClick={() => setShowSaveModal(true)}>☆</button>
 
           {/* Save Modal */}
@@ -190,7 +192,7 @@ describe('Complete User Journey - Interface Testing', () => {
 
     // Test chained operations
     console.log('🔗 Testing chained operations...');
-    await user.click(screen.getByRole('button', { name: 'AC' }));
+    await user.click(screen.getByTestId('clear-button'));
     await user.click(screen.getByRole('button', { name: '2' }));
     await user.click(screen.getByTestId('add'));
     await user.click(screen.getByRole('button', { name: '=' }));
@@ -210,7 +212,7 @@ describe('Complete User Journey - Interface Testing', () => {
 
     // Test final private key entry
     console.log('🔑 Testing private key entry workflow...');
-    await user.click(screen.getByRole('button', { name: 'AC' }));
+    await user.click(screen.getByTestId('clear-button'));
     await user.click(screen.getByRole('button', { name: '7' }));
     expect(display).toHaveValue('7');
     await user.click(screen.getByTestId('multiply'));

@@ -664,8 +664,12 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           <div className="calculator-main-grid">
             <div className="number-section">
               <div className="button-row top-row">
-                <button onClick={clearCalculator} className="calc-button clear">
-                  AC
+                <button
+                  onClick={clearCalculator}
+                  className="calc-button clear"
+                  data-testid="clear-button"
+                >
+                  C
                 </button>
                 <button onClick={quickAddG} className="calc-button quick-op add">
                   +1
@@ -707,7 +711,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 <button onClick={() => addToCalculator('6')} className="calc-button number">
                   6
                 </button>
-                <button onClick={() => addToCalculator('C')} className="calc-button hex">
+                <button
+                  onClick={() => addToCalculator('C')}
+                  className="calc-button hex"
+                  data-testid="hex-c-button"
+                >
                   C
                 </button>
                 <button onClick={() => addToCalculator('D')} className="calc-button hex">
