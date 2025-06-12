@@ -6,10 +6,9 @@ import './MobileNavDrawer.css';
 interface MobileNavDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenHowToPlay?: () => void;
 }
 
-const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClose, onOpenHowToPlay }) => {
+const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
 
   if (!isOpen) return null;
@@ -47,17 +46,6 @@ const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClose, onOp
 
           <div className="mobile-nav-section">
             <h4>Information</h4>
-            {onOpenHowToPlay && (
-              <button
-                className="mobile-nav-link"
-                onClick={() => {
-                  onOpenHowToPlay();
-                  onClose();
-                }}
-              >
-                How to Play
-              </button>
-            )}
             <Link
               to="/faq"
               className={
