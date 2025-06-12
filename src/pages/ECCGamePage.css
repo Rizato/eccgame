@@ -456,6 +456,10 @@
     min-height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
+    /* iOS smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent scroll bounce/snap */
+    overscroll-behavior: none;
   }
 
   .ecc-game-page {
@@ -467,5 +471,14 @@
     flex: 1;
     min-height: calc(100vh - 60px);
     overflow: visible;
+  }
+
+  /* iOS-specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    .ecc-game-page-wrapper {
+      /* Prevent iOS elastic scrolling */
+      position: relative;
+      height: 100%;
+    }
   }
 }

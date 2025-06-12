@@ -17,7 +17,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
           <button className="how-to-play-close-x" onClick={onClose} aria-label="Close">
             ×
           </button>
-          <h2 className="how-to-play-title">How to Use ECC Crypto Playground</h2>
+          <h2 className="how-to-play-title">How to Play ECC Game</h2>
           <p className="how-to-play-subtitle">Try your luck at solving the impossible!</p>
         </div>
 
@@ -57,7 +57,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
               </div>
 
               <div className="calc-workflow">
-                <h4>How to Use:</h4>
+                <h4>How to Play:</h4>
                 <ol>
                   <li>
                     <strong>Connect G with the Wallet</strong> using calculator operations

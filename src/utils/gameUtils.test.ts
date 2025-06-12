@@ -17,12 +17,17 @@ describe('gameUtils', () => {
       const message = generateShareMessage({
         gameMode: 'daily',
         operationCount: 42,
-        challengeAddress: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+        challenge: {
+          id: 5,
+          p2pkh_address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+          public_key: 'test',
+          tags: [],
+        },
         solved: true,
       });
 
-      expect(message).toContain('ECC Crypto Playground Daily');
-      expect(message).toContain('1A1zP1eP...DivfNa');
+      expect(message).toContain('ECC Game');
+      expect(message).toContain('Daily Wallet #5');
       expect(message).toContain('🏆 I solved the private key in just 42 steps!');
       expect(message).toContain('https://example.com');
     });
@@ -31,12 +36,17 @@ describe('gameUtils', () => {
       const message = generateShareMessage({
         gameMode: 'practice',
         operationCount: 123,
-        challengeAddress: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+        challenge: {
+          id: 1,
+          p2pkh_address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+          public_key: 'test',
+          tags: [],
+        },
         solved: false,
       });
 
-      expect(message).toContain('ECC Crypto Playground Practice');
-      expect(message).toContain('1A1zP1eP...DivfNa');
+      expect(message).toContain('ECC Game');
+      expect(message).toContain('Practice Wallet');
       expect(message).toContain('🤷 I gave up after 123 steps!');
       expect(message).toContain('https://example.com');
     });
@@ -47,11 +57,16 @@ describe('gameUtils', () => {
       const message = generateShareMessage({
         gameMode: 'daily',
         operationCount: 10,
-        challengeAddress: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+        challenge: {
+          id: 10,
+          p2pkh_address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+          public_key: 'test',
+          tags: [],
+        },
         solved: true,
       });
 
-      expect(message).toContain('https://cryptoplayground.com');
+      expect(message).toContain('https://eccgame.com');
     });
   });
 
@@ -138,10 +153,16 @@ describe('gameUtils', () => {
       });
     });
 
-    it('uses native share when available', async () => {
+    it('uses native share when available on mobile', async () => {
       const shareMock = vi.fn().mockResolvedValue(undefined);
       Object.defineProperty(navigator, 'share', {
         value: shareMock,
+        configurable: true,
+      });
+
+      // Mock mobile device
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
         configurable: true,
       });
 
@@ -149,10 +170,37 @@ describe('gameUtils', () => {
 
       expect(shareMock).toHaveBeenCalledWith({
         text: 'Test message',
-        title: 'ECC Crypto Playground Result',
+        title: 'ECC Game Result',
       });
       expect(success).toBe(true);
       expect(method).toBe('share');
+    });
+
+    it('falls back to clipboard on desktop even when share is available', async () => {
+      const shareMock = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'share', {
+        value: shareMock,
+        configurable: true,
+      });
+
+      // Mock desktop device
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        configurable: true,
+      });
+
+      const writeTextMock = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: writeTextMock },
+        configurable: true,
+      });
+
+      const { success, method } = await shareMessage('Test message');
+
+      expect(shareMock).not.toHaveBeenCalled();
+      expect(writeTextMock).toHaveBeenCalledWith('Test message');
+      expect(success).toBe(true);
+      expect(method).toBe('copy');
     });
 
     it('falls back to clipboard when native share not available', async () => {
@@ -174,10 +222,22 @@ describe('gameUtils', () => {
       expect(method).toBe('copy');
     });
 
-    it('returns true when sharing fails but copy works', async () => {
+    it('returns true when sharing fails but copy works on mobile', async () => {
       const shareMock = vi.fn().mockRejectedValue(new Error('Share failed'));
       Object.defineProperty(navigator, 'share', {
         value: shareMock,
+        configurable: true,
+      });
+
+      // Mock mobile device
+      Object.defineProperty(navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)',
+        configurable: true,
+      });
+
+      const writeTextMock = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText: writeTextMock },
         configurable: true,
       });
 

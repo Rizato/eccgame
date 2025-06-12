@@ -5,14 +5,16 @@
  * and debugging functionality.
  */
 
+import type { Challenge } from '../types/game';
+
 /**
- * Utility for generating share messages for ECC Crypto Playground results
+ * Utility for generating share messages for ECC Game results
  */
 interface ShareMessageOptions {
   gameMode: 'daily' | 'practice';
   solved: boolean;
   operationCount: number;
-  challengeAddress: string;
+  challenge: Challenge | null;
   gaveUp?: boolean;
 }
 
@@ -23,26 +25,33 @@ export function generateShareMessage({
   gameMode,
   solved,
   operationCount,
-  challengeAddress,
+  challenge,
   gaveUp: _gaveUp = false,
 }: ShareMessageOptions): string {
-  const gameType = gameMode === 'daily' ? 'Daily' : 'Practice';
-  const shortAddress = `${challengeAddress.slice(0, 8)}...${challengeAddress.slice(-6)}`;
+  const walletType =
+    gameMode === 'daily' && challenge?.id !== undefined
+      ? `Daily Wallet #${challenge.id}`
+      : 'Practice Wallet';
 
   if (solved) {
-    return `ECC Crypto Playground ${gameType}
-${shortAddress}
+    return `ECC Game ${walletType}
 🏆 I solved the private key in just ${operationCount} steps!
 
-${import.meta.env.VITE_APP_URL || 'https://cryptoplayground.com'}`;
+${import.meta.env.VITE_APP_URL || 'https://eccgame.com'}`;
   }
 
   // Gave up
-  return `ECC Crypto Playground ${gameType}
-${shortAddress}
+  return `ECC Game ${walletType}
 🤷 I gave up after ${operationCount} steps!
 
-${import.meta.env.VITE_APP_URL || 'https://cryptoplayground.com'}`;
+${import.meta.env.VITE_APP_URL || 'https://eccgame.com'}`;
+}
+
+/**
+ * Detect if the device is mobile
+ */
+function isMobileDevice(): boolean {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 /**
@@ -83,16 +92,16 @@ export async function shareMessage(
   text: string
 ): Promise<{ success: boolean; method: 'share' | 'copy' }> {
   try {
-    // Try native share API first (mobile devices)
-    if (navigator.share) {
+    // Try native share API only on mobile devices
+    if (navigator.share && isMobileDevice()) {
       await navigator.share({
-        title: 'ECC Crypto Playground Result',
+        title: 'ECC Game Result',
         text: text,
       });
       return { success: true, method: 'share' };
     }
 
-    // Fallback to clipboard
+    // Fallback to clipboard for desktop and unsupported devices
     const copied = await copyToClipboard(text);
     return { success: copied, method: 'copy' };
   } catch (err) {

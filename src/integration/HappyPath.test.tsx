@@ -69,7 +69,7 @@ describe('Complete User Journey - Interface Testing', () => {
     render(<HowToPlayModal isOpen={true} onClose={mockCloseWelcome} />);
 
     // Verify welcome modal content is shown
-    expect(screen.getByText('How to Use ECC Crypto Playground')).toBeInTheDocument();
+    expect(screen.getByText('How to Play ECC Game')).toBeInTheDocument();
     console.log('✅ Welcome modal displays with instructions');
 
     // User closes the welcome modal
@@ -233,11 +233,16 @@ describe('Complete User Journey - Interface Testing', () => {
         isOpen={true}
         onClose={vi.fn()}
         operationCount={7}
-        challengeAddress="1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2"
         savedPoints={[]}
         victoryPrivateKey="0x0000000000000000000000000000000000000000000000000000000000000007"
         isPracticeMode={false}
         gaveUp={false}
+        challenge={{
+          id: 1,
+          p2pkh_address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+          public_key: 'test-public-key',
+          tags: [],
+        }}
       />
     );
 

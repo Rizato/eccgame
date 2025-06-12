@@ -4,3 +4,8 @@ export interface Challenge {
   public_key: string;
   tags: string[];
 }
+
+export interface ChallengeData {
+  public_key: string;
+  tags: string[];
+}

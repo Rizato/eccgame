@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Structure
 
-This is a full-stack cryptocurrency guessing game called "ECC Crypto Playground" with a React TypeScript frontend.
+This is a full-stack cryptocurrency guessing game called "ECC GAME" with a React TypeScript frontend.
 
 
 ### Frontend Structure

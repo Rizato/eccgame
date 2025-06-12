@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useDailyCalculatorRedux } from '../hooks/useDailyCalculatorRedux';
 import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { useAppSelector } from '../store/hooks';
 import { getP2PKHAddress, createSignature } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
 import './ECCPlayground.css';
@@ -37,7 +37,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Get game state for give up functionality
   const gameState = useAppSelector(state => state.game);
-  const dispatch = useAppDispatch();
 
   // Select the appropriate calculator based on mode
   const calculator = isPracticeMode ? practiceCalculator : dailyCalculator;
@@ -58,7 +57,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     loadSavedPoint,
   } = calculator;
 
-  const [challengeAddress, setChallengeAddress] = useState<string>('');
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
@@ -112,26 +110,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       calculatorFunctionsRef.current.resetToChallenge(challenge.public_key);
     }
   }, [challenge]);
-
-  // Calculate challenge address (this doesn't change during the session)
-  useEffect(() => {
-    const calculateChallengeAddress = async () => {
-      if (!challenge) {
-        setChallengeAddress('');
-        return;
-      }
-      try {
-        const challengePoint = publicKeyToPoint(challenge.public_key);
-        const pubKey = pointToPublicKey(challengePoint);
-        const address = await getP2PKHAddress(pubKey);
-        setChallengeAddress(address);
-      } catch {
-        setChallengeAddress('Invalid');
-      }
-    };
-
-    calculateChallengeAddress();
-  }, [challenge, isPracticeMode, dispatch]);
 
   // Save current point (wrapper around Redux action)
   const saveCurrentPoint = useCallback(
@@ -318,11 +296,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         }}
         savedPoints={savedPoints}
         operationCount={totalOperationCount}
-        challengeAddress={challengeAddress}
         victoryPrivateKey={victoryPrivateKey ? '0x' + victoryPrivateKey.toString(16) : ''}
         signature={signature}
         isPracticeMode={isPracticeMode}
         gaveUp={gameState.gaveUp}
+        challenge={challenge}
       />
     </div>
   );

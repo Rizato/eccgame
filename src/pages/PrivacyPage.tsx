@@ -18,9 +18,9 @@ const PrivacyPage: React.FC = () => {
           <section className="privacy-section">
             <h2>Overview</h2>
             <p>
-              This Privacy Policy explains how ECC Crypto Playground collects, uses, and protects
-              your information when you use our website. We are committed to protecting your privacy
-              and handling your data in an open and transparent manner.
+              This Privacy Policy explains how ECC Game collects, uses, and protects your
+              information when you use our website. We are committed to protecting your privacy and
+              handling your data in an open and transparent manner.
             </p>
           </section>
 
