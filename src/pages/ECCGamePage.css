@@ -58,33 +58,11 @@
 /* iOS Safari specific sticky header fix */
 @supports (-webkit-touch-callout: none) {
   @media (max-width: 768px) {
-    /* Reset body positioning for iOS */
-    body {
-      position: static;
-      width: 100%;
-      height: auto;
-      min-height: 100vh;
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .ecc-game-page-wrapper {
-      height: auto;
-      min-height: 100vh;
-      overflow: visible;
-      position: static;
-    }
-
-    .ecc-game-page {
-      height: auto;
-      min-height: 100vh;
-      overflow: visible;
-      position: static;
-    }
-
     .game-header {
-      position: sticky;
+      position: fixed !important;
       top: 0;
+      left: 0;
+      right: 0;
       z-index: 1000;
       background: var(--surface);
       /* Ensure proper stacking context */
@@ -93,6 +71,7 @@
     }
 
     .game-main {
+      margin-top: 60px; /* Account for fixed header height */
       overflow: visible;
       height: auto;
       min-height: calc(100vh - 60px);
