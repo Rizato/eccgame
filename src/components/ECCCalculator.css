@@ -484,9 +484,9 @@
 }
 
 .calc-button.clear {
-  background: var(--error);
+  background: var(--text-dim);
   color: var(--text-inverse);
-  border-color: var(--error);
+  border-color: var(--text-dim);
 }
 
 .calc-button.clear:hover {

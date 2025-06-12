@@ -98,9 +98,12 @@ describe('ECCCalculator', () => {
       });
 
       // Check for hex letters A-F
-      ['A', 'B', 'C', 'D', 'E', 'F'].forEach(letter => {
-        expect(screen.getByText(letter)).toBeInTheDocument();
-      });
+      expect(screen.getByText('A')).toBeInTheDocument();
+      expect(screen.getByText('B')).toBeInTheDocument();
+      expect(screen.getByTestId('hex-c-button')).toBeInTheDocument();
+      expect(screen.getByText('D')).toBeInTheDocument();
+      expect(screen.getByText('E')).toBeInTheDocument();
+      expect(screen.getByText('F')).toBeInTheDocument();
     });
 
     it('should render operation buttons', async () => {
@@ -120,7 +123,7 @@ describe('ECCCalculator', () => {
         renderWithStore(<ECCCalculator {...createDefaultProps()} />);
       });
 
-      expect(screen.getByText('C')).toBeInTheDocument();
+      expect(screen.getByTestId('clear-button')).toBeInTheDocument();
       expect(screen.getByText('0x')).toBeInTheDocument();
       expect(screen.getByText('±')).toBeInTheDocument();
       expect(screen.getByText('⌫')).toBeInTheDocument();
