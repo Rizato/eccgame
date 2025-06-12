@@ -848,7 +848,6 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .ecc-playground {
-    padding: var(--spacing-sm);
     gap: var(--spacing-sm);
     width: 100%;
     max-width: 100%;
