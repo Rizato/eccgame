@@ -48,6 +48,55 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     box-shadow: var(--shadow-lg);
+    /* iOS Safari specific fixes */
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* iOS Safari specific sticky header fix */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 768px) {
+    /* Reset body positioning for iOS */
+    body {
+      position: static;
+      width: 100%;
+      height: auto;
+      min-height: 100vh;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .ecc-game-page-wrapper {
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+      position: static;
+    }
+
+    .ecc-game-page {
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+      position: static;
+    }
+
+    .game-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--surface);
+      /* Ensure proper stacking context */
+      transform: translateZ(0);
+      will-change: transform;
+    }
+
+    .game-main {
+      overflow: visible;
+      height: auto;
+      min-height: calc(100vh - 60px);
+    }
   }
 }
 
@@ -278,7 +327,7 @@
 
 .loading-state p,
 .error-state p {
-  color: var(--text-secondary);
+  color: var(--text-dim);
   margin: 0;
   font-size: 1.1rem;
 }
