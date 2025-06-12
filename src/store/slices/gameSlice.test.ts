@@ -1,12 +1,5 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { describe, expect, it, vi } from 'vitest';
-import gameReducer, {
-  setGameMode,
-  setError,
-  setHasWon,
-  clearError,
-  loadDailyChallenge,
-} from './gameSlice';
+import { describe, expect, it } from 'vitest';
+import gameReducer, { setGameMode, setError, setHasWon, clearError } from './gameSlice';
 import type { GameMode } from './gameSlice';
 import type { ChallengeData } from '../../types/game';
 
