@@ -433,9 +433,9 @@
 }
 
 .calc-button.quick-op.add {
-  background: var(--success);
+  background: var(--purple);
   color: var(--text-inverse);
-  border-color: var(--success);
+  border-color: var(--purple);
 }
 
 .calc-button.quick-op.add:hover {
@@ -443,9 +443,9 @@
 }
 
 .calc-button.quick-op.subtract {
-  background: var(--warning);
+  background: var(--purple);
   color: var(--text-inverse);
-  border-color: var(--warning);
+  border-color: var(--purple);
 }
 
 .calc-button.quick-op.subtract:hover {
@@ -453,9 +453,9 @@
 }
 
 .calc-button.quick-op.multiply {
-  background: var(--info);
+  background: var(--purple);
   color: var(--text-inverse);
-  border-color: var(--info);
+  border-color: var(--purple);
 }
 
 .calc-button.quick-op.multiply:hover {
@@ -463,12 +463,22 @@
 }
 
 .calc-button.quick-op.divide {
-  background: var(--primary-light);
+  background: var(--purple);
   color: var(--text-inverse);
-  border-color: var(--primary-light);
+  border-color: var(--purple);
 }
 
 .calc-button.quick-op.divide:hover {
+  opacity: 0.9;
+}
+
+.calc-button.quick-op.negate {
+  background: var(--purple);
+  color: var(--text-inverse);
+  border-color: var(--purple);
+}
+
+.calc-button.quick-op.negate:hover {
   opacity: 0.9;
 }
 
