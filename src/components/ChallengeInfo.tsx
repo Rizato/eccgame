@@ -59,7 +59,9 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
         <div className="challenge-info-content">
           <div className="challenge-header">
             <h4 className="address-heading">
-              {isPracticeMode ? 'Practice Wallet' : 'Daily Wallet'}
+              {isPracticeMode
+                ? 'Practice Wallet'
+                : `Daily Wallet${currentChallenge?.id !== undefined ? ` #${currentChallenge.id}` : ''}`}
             </h4>
             <div className="header-actions">
               {isPracticeMode && (
@@ -106,7 +108,9 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
         <div className="challenge-info-content">
           <div className="challenge-header">
             <h4 className="address-heading">
-              {isPracticeMode ? 'Practice Wallet' : 'Daily Wallet'}
+              {isPracticeMode
+                ? 'Practice Wallet'
+                : `Daily Wallet${currentChallenge?.id !== undefined ? ` #${currentChallenge.id}` : ''}`}
             </h4>
             <div className="header-actions">
               {isPracticeMode && (

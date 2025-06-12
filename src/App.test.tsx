@@ -32,7 +32,7 @@ vi.mock('./pages/PrivacyPage', () => ({
 vi.mock('./pages/ECCGamePage', () => ({
   default: ({ mode }: { mode: string }) => (
     <div>
-      <h1>ECC Crypto Playground</h1>
+      <h1>ECC Game</h1>
       {mode === 'practice' && <div>Practice Mode</div>}
     </div>
   ),
@@ -49,7 +49,7 @@ describe('App', () => {
 
   it('renders without crashing', () => {
     renderApp();
-    expect(screen.getAllByText(/ECC Crypto Playground/i)).toHaveLength(2);
+    expect(screen.getAllByText(/ECC Game/i)).toHaveLength(2);
   });
 
   it('renders app structure correctly', () => {

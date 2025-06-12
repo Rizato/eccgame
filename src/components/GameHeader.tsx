@@ -40,7 +40,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({ showErrorBanner = false, onOpen
               </svg>
             </button>
             <Link to="/" className="site-title">
-              <h1>ECC Crypto Playground</h1>
+              <h1>ECC Game</h1>
             </Link>
             {isGameRoute && (
               <nav className="nav-links desktop-nav">

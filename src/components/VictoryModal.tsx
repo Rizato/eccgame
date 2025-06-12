@@ -4,32 +4,33 @@ import './VictoryModal.css';
 import { getPublicKeyFromPrivate } from '../utils/crypto.ts';
 import { generateShareMessage, shareMessage } from '../utils/gameUtils';
 import type { SavedPoint } from '../types/ecc.ts';
+import type { Challenge } from '../types/game.ts';
 
 interface VictoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   operationCount: number;
-  challengeAddress: string;
   savedPoints: SavedPoint[];
   isPracticeMode?: boolean;
   victoryPrivateKey: string;
   signature?: string;
   gaveUp?: boolean;
+  challenge?: Challenge | null;
 }
 
 export const VictoryModal: React.FC<VictoryModalProps> = ({
   isOpen,
   onClose,
   operationCount,
-  challengeAddress,
   victoryPrivateKey,
   isPracticeMode,
   signature,
   gaveUp = false,
+  challenge,
 }) => {
   const [shareStatus, setShareStatus] = useState<string | null>(null);
   const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
-  if (!isOpen) return null;
+  if (!isOpen || !challenge || !(victoryPrivateKey || gaveUp)) return null;
 
   const victoryPublicKey =
     !gaveUp && victoryPrivateKey ? getPublicKeyFromPrivate(victoryPrivateKey) : '';
@@ -59,7 +60,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
       gameMode: isPracticeMode ? 'practice' : 'daily',
       solved: !gaveUp,
       operationCount,
-      challengeAddress,
+      challenge: challenge || null,
       gaveUp,
     });
 
@@ -93,8 +94,8 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
         <div className="victory-stats">
           <div className="stat-item">
             <div className="stat-label">Wallet Address</div>
-            <div className="stat-value address-value" title={challengeAddress}>
-              {challengeAddress}
+            <div className="stat-value address-value" title={challenge.p2pkh_address}>
+              {challenge.p2pkh_address}
             </div>
           </div>
 
@@ -156,13 +157,13 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
               <div className="stat-label">Bitcoin-cli Verification Command</div>
               <div className="modal-value-container">
                 <span className="stat-value address-value">
-                  {`bitcoin-cli verifymessage "${challengeAddress}" "${signature}" "${victoryPublicKey}"`}
+                  {`bitcoin-cli verifymessage "${challenge.p2pkh_address}" "${signature}" "${victoryPublicKey}"`}
                 </span>
                 <button
                   className="copy-button"
                   onClick={() =>
                     navigator.clipboard.writeText(
-                      `bitcoin-cli verifymessage "${challengeAddress}" "${signature}" "${victoryPublicKey}"`
+                      `bitcoin-cli verifymessage "${challenge.p2pkh_address}" "${signature}" "${victoryPublicKey}"`
                     )
                   }
                 >

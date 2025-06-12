@@ -1,8 +1,8 @@
-# ECC Crypto Playground
+# ECC Game
 
 > **An interactive game demonstrating the computational impossibility of breaking Elliptic Curve Cryptography through Elliptic Curve Operations.**
 
-ECC Crypto Playground is a browser-based game that challenges you to find private keys for real Bitcoin addresses using an ECC calculator. It's basically impossible - and that's exactly the point.
+ECC Game is a browser-based game that challenges you to find private keys for real Bitcoin addresses using an ECC calculator. It's basically impossible - and that's exactly the point.
 
 ## What Is This?
 
@@ -28,7 +28,7 @@ The best known classical algorithm can solve it in about 2^128 steps.
 
 ## Features
 
-### 🎮 Game Modes
+### Game Modes
 
 - **Daily Challenge**: A new impossible challenge every day
 - **Practice Mode**: Learn with private keys provided (cheating enabled!)
@@ -62,7 +62,7 @@ Perform elliptic curve operations:
 
 Visit **[eccgame.com](https://eccgame.com)** and start playing immediately!
 
-### 💻 Local Development
+### Local Development
 
 ```bash
 # Clone the repository
@@ -78,7 +78,7 @@ npm run dev
 # Open browser to http://localhost:5173
 ```
 
-### 🔧 Environment Setup
+### Environment Setup
 
 Create `.env.local` for local development:
 
@@ -168,7 +168,7 @@ npm run build:prod
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `VITE_APP_URL` | Your domain URL for sharing | `https://cryptoplayground.com` |
+| `VITE_APP_URL` | Your domain URL for sharing | `https://eccgame.com` |
 | `VITE_EXPLORER_BASE_URL` | Bitcoin explorer URL | `https://blockstream.info/address/` |
 
 ## Testing
@@ -221,7 +221,7 @@ npm test ECCCalculator.test.tsx
 
 **Ready to try the impossible?**
 
-[![Play Now](https://img.shields.io/badge/Play_Now-🚀_eccgame.com-blue?style=for-the-badge&logo=bitcoin)](https://eccgame.com)
+[Play Now](https://eccgame.com)
 
 *Made with ❤️ for education and security awareness*
 

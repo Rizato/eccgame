@@ -115,7 +115,19 @@ a:hover {
     border-color 0.3s ease;
 }
 
-html,
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  /* Prevent iOS bounce scrolling on the entire document */
+  position: fixed;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -126,34 +138,45 @@ body {
   color: var(--text);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  min-width: 320px;
+  /* Prevent iOS body scrolling */
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
 }
 
 #root {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
+  position: relative;
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  height: 100vh;
-}
-
-/* Mobile scrolling */
+/* Mobile scrolling - Use a scrollable container within the app */
 @media (max-width: 768px) {
+  /* Keep html and body fixed to prevent iOS bounce */
   html,
   body {
-    height: auto;
-    min-height: 100vh;
-    overflow-x: hidden;
-    overflow-y: auto;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
 
   #root {
-    height: auto;
-    min-height: 100vh;
-    overflow: visible;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Add smooth scrolling for any scrollable containers */
+  .scrollable-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 }
 

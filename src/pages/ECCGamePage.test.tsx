@@ -19,13 +19,13 @@ describe('ECCGamePage', () => {
   it('renders daily mode page', () => {
     renderPage('daily');
 
-    expect(screen.getByText('ECC Crypto Playground')).toBeInTheDocument();
+    expect(screen.getByText('ECC Game')).toBeInTheDocument();
   });
 
   it('renders practice mode page', () => {
     renderPage('practice');
 
-    expect(screen.getByText('ECC Crypto Playground')).toBeInTheDocument();
+    expect(screen.getByText('ECC Game')).toBeInTheDocument();
     expect(screen.getByText('Practice Mode')).toBeInTheDocument();
   });
 

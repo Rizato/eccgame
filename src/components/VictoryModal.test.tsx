@@ -7,12 +7,17 @@ describe('VictoryModal', () => {
     isOpen: true,
     onClose: vi.fn(),
     operationCount: 5,
-    challengeAddress: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
     savedPoints: [],
     victoryPrivateKey: '0x0000000000000000000000000000000000000000000000000000000000000001',
     isPracticeMode: false,
     gaveUp: false,
     signature: 'mock-signature',
+    challenge: {
+      id: 1,
+      p2pkh_address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+      public_key: 'test-public-key',
+      tags: [],
+    },
   });
 
   it('should render victory modal when open', () => {
@@ -26,6 +31,13 @@ describe('VictoryModal', () => {
 
   it('should not render when closed', () => {
     const props = { ...createDefaultProps(), isOpen: false };
+    const { container } = render(<VictoryModal {...props} />);
+
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('should not render when challenge is null', () => {
+    const props = { ...createDefaultProps(), challenge: null };
     const { container } = render(<VictoryModal {...props} />);
 
     expect(container.firstChild).toBeNull();

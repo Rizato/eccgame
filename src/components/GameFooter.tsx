@@ -15,7 +15,7 @@ const GameFooter: React.FC = () => {
             Privacy Policy
           </Link>
         </div>
-        <div className="footer-copyright">© 2025 ECC Crypto Playground</div>
+        <div className="footer-copyright">© 2025 ECC Game</div>
       </div>
     </footer>
   );
