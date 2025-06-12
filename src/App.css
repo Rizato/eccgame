@@ -12,6 +12,16 @@
   flex-direction: column;
 }
 
+/* Mobile-specific adjustments for iOS */
+@media (max-width: 768px) {
+  .App {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 code {
   font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
   font-size: 0.875em;

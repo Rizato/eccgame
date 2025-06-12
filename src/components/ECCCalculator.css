@@ -618,6 +618,8 @@
 
   .calculator-section {
     padding: 0;
+    overflow: visible;
+    height: auto;
   }
 
   .calculator-point-display {
