@@ -365,62 +365,18 @@
   gap: var(--spacing-sm);
 }
 
-/* Main calculator grid */
+/* Main calculator grid - flattened structure */
 .calculator-main-grid {
   display: grid;
-  grid-template-columns: auto auto auto auto auto auto auto;
+  grid-template-columns: repeat(7, 1fr);
   gap: var(--spacing-sm);
   flex: 1;
   height: 100%;
 }
 
-/* Number section with uniform button grid */
-.number-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  grid-column: 1 / span 5;
-}
-
-.button-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
-  flex: 1;
-}
-
-.button-row.top-row {
-  margin-bottom: var(--spacing-xs);
-}
-
-/* Operations column */
-.operations-column {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  grid-column: 6 / span 2;
-}
-
-/* Top buttons row for operations column - now using grid */
-.top-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-sm);
-  min-height: 32px;
-}
-
-.operators-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: var(--spacing-xs);
-  flex: 1;
-}
-
-.equals-square {
-  aspect-ratio: 1;
+.equals-span {
   grid-column: span 2;
+  grid-row: span 2;
 }
 
 .calc-button {
@@ -640,24 +596,12 @@
     gap: var(--spacing-xs);
     max-width: 100%;
     width: 100%;
+    grid-template-columns: repeat(7, 1fr);
   }
 
-  .button-row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: var(--spacing-xs);
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .operators-grid {
-    display: grid;
-    gap: var(--spacing-xs);
-  }
-
-  .equals-square {
-    margin-top: 0;
-    grid-column: span 1;
+  .equals-span {
+    grid-column: span 2;
+    grid-row: span 2;
   }
 
   .calc-button {
@@ -679,12 +623,6 @@
   .calc-button.clear,
   .calc-button.backspace {
     font-size: 0.75rem;
-    min-height: 44px !important;
-    min-width: 44px !important;
-  }
-
-  .top-buttons {
-    min-height: 44px;
   }
 
   .calculator-input {

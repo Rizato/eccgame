@@ -742,147 +742,138 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         </div>
         <div className="calculator-buttons">
           <div className="calculator-main-grid">
-            <div className="number-section">
-              <div className="button-row top-row">
-                <button onClick={quickAddG} className="calc-button quick-op add">
-                  +1
-                </button>
-                <button onClick={quickSubtractG} className="calc-button quick-op subtract">
-                  -1
-                </button>
-                <button onClick={quickDouble} className="calc-button quick-op multiply">
-                  ×2
-                </button>
-                <button onClick={quickHalve} className="calc-button quick-op divide">
-                  ÷2
-                </button>
-                <button onClick={quickNegate} className="calc-button quick-op negate">
-                  ±
-                </button>
-              </div>
-              <div className="button-row">
-                <button onClick={() => addToCalculator('7')} className="calc-button number">
-                  7
-                </button>
-                <button onClick={() => addToCalculator('8')} className="calc-button number">
-                  8
-                </button>
-                <button onClick={() => addToCalculator('9')} className="calc-button number">
-                  9
-                </button>
-                <button onClick={() => addToCalculator('A')} className="calc-button hex">
-                  A
-                </button>
-                <button onClick={() => addToCalculator('B')} className="calc-button hex">
-                  B
-                </button>
-              </div>
-              <div className="button-row">
-                <button onClick={() => addToCalculator('4')} className="calc-button number">
-                  4
-                </button>
-                <button onClick={() => addToCalculator('5')} className="calc-button number">
-                  5
-                </button>
-                <button onClick={() => addToCalculator('6')} className="calc-button number">
-                  6
-                </button>
-                <button
-                  onClick={() => addToCalculator('C')}
-                  className="calc-button hex"
-                  data-testid="hex-c-button"
-                >
-                  C
-                </button>
-                <button onClick={() => addToCalculator('D')} className="calc-button hex">
-                  D
-                </button>
-              </div>
-              <div className="button-row">
-                <button onClick={() => addToCalculator('1')} className="calc-button number">
-                  1
-                </button>
-                <button onClick={() => addToCalculator('2')} className="calc-button number">
-                  2
-                </button>
-                <button onClick={() => addToCalculator('3')} className="calc-button number">
-                  3
-                </button>
-                <button onClick={() => addToCalculator('E')} className="calc-button hex">
-                  E
-                </button>
-                <button onClick={() => addToCalculator('F')} className="calc-button hex">
-                  F
-                </button>
-              </div>
-              <div className="button-row">
-                <button onClick={() => addToCalculator('0')} className="calc-button number">
-                  0
-                </button>
-                <button
-                  onClick={toggleHexMode}
-                  className={`calc-button hex special ${hexMode ? 'active' : ''}`}
-                >
-                  0x
-                </button>
-                <button className="calc-button spacer"></button>
-                <button className="calc-button spacer"></button>
-                <button className="calc-button spacer"></button>
-              </div>
-            </div>
-            <div className="operations-column">
-              <div className="top-buttons">
-                <button
-                  onClick={clearCalculator}
-                  className="calc-button clear compact"
-                  data-testid="clear-button"
-                >
-                  C
-                </button>
-                <button onClick={backspaceCalculator} className="calc-button backspace compact">
-                  ⌫
-                </button>
-              </div>
-              <div className="operators-grid">
-                <button
-                  onClick={() => setCalculatorOperation('divide')}
-                  className={`calc-button operator ${pendingOperation === 'divide' ? 'highlighted' : ''}`}
-                >
-                  ÷
-                </button>
-                <button
-                  onClick={() => setCalculatorOperation('multiply')}
-                  className={`calc-button operator ${pendingOperation === 'multiply' ? 'highlighted' : ''}`}
-                >
-                  ×
-                </button>
-                <button
-                  onClick={() => setCalculatorOperation('subtract')}
-                  className={`calc-button operator ${pendingOperation === 'subtract' ? 'highlighted' : ''}`}
-                >
-                  -
-                </button>
-                <button
-                  onClick={() => setCalculatorOperation('add')}
-                  className={`calc-button operator ${pendingOperation === 'add' ? 'highlighted' : ''}`}
-                >
-                  +
-                </button>
-              </div>
-              <button
-                onClick={() => {
-                  if (pendingOperation && calculatorDisplay.trim()) {
-                    executeCalculatorOperationRef.current?.(
-                      pendingOperation,
-                      calculatorDisplay.trim()
-                    );
-                  }
-                }}
-                className="calc-button equals equals-square"
-              >
-                =
-              </button>
-            </div>
+            {/* Row 1: Quick operations */}
+            <button onClick={quickAddG} className="calc-button quick-op add">
+              +1
+            </button>
+            <button onClick={quickSubtractG} className="calc-button quick-op subtract">
+              -1
+            </button>
+            <button onClick={quickDouble} className="calc-button quick-op multiply">
+              ×2
+            </button>
+            <button onClick={quickHalve} className="calc-button quick-op divide">
+              ÷2
+            </button>
+            <button onClick={quickNegate} className="calc-button quick-op negate">
+              ±
+            </button>
+            <button
+              onClick={clearCalculator}
+              className="calc-button clear"
+              data-testid="clear-button"
+            >
+              C
+            </button>
+            <button onClick={backspaceCalculator} className="calc-button backspace">
+              ⌫
+            </button>
+
+            {/* Row 2: 789AB + operators */}
+            <button onClick={() => addToCalculator('7')} className="calc-button number">
+              7
+            </button>
+            <button onClick={() => addToCalculator('8')} className="calc-button number">
+              8
+            </button>
+            <button onClick={() => addToCalculator('9')} className="calc-button number">
+              9
+            </button>
+            <button onClick={() => addToCalculator('A')} className="calc-button hex">
+              A
+            </button>
+            <button onClick={() => addToCalculator('B')} className="calc-button hex">
+              B
+            </button>
+            <button
+              onClick={() => setCalculatorOperation('divide')}
+              className={`calc-button operator ${pendingOperation === 'divide' ? 'highlighted' : ''}`}
+            >
+              ÷
+            </button>
+            <button
+              onClick={() => setCalculatorOperation('multiply')}
+              className={`calc-button operator ${pendingOperation === 'multiply' ? 'highlighted' : ''}`}
+            >
+              ×
+            </button>
+
+            {/* Row 3: 456CD + operators */}
+            <button onClick={() => addToCalculator('4')} className="calc-button number">
+              4
+            </button>
+            <button onClick={() => addToCalculator('5')} className="calc-button number">
+              5
+            </button>
+            <button onClick={() => addToCalculator('6')} className="calc-button number">
+              6
+            </button>
+            <button
+              onClick={() => addToCalculator('C')}
+              className="calc-button hex"
+              data-testid="hex-c-button"
+            >
+              C
+            </button>
+            <button onClick={() => addToCalculator('D')} className="calc-button hex">
+              D
+            </button>
+            <button
+              onClick={() => setCalculatorOperation('subtract')}
+              className={`calc-button operator ${pendingOperation === 'subtract' ? 'highlighted' : ''}`}
+            >
+              -
+            </button>
+            <button
+              onClick={() => setCalculatorOperation('add')}
+              className={`calc-button operator ${pendingOperation === 'add' ? 'highlighted' : ''}`}
+            >
+              +
+            </button>
+
+            {/* Row 4: 123EF + equals */}
+            <button onClick={() => addToCalculator('1')} className="calc-button number">
+              1
+            </button>
+            <button onClick={() => addToCalculator('2')} className="calc-button number">
+              2
+            </button>
+            <button onClick={() => addToCalculator('3')} className="calc-button number">
+              3
+            </button>
+            <button onClick={() => addToCalculator('E')} className="calc-button hex">
+              E
+            </button>
+            <button onClick={() => addToCalculator('F')} className="calc-button hex">
+              F
+            </button>
+            <button
+              onClick={() => {
+                if (pendingOperation && calculatorDisplay.trim()) {
+                  executeCalculatorOperationRef.current?.(
+                    pendingOperation,
+                    calculatorDisplay.trim()
+                  );
+                }
+              }}
+              className="calc-button equals equals-span"
+            >
+              =
+            </button>
+
+            {/* Row 5: 0, 0x, spacers */}
+            <button onClick={() => addToCalculator('0')} className="calc-button number">
+              0
+            </button>
+            <button
+              onClick={toggleHexMode}
+              className={`calc-button hex special ${hexMode ? 'active' : ''}`}
+            >
+              0x
+            </button>
+            <button className="calc-button spacer"></button>
+            <button className="calc-button spacer"></button>
+            <button className="calc-button spacer"></button>
           </div>
         </div>
       </div>
