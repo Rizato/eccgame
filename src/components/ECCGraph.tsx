@@ -1,10 +1,10 @@
 import Decimal from 'decimal.js';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { CURVE_P, getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
 import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
 import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
+import { CURVE_P, getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
 import type { ECPoint } from '../types/ecc';
 import './ECCGraph.css';
 

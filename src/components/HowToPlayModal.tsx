@@ -213,7 +213,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                   </li>
                 </ul>
 
-                <div className="tip-box">
+                <div className="graph-note">
                   <strong>Graph Tip:</strong> Points on the graph are approximations due to the
                   challenge of representing 2^256 space on a limited screen.
                 </div>
@@ -259,10 +259,6 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                     calculator display
                   </li>
                 </ul>
-                <p className="graph-note">
-                  <strong>Note:</strong> Clicking a point and using "Switch here" changes your
-                  starting point for all future operations.
-                </p>
               </div>
             </div>
           </section>
