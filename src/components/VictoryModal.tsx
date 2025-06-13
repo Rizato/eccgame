@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
@@ -34,10 +34,20 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
   const privateKeyHexMode = privateKeyDisplayMode === 'hex';
   const [shareStatus, setShareStatus] = useState<string | null>(null);
-  if (!isOpen || !challenge || !(victoryPrivateKey || gaveUp)) return null;
 
-  const victoryPublicKey =
-    !gaveUp && victoryPrivateKey ? getPublicKeyFromPrivate(victoryPrivateKey) : '';
+  const victoryPublicKey = useMemo(() => {
+    if (gaveUp || !victoryPrivateKey) {
+      return '';
+    }
+    try {
+      return getPublicKeyFromPrivate(victoryPrivateKey);
+    } catch (error) {
+      console.error('Failed to generate public key:', error);
+      return '';
+    }
+  }, [gaveUp, victoryPrivateKey]);
+
+  if (!isOpen || !challenge || !(victoryPrivateKey || gaveUp)) return null;
   const getVictoryTitle = () => {
     if (gaveUp) {
       return 'Gave Up.';
