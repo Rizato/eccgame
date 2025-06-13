@@ -662,7 +662,7 @@
 
   .calc-button {
     font-size: 0.75rem;
-    min-height: 40px;
+    min-height: 44px;
     padding: 0;
     min-width: 0;
     box-sizing: border-box;
@@ -674,7 +674,11 @@
 
   .calc-button.equals {
     font-size: 0.75rem;
-    margin-top: 0;
+  }
+
+  .calc-button.clear,
+  .calc-button.backspace {
+    font-size: 0.75rem;
   }
 
   .calculator-input {
