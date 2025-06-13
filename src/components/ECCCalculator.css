@@ -679,6 +679,12 @@
   .calc-button.clear,
   .calc-button.backspace {
     font-size: 0.75rem;
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  .top-buttons {
+    min-height: 44px;
   }
 
   .calculator-input {
