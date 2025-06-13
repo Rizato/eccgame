@@ -8,6 +8,7 @@
   margin-bottom: 0;
   position: relative;
   box-shadow: var(--shadow);
+  flex: 1;
 }
 
 .calculator-point-display::before {
@@ -52,35 +53,59 @@
 
 .point-coordinates-compact {
   display: flex;
-  gap: var(--spacing);
+  flex-direction: column;
+  gap: var(--spacing-xs);
   font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
   font-size: 0.75rem;
   color: var(--text-dim);
   background: var(--surface-variant);
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  border-left: 3px solid var(--primary);
-  overflow: hidden;
+  user-select: text;
+  cursor: text;
+  -webkit-touch-callout: none;
+  -webkit-user-select: text;
 }
 
-.point-coordinates-compact span {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.coordinate-row {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+.coordinate-label {
+  font-weight: 600;
+  color: var(--text);
+  min-width: 12px;
+  flex-shrink: 0;
+}
+
+.coordinate-value {
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  user-select: text;
+  cursor: text;
+  -webkit-touch-callout: none;
+  -webkit-user-select: text;
 }
 
 .point-compressed-key {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   background: var(--surface-variant);
   padding: 4px 8px;
   border-radius: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
+  user-select: text;
+  cursor: text;
+  -webkit-touch-callout: none;
+  -webkit-user-select: text;
 }
 
 .calculator-point-display .point-address {
@@ -88,9 +113,11 @@
   font-size: 0.875rem;
   color: var(--text);
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
+  user-select: text;
+  cursor: text;
 }
 
 .calculator-point-display .point-progress {
@@ -258,7 +285,8 @@
   background: var(--surface);
   border-radius: 0 0 var(--radius) var(--radius);
   padding: var(--spacing);
-  flex: 1;
+  max-width: 400px;
+  width: 100%;
 }
 
 .calculator-status {
@@ -276,12 +304,12 @@
 .calculator-display {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  flex: 1;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
 .calculator-input {
-  width: 100%;
+  flex: 1;
   padding: var(--spacing) var(--spacing-lg);
   border: 2px solid var(--border);
   border-radius: var(--radius);
@@ -299,6 +327,33 @@
   box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
 }
 
+/* Go Here button in display */
+.gohere-display {
+  flex-shrink: 0;
+  width: 48px;
+  height: 56px; /* Match calculator input height */
+  border: 2px solid var(--primary);
+  background: var(--info);
+  border-color: var(--info);
+  color: var(--text-inverse);
+  border-radius: var(--radius);
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+}
+
+.gohere-display:disabled {
+  opacity: 0.3;
+  background: var(--surface-variant);
+  border-color: var(--border);
+  color: var(--text-dim);
+}
+
 .calculator-input::placeholder {
   color: var(--text-dim);
   opacity: 0.7;
@@ -308,60 +363,20 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  flex: 1;
 }
 
-/* Main calculator grid */
+/* Main calculator grid - flattened structure */
 .calculator-main-grid {
   display: grid;
-  grid-template-columns: auto auto auto auto auto auto auto;
+  grid-template-columns: repeat(7, 1fr);
   gap: var(--spacing-sm);
   flex: 1;
   height: 100%;
 }
 
-/* Number section with uniform button grid */
-.number-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  grid-column: 1 / span 5;
-}
-
-.button-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--spacing-xs);
-  flex: 1;
-}
-
-.button-row.top-row {
-  margin-bottom: var(--spacing-sm);
-}
-
-/* Operations column */
-.operations-column {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  grid-column: 6 / span 2;
-}
-
-.operations-column .backspace {
-  margin-bottom: var(--spacing-sm);
-}
-
-.operators-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: var(--spacing-xs);
-  flex: 1;
-}
-
-.equals-square {
-  aspect-ratio: 1;
+.equals-span {
   grid-column: span 2;
+  grid-row: span 2;
 }
 
 .calc-button {
@@ -507,7 +522,6 @@
   background: var(--text-dim);
   color: var(--text-inverse);
   border-color: var(--text-dim);
-  aspect-ratio: 2;
 }
 
 .calc-button.backspace:hover {
@@ -563,7 +577,7 @@
 }
 
 .operation-help small {
-  color: var(--text-secondary);
+  color: var(--text-dim);
   font-size: 0.8rem;
 }
 
@@ -582,33 +596,33 @@
     gap: var(--spacing-xs);
     max-width: 100%;
     width: 100%;
+    grid-template-columns: repeat(7, 1fr);
   }
 
-  .button-row {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: var(--spacing-xs);
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .operators-grid {
-    display: grid;
-    gap: var(--spacing-xs);
-  }
-
-  .equals-square {
-    margin-top: 0;
-    grid-column: span 1;
+  .equals-span {
+    grid-column: span 2;
+    grid-row: span 2;
   }
 
   .calc-button {
     font-size: 0.75rem;
-    min-height: 40px;
-    width: 100%;
+    min-height: 44px;
     padding: 0;
     min-width: 0;
     box-sizing: border-box;
+  }
+
+  .calc-button.operator {
+    font-size: 0.75rem;
+  }
+
+  .calc-button.equals {
+    font-size: 0.75rem;
+  }
+
+  .calc-button.clear,
+  .calc-button.backspace {
+    font-size: 0.75rem;
   }
 
   .calculator-input {
@@ -616,6 +630,11 @@
     font-size: 0.8rem;
     width: 100%;
     box-sizing: border-box;
+  }
+
+  .gohere-display {
+    height: 38px;
+    font-size: 1rem;
   }
 
   .calculator-status {
@@ -663,25 +682,28 @@
   gap: 8px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--text-dim);
 }
 
 .private-key-value {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  user-select: text;
+  cursor: text;
 }
 
 .private-key-value.clickable {
-  cursor: pointer;
+  cursor: text;
   border-radius: 3px;
   padding: 1px 2px;
   margin: -1px -2px;
   transition: all 0.2s ease;
+  user-select: text;
 }
 
 .private-key-value.clickable:hover {

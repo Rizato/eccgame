@@ -5,6 +5,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
 import gameSlice from '../store/slices/gameSlice';
 import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
+import practiceModeSlice from '../store/slices/practiceModeSlice';
+import themeSlice from '../store/slices/themeSlice';
+import uiSlice from '../store/slices/uiSlice';
 import { getGeneratorPoint } from '../utils/ecc';
 import ECCCalculator from './ECCCalculator';
 
@@ -20,6 +23,9 @@ const createTestStore = () =>
       game: gameSlice,
       dailyCalculator: eccCalculatorSlice,
       practiceCalculator: practiceCalculatorSlice,
+      practiceMode: practiceModeSlice,
+      theme: themeSlice,
+      ui: uiSlice,
     },
   });
 
@@ -76,7 +82,8 @@ describe('ECCCalculator', () => {
       });
 
       expect(screen.getByText('Private Key:')).toBeInTheDocument();
-      expect(screen.getByText('0x1')).toBeInTheDocument();
+      const privateKeyDisplay = screen.getByTitle('Click to switch to hex');
+      expect(privateKeyDisplay).toHaveTextContent('1');
     });
   });
 
@@ -86,9 +93,13 @@ describe('ECCCalculator', () => {
         renderWithStore(<ECCCalculator {...createDefaultProps()} />);
       });
 
-      // Check for all digits 0-9
+      // Check for all digits 0-9 as buttons
       for (let i = 0; i <= 9; i++) {
-        expect(screen.getByText(i.toString())).toBeInTheDocument();
+        const numberButtons = screen.getAllByText(i.toString());
+        expect(numberButtons.length).toBeGreaterThan(0);
+        // Check at least one is a button
+        const hasButton = numberButtons.some(element => element.tagName === 'BUTTON');
+        expect(hasButton).toBe(true);
       }
     });
 

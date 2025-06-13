@@ -107,7 +107,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   // Reset current point when challenge changes
   useEffect(() => {
     if (challenge) {
-      calculatorFunctionsRef.current.resetToChallenge(challenge.public_key);
+      calculatorFunctionsRef.current.resetToGenerator();
     }
   }, [challenge]);
 
@@ -169,7 +169,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       <div className="ecc-playground">
         <div className="playground-content">
           <div className="graph-calculator-integrated">
-            <ECCGraph challengePublicKey="" onPointClick={() => {}} />
+            <ECCGraph challengePublicKey="" onPointClick={() => {}} operationCount={0} />
             <ECCCalculator
               currentPoint={{ x: 0n, y: 0n, isInfinity: true }}
               challengePublicKey=""
@@ -192,7 +192,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         {/* Integrated Graph-Calculator Layout */}
         <div className="graph-calculator-integrated">
           {/* ECC Graph Visualization */}
-          <ECCGraph challengePublicKey={challenge.public_key} onPointClick={handlePointClick} />
+          <ECCGraph
+            challengePublicKey={challenge.public_key}
+            onPointClick={handlePointClick}
+            operationCount={totalOperationCount}
+          />
 
           {/* Calculator Section */}
           <ECCCalculator

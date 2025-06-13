@@ -256,7 +256,7 @@ const practiceCalculatorSlice = createSlice({
       state.hasWon = false;
       state.showVictoryModal = false;
       state.savedPoints = [];
-      // Keep challengePublicKey and practicePrivateKey as they'll be set by the new challenge
+      // Keep challengePublicKey and practicePrivateKey as they'll be set by the new wallet
     },
     savePoint: (state, action: PayloadAction<{ label?: string }>) => {
       const { label } = action.payload;

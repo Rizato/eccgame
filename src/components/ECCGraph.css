@@ -17,8 +17,110 @@
 }
 
 .graph-content {
-  text-align: center;
   margin-bottom: 1rem;
+  width: 100%;
+}
+
+.graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.graph-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.graph-action-button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.graph-action-button:hover {
+  background: var(--surface-variant);
+  transform: translateY(-1px);
+}
+
+.graph-action-button.give-up-button {
+  background: transparent;
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.graph-action-button.give-up-button:hover {
+  background: var(--error);
+  color: var(--text-inverse);
+}
+
+.graph-action-button.practice-button {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--text-inverse);
+}
+
+.graph-action-button.practice-button:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+/* Combined Control for Difficulty + New Wallet */
+.combined-control {
+  position: relative;
+  display: inline-block;
+}
+
+.difficulty-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.difficulty-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--surface);
+  color: var(--text);
+  border: none;
+  text-align: start;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border);
+  min-height: 32px;
+}
+
+.difficulty-option:last-child {
+  border-bottom: none;
+}
+
+.difficulty-option:hover {
+  background: var(--surface-variant);
+}
+
+.graph-action-button.disabled {
+  opacity: 0.5;
 }
 
 .formula {
@@ -39,7 +141,7 @@
   background: var(--graph-bg);
   border: 2px solid var(--border-color);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible; /* Allow labels to overflow */
   margin-bottom: 1rem;
 }
 
@@ -150,6 +252,7 @@
   white-space: nowrap;
   min-width: max-content;
   opacity: 0.95;
+  z-index: 100; /* Ensure labels are on top */
 }
 
 .ecc-point.overlapping .point-dot {
@@ -211,10 +314,6 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-  .formula {
-    display: none;
-  }
-
   .graph-content {
     margin-bottom: 0.5rem;
   }

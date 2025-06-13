@@ -28,7 +28,7 @@ describe('gameUtils', () => {
 
       expect(message).toContain('ECC Game');
       expect(message).toContain('Daily Wallet #5');
-      expect(message).toContain('🏆 I solved the private key in just 42 steps!');
+      expect(message).toContain('🏆 I solved the private key in just 42 point operations!');
       expect(message).toContain('https://example.com');
     });
 
@@ -47,7 +47,7 @@ describe('gameUtils', () => {
 
       expect(message).toContain('ECC Game');
       expect(message).toContain('Practice Wallet');
-      expect(message).toContain('🤷 I gave up after 123 steps!');
+      expect(message).toContain('🤷 I gave up after 123 tries!');
       expect(message).toContain('https://example.com');
     });
 

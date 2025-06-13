@@ -5,6 +5,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
 import gameSlice from '../store/slices/gameSlice';
 import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
+import practiceModeSlice from '../store/slices/practiceModeSlice';
+import themeSlice from '../store/slices/themeSlice';
+import uiSlice from '../store/slices/uiSlice';
 import { getGeneratorPoint } from '../utils/ecc';
 import ECCCalculator from './ECCCalculator';
 
@@ -20,6 +23,9 @@ const createTestStore = () =>
       game: gameSlice,
       dailyCalculator: eccCalculatorSlice,
       practiceCalculator: practiceCalculatorSlice,
+      practiceMode: practiceModeSlice,
+      theme: themeSlice,
+      ui: uiSlice,
     },
   });
 
@@ -69,7 +75,8 @@ describe('ECCCalculator', () => {
       });
 
       expect(screen.getByText('Private Key:')).toBeInTheDocument();
-      expect(screen.getByText('0x1')).toBeInTheDocument();
+      const privateKeyDisplay = screen.getByTitle('Click to switch to hex');
+      expect(privateKeyDisplay).toHaveTextContent('1');
     });
 
     it('should show generator point coordinates', async () => {
@@ -78,7 +85,7 @@ describe('ECCCalculator', () => {
       });
 
       expect(
-        screen.getByText(/ 79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798/)
+        screen.getByText(/^79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798/)
       ).toBeInTheDocument();
       expect(
         screen.getByText(/483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8/)
@@ -123,8 +130,13 @@ describe('ECCCalculator', () => {
         renderWithStore(<ECCCalculator {...createDefaultProps()} />);
       });
 
+      // Check for all digits 0-9 as buttons
       for (let i = 0; i <= 9; i++) {
-        expect(screen.getByText(i.toString())).toBeInTheDocument();
+        const numberButtons = screen.getAllByText(i.toString());
+        expect(numberButtons.length).toBeGreaterThan(0);
+        // Check at least one is a button
+        const hasButton = numberButtons.some(element => element.tagName === 'BUTTON');
+        expect(hasButton).toBe(true);
       }
     });
 

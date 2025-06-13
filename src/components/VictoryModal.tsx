@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
 import './VictoryModal.css';
 import { getPublicKeyFromPrivate } from '../utils/crypto.ts';
 import { generateShareMessage, shareMessage } from '../utils/gameUtils';
@@ -28,12 +30,24 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   gaveUp = false,
   challenge,
 }) => {
+  const dispatch = useAppDispatch();
+  const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
+  const privateKeyHexMode = privateKeyDisplayMode === 'hex';
   const [shareStatus, setShareStatus] = useState<string | null>(null);
-  const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
-  if (!isOpen || !challenge || !(victoryPrivateKey || gaveUp)) return null;
 
-  const victoryPublicKey =
-    !gaveUp && victoryPrivateKey ? getPublicKeyFromPrivate(victoryPrivateKey) : '';
+  const victoryPublicKey = useMemo(() => {
+    if (gaveUp || !victoryPrivateKey) {
+      return '';
+    }
+    try {
+      return getPublicKeyFromPrivate(victoryPrivateKey);
+    } catch (error) {
+      console.error('Failed to generate public key:', error);
+      return '';
+    }
+  }, [gaveUp, victoryPrivateKey]);
+
+  if (!isOpen || !challenge || !(victoryPrivateKey || gaveUp)) return null;
   const getVictoryTitle = () => {
     if (gaveUp) {
       return 'Gave Up.';
@@ -105,7 +119,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
               <div className="modal-value-container">
                 <span
                   className="stat-value address-value clickable"
-                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                  onClick={() => dispatch(togglePrivateKeyDisplayMode())}
                   title={
                     privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
                   }
@@ -148,8 +162,10 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           )}
 
           <div className="stat-item">
-            <div className="stat-label">{gaveUp ? 'Steps tried' : 'Steps to solve'}</div>
-            <div className="stat-value">{operationCount}</div>
+            <div className="stat-label">
+              {gaveUp ? 'Point Operations tried' : 'Point Operations'}
+            </div>
+            <div className="stat-value address-value">{operationCount}</div>
           </div>
 
           {signature && !gaveUp && (
