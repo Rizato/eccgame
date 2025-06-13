@@ -1,29 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
-import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
 import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
 import './ChallengeInfo.css';
 
-interface ChallengeInfoProps {
-  operationCount?: number;
-}
-
-const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => {
+const ChallengeInfo: React.FC = () => {
   const dispatch = useAppDispatch();
   const gameMode = useAppSelector(state => state.game.gameMode);
   const challenge = useAppSelector(state => state.game.challenge);
   const practiceChallenge = useAppSelector(state => state.practiceMode.practiceChallenge);
-  const hasWon = useAppSelector(state => state.game.hasWon);
-  const gaveUp = useAppSelector(state => state.game.gaveUp);
 
-  const { practicePrivateKey, setDifficulty, generatePracticeChallenge, isGenerating } =
-    usePracticeModeRedux();
+  const { practicePrivateKey, isGenerating } = usePracticeModeRedux();
 
   const isPracticeMode = gameMode === 'practice';
   const currentChallenge = isPracticeMode ? practiceChallenge : challenge;
-  const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
   const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
   const privateKeyHexMode = privateKeyDisplayMode === 'hex';
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -31,34 +21,6 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
     return window.innerWidth <= 768;
   });
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Always show give up button in daily mode, but enable only after 3 operations and when not won/given up
-  const showGiveUpButton = !isPracticeMode;
-  const enableGiveUpButton = !isPracticeMode && operationCount >= 3 && !hasWon && !gaveUp;
-
-  const handleGiveUp = () => {
-    // Update game state
-    dispatch(setGaveUp(true));
-    dispatch(setHasWon(true)); // Show victory modal
-    dispatch(setShowVictoryModal(true));
-  };
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDifficultyDropdown(false);
-      }
-    };
-
-    if (showDifficultyDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showDifficultyDropdown]);
 
   // Handle window resize to update mobile state
   useEffect(() => {
@@ -83,9 +45,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
             onClick={isMobile ? () => setIsCollapsed(!isCollapsed) : undefined}
           >
             <h4 className="address-heading">
-              {isPracticeMode
-                ? 'Practice Wallet'
-                : `Daily Wallet${currentChallenge?.id !== undefined ? ` #${currentChallenge.id}` : ''}`}
+              {isPracticeMode ? 'Practice Wallet' : 'Daily Wallet'}
             </h4>
             <div className="header-actions">
               {isMobile && <button className="collapse-button">{isCollapsed ? '▼' : '▲'}</button>}
@@ -127,9 +87,7 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
             onClick={isMobile ? () => setIsCollapsed(!isCollapsed) : undefined}
           >
             <h4 className="address-heading">
-              {isPracticeMode
-                ? `Practice Wallet${currentChallenge?.id !== undefined ? ` #${currentChallenge.id}` : ''}`
-                : `Daily Wallet${currentChallenge?.id !== undefined ? ` #${currentChallenge.id}` : ''}`}
+              {isPracticeMode ? 'Practice Wallet' : 'Daily Wallet'}
             </h4>
             <div className="header-actions">
               {isMobile && <button className="collapse-button">{isCollapsed ? '▼' : '▲'}</button>}
@@ -187,78 +145,6 @@ const ChallengeInfo: React.FC<ChallengeInfoProps> = ({ operationCount = 0 }) => 
                   </div>
                 </div>
               )}
-
-              <div className="challenge-actions">
-                {isPracticeMode && (
-                  <div className="combined-control" ref={dropdownRef}>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        !isGenerating && setShowDifficultyDropdown(!showDifficultyDropdown);
-                      }}
-                      className={`details-button combined-control-button ${isGenerating ? 'disabled' : ''}`}
-                      disabled={isGenerating}
-                      title={isGenerating ? 'Generating new challenge...' : 'Create new challenge'}
-                    >
-                      {isGenerating ? 'Generating...' : 'New Challenge ▼'}
-                    </button>
-                    {showDifficultyDropdown && !isGenerating && (
-                      <div className="difficulty-dropdown">
-                        <button
-                          onClick={e => {
-                            e.stopPropagation();
-                            setDifficulty('easy');
-                            generatePracticeChallenge();
-                            setShowDifficultyDropdown(false);
-                          }}
-                          className="difficulty-option"
-                        >
-                          Easy
-                        </button>
-                        <button
-                          onClick={e => {
-                            e.stopPropagation();
-                            setDifficulty('medium');
-                            generatePracticeChallenge();
-                            setShowDifficultyDropdown(false);
-                          }}
-                          className="difficulty-option"
-                        >
-                          Medium
-                        </button>
-                        <button
-                          onClick={e => {
-                            e.stopPropagation();
-                            setDifficulty('hard');
-                            generatePracticeChallenge();
-                            setShowDifficultyDropdown(false);
-                          }}
-                          className="difficulty-option"
-                        >
-                          Hard
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-                {showGiveUpButton && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleGiveUp();
-                    }}
-                    className={`details-button give-up-button header-give-up ${!enableGiveUpButton ? 'disabled' : ''}`}
-                    disabled={!enableGiveUpButton}
-                    title={
-                      !enableGiveUpButton
-                        ? 'Available after 3 operations'
-                        : 'Give up and reveal solution'
-                    }
-                  >
-                    Give Up
-                  </button>
-                )}
-              </div>
             </>
           )}
         </div>

@@ -58,6 +58,10 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                       <strong>Addition:</strong> Adding two points on the curve to get a third point
                     </li>
                     <li>
+                      <strong>Doubling:</strong> Adding a point to itself (P + P = 2P) - a special
+                      case of addition
+                    </li>
+                    <li>
                       <strong>Multiplication:</strong> Adding a point to itself multiple times
                       (scalar multiplication)
                     </li>
@@ -80,36 +84,37 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
           </section>
 
           <section className="how-to-play-section">
-            <h3>Game Modes</h3>
-            <div className="game-modes">
-              <div className="mode-item clickable" onClick={() => handleModeClick('daily')}>
-                <h3>Daily Mode</h3>
-                <p>
-                  Challenge yourself with real Bitcoin wallets. These are basically impossible to
-                  solve - that's what makes Bitcoin secure!
-                </p>
-                <span className="mode-action">Play Daily Mode →</span>
-              </div>
-              <div className="mode-item clickable" onClick={() => handleModeClick('practice')}>
-                <h3>Practice Mode</h3>
-                <p>
-                  Learn ECC operations with wallets that have known private keys. Perfect for
-                  understanding how the math works.
-                </p>
-                <span className="mode-action">Play Practice Mode →</span>
-              </div>
-            </div>
-          </section>
-
-          <section className="how-to-play-section">
             <h3>Using the Calculator</h3>
             <div className="calculator-guide">
+              <div className="image-placeholder calculator-image">
+                <img
+                  src="/images/calculator-light-desktop.png"
+                  alt="Calculator Interface"
+                  className="light-desktop"
+                />
+                <img
+                  src="/images/calculator-dark-desktop.png"
+                  alt="Calculator Interface"
+                  className="dark-desktop"
+                />
+                <img
+                  src="/images/calculator-light-mobile.png"
+                  alt="Calculator Interface"
+                  className="light-mobile"
+                />
+                <img
+                  src="/images/calculator-dark-mobile.png"
+                  alt="Calculator Interface"
+                  className="dark-mobile"
+                />
+                <p className="placeholder-text">Calculator Interface Example</p>
+              </div>
               <p>
                 The calculator operates on the <strong>current point</strong> shown on the graph.
                 You perform point operations to move from it to another point to reveal the private
                 key for the wallet. Starting from G or the Wallet, make repeated operations until
-                you reveal the private key by creating a sequence of operations that connect the two
-                points.
+                you reveal the private key by creating a sequence of operations that connects the
+                two points.
               </p>
 
               <div className="calc-operations">
@@ -159,30 +164,6 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                   a reference to jump back to. Click the star again to unsave.
                 </p>
               </div>
-
-              <div className="image-placeholder calculator-image">
-                <img
-                  src="/images/calculator-light-desktop.png"
-                  alt="Calculator Interface"
-                  className="light-desktop"
-                />
-                <img
-                  src="/images/calculator-dark-desktop.png"
-                  alt="Calculator Interface"
-                  className="dark-desktop"
-                />
-                <img
-                  src="/images/calculator-light-mobile.png"
-                  alt="Calculator Interface"
-                  className="light-mobile"
-                />
-                <img
-                  src="/images/calculator-dark-mobile.png"
-                  alt="Calculator Interface"
-                  className="dark-mobile"
-                />
-                <p className="placeholder-text">Calculator Interface Example</p>
-              </div>
             </div>
           </section>
 
@@ -230,15 +211,11 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                   <li>
                     <strong>Saved Points:</strong> Points you've bookmarked for reference
                   </li>
-                  <li>
-                    <strong>Edge to G:</strong> Shows the multiplication path from G to the current
-                    point
-                  </li>
                 </ul>
 
                 <div className="tip-box">
                   <strong>Graph Tip:</strong> Points on the graph are approximations due to the
-                  challenge of representing 2^256 space on a limited screen
+                  challenge of representing 2^256 space on a limited screen.
                 </div>
               </div>
 
@@ -274,18 +251,17 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                     <strong>Click any point:</strong> View its details (coordinates, address, etc.)
                   </li>
                   <li>
-                    <strong>Switch here:</strong> Make the clicked point your new current point for
-                    calculations
+                    <strong>"Switch here":</strong> Make the clicked point your new current point
+                    for calculations
                   </li>
                   <li>
-                    <strong>Copy to Calculator:</strong> Copy the private key (if known) to the
+                    <strong>"Copy to Calculator":</strong> Copy the private key (if known) to the
                     calculator display
                   </li>
                 </ul>
                 <p className="graph-note">
                   <strong>Note:</strong> Clicking a point and using "Switch here" changes your
-                  starting point for all future operations. The "edge to G" will update to show the
-                  scalar relationship.
+                  starting point for all future operations.
                 </p>
               </div>
             </div>
@@ -296,29 +272,45 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
             <div className="quick-guide">
               <ol>
                 <li>
-                  <strong>Start with Practice Mode</strong> to learn how the tools work
+                  <strong>Start with Practice Mode</strong> to learn how the tools work.
                 </li>
                 <li>
                   <strong>Experiment with operations</strong> like multiply, divide, add, subtract,
-                  and negate
+                  and negate.
                 </li>
                 <li>
-                  <strong>Save interesting points</strong> to create your own landmarks
+                  <strong>Save interesting points</strong> to create your own landmarks.
                 </li>
                 <li>
-                  <strong>Try the Daily Challenge</strong> and accept inevitable defeat
+                  <strong>Try the Daily Challenge</strong> and accept inevitable defeat.
                 </li>
                 <li>
-                  <strong>Share your attempts</strong> and spread the mathematical madness
+                  <strong>Share your attempts</strong> and spread the mathematical madness!
                 </li>
               </ol>
             </div>
           </section>
-        </div>
-        <div className="how-to-play-footer">
-          <button onClick={onClose} className="how-to-play-got-it-button">
-            Got it! Let's Play
-          </button>
+          <section className="how-to-play-section">
+            <h3>Game Modes</h3>
+            <div className="game-modes">
+              <div className="mode-item clickable" onClick={() => handleModeClick('daily')}>
+                <h3>Daily Mode</h3>
+                <p>
+                  Challenge yourself with real Bitcoin wallets. These are basically impossible to
+                  solve - that's what makes Bitcoin secure!
+                </p>
+                <span className="mode-action">Play Daily Mode →</span>
+              </div>
+              <div className="mode-item clickable" onClick={() => handleModeClick('practice')}>
+                <h3>Practice Mode</h3>
+                <p>
+                  Learn ECC operations with wallets that have known private keys. Perfect for
+                  understanding how the math works.
+                </p>
+                <span className="mode-action">Play Practice Mode →</span>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>,

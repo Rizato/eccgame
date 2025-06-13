@@ -414,16 +414,17 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       const newPoint = pointMultiply(scalar, generatorPoint);
       const operation: Operation = {
         id: `op_${Date.now()}`,
-        type: 'gohere',
+        type: 'multiply',
         description: `→ G×${calculatorDisplay}`,
         value: calculatorDisplay,
       };
 
-      // Add to graph through Redux
+      // For go here, we're going from G to the new point, so the fromPoint should be G
+      // This ensures the new node gets the correct private key (scalar) and is connected to G
       dispatchOperation({
-        fromPoint: currentPoint,
+        fromPoint: generatorPoint,
         toPoint: newPoint,
-        operation,
+        operation: operation,
       });
 
       // Also notify parent for any UI updates

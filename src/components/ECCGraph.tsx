@@ -1,13 +1,17 @@
 import Decimal from 'decimal.js';
-import React, { useCallback } from 'react';
-import { useAppSelector } from '../store/hooks';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { CURVE_P, getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
+import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
+import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
+import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
 import type { ECPoint } from '../types/ecc';
 import './ECCGraph.css';
 
 interface ECCGraphProps {
   challengePublicKey: string;
   onPointClick: (point: ECPoint) => void;
+  operationCount?: number;
 }
 
 interface GraphPoint {
@@ -23,11 +27,51 @@ interface GraphPoint {
   overlappingPoints?: GraphPoint[];
 }
 
-const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick }) => {
+const ECCGraph: React.FC<ECCGraphProps> = ({
+  challengePublicKey,
+  onPointClick,
+  operationCount = 0,
+}) => {
+  const dispatch = useAppDispatch();
   const gameMode = useAppSelector(state => state.game.gameMode);
+  const hasWon = useAppSelector(state => state.game.hasWon);
+  const gaveUp = useAppSelector(state => state.game.gaveUp);
   const { selectedPoint, savedPoints } = useAppSelector(state =>
     gameMode === 'practice' ? state.practiceCalculator : state.dailyCalculator
   );
+
+  const { setDifficulty, generatePracticeChallenge, isGenerating } = usePracticeModeRedux();
+
+  const isPracticeMode = gameMode === 'practice';
+  const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Always show give up button in daily mode, but enable only after 3 operations and when not won/given up
+  const showGiveUpButton = !isPracticeMode;
+  const enableGiveUpButton = !isPracticeMode && operationCount >= 3 && !hasWon && !gaveUp;
+
+  const handleGiveUp = () => {
+    // Update game state
+    dispatch(setGaveUp(true));
+    dispatch(setHasWon(true)); // Show victory modal
+    dispatch(setShowVictoryModal(true));
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDifficultyDropdown(false);
+      }
+    };
+
+    if (showDifficultyDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showDifficultyDropdown]);
 
   const generatorPoint = getGeneratorPoint();
 
@@ -178,7 +222,73 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
   return (
     <div className="graph-section graph-display">
       <div className="graph-content">
-        <div className="formula">y² = x³ + 7 (mod p)</div>
+        <div className="graph-header">
+          <div className="formula">y² = x³ + 7 (mod p)</div>
+          <div className="graph-actions">
+            {isPracticeMode && (
+              <div className="combined-control" ref={dropdownRef}>
+                <button
+                  onClick={() =>
+                    !isGenerating && setShowDifficultyDropdown(!showDifficultyDropdown)
+                  }
+                  className={`graph-action-button practice-button ${isGenerating ? 'disabled' : ''}`}
+                  disabled={isGenerating}
+                  title={isGenerating ? 'Generating new challenge...' : 'Create new challenge'}
+                >
+                  {isGenerating ? 'Generating...' : 'New Challenge ▼'}
+                </button>
+                {showDifficultyDropdown && !isGenerating && (
+                  <div className="difficulty-dropdown">
+                    <button
+                      onClick={() => {
+                        setDifficulty('easy');
+                        generatePracticeChallenge();
+                        setShowDifficultyDropdown(false);
+                      }}
+                      className="difficulty-option"
+                    >
+                      Easy
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDifficulty('medium');
+                        generatePracticeChallenge();
+                        setShowDifficultyDropdown(false);
+                      }}
+                      className="difficulty-option"
+                    >
+                      Medium
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDifficulty('hard');
+                        generatePracticeChallenge();
+                        setShowDifficultyDropdown(false);
+                      }}
+                      className="difficulty-option"
+                    >
+                      Hard
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+            {showGiveUpButton && (
+              <button
+                onClick={handleGiveUp}
+                className={`graph-action-button give-up-button ${!enableGiveUpButton ? 'disabled' : ''}`}
+                disabled={!enableGiveUpButton}
+                title={
+                  !enableGiveUpButton
+                    ? 'Available after 3 operations'
+                    : 'Give up and reveal solution'
+                }
+              >
+                Give Up
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="ecc-graph">
@@ -198,34 +308,60 @@ const ECCGraph: React.FC<ECCGraphProps> = ({ challengePublicKey, onPointClick })
         <div className="curve-line"></div>
 
         {/* Plot points */}
-        {graphPoints.map(point => (
-          <div
-            key={point.id}
-            className={`ecc-point ${point.id}${point.isOverlapping ? ' overlapping' : ''}`}
-            style={
-              {
-                left: `${point.x}%`,
-                top: `${point.y}%`,
-                '--point-color': point.isOverlapping ? 'transparent' : point.color,
-              } as React.CSSProperties
+        {graphPoints.map((point, index) => {
+          // Calculate label offset to prevent overlap
+          let labelOffset = 0;
+          const labelSpacing = 25; // pixels
+
+          // Check for nearby points and adjust label position
+          for (let i = 0; i < index; i++) {
+            const otherPoint = graphPoints[i];
+            const dx = Math.abs(point.x - otherPoint.x);
+            const dy = Math.abs(point.y - otherPoint.y);
+
+            // If points are close, offset the label
+            if (dx < 8 && dy < 8) {
+              labelOffset += labelSpacing;
             }
-            title={point.description}
-            onClick={() => onPointClick(point.point)}
-          >
+          }
+
+          return (
             <div
-              className="point-dot"
+              key={point.id}
+              className={`ecc-point ${point.id}${point.isOverlapping ? ' overlapping' : ''}`}
               style={
-                point.isOverlapping
-                  ? {
-                      background: point.color,
-                      border: '2px solid var(--card-background)',
-                    }
-                  : {}
+                {
+                  left: `${point.x}%`,
+                  top: `${point.y}%`,
+                  '--point-color': point.isOverlapping ? 'transparent' : point.color,
+                } as React.CSSProperties
               }
-            ></div>
-            <div className="point-label">{point.label}</div>
-          </div>
-        ))}
+              title={point.description}
+              onClick={() => onPointClick(point.point)}
+            >
+              <div
+                className="point-dot"
+                style={
+                  point.isOverlapping
+                    ? {
+                        background: point.color,
+                        border: '2px solid var(--card-background)',
+                      }
+                    : {}
+                }
+              ></div>
+              <div
+                className="point-label"
+                style={{
+                  transform: labelOffset > 0 ? `translateY(${labelOffset}px)` : undefined,
+                  zIndex: 1000 + index, // Ensure labels don't overlap
+                }}
+              >
+                {point.label}
+              </div>
+            </div>
+          );
+        })}
 
         {/* Graph range indicators */}
         <div className="range-indicator bottom-left">0</div>
