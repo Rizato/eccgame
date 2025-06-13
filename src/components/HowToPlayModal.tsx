@@ -86,29 +86,6 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
           <section className="how-to-play-section">
             <h3>Using the Calculator</h3>
             <div className="calculator-guide">
-              <div className="image-placeholder calculator-image">
-                <img
-                  src="/images/calculator-light-desktop.png"
-                  alt="Calculator Interface"
-                  className="light-desktop"
-                />
-                <img
-                  src="/images/calculator-dark-desktop.png"
-                  alt="Calculator Interface"
-                  className="dark-desktop"
-                />
-                <img
-                  src="/images/calculator-light-mobile.png"
-                  alt="Calculator Interface"
-                  className="light-mobile"
-                />
-                <img
-                  src="/images/calculator-dark-mobile.png"
-                  alt="Calculator Interface"
-                  className="dark-mobile"
-                />
-                <p className="placeholder-text">Calculator Interface Example</p>
-              </div>
               <p>
                 The calculator operates on the <strong>current point</strong> shown on the graph.
                 You perform point operations to move from it to another point to reveal the private
@@ -170,30 +147,6 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
           <section className="how-to-play-section">
             <h3>Reading the Graph</h3>
 
-            <div className="image-placeholder graph-image">
-              <img
-                src="/images/graph-light-desktop.png"
-                alt="Graph Interface"
-                className="light-desktop"
-              />
-              <img
-                src="/images/graph-dark-desktop.png"
-                alt="Graph Interface"
-                className="dark-desktop"
-              />
-              <img
-                src="/images/graph-light-mobile.png"
-                alt="Graph Interface"
-                className="light-mobile"
-              />
-              <img
-                src="/images/graph-dark-mobile.png"
-                alt="Graph Interface"
-                className="dark-mobile"
-              />
-              <p className="placeholder-text">Graph Interface Example</p>
-            </div>
-
             <div className="graph-guide">
               <div className="graph-elements">
                 <h4>What You See:</h4>
@@ -221,31 +174,6 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
 
               <div className="graph-navigation">
                 <h4>Interacting with Points:</h4>
-
-                <div className="image-placeholder point-image">
-                  <img
-                    src="/images/graph-light-desktop.png"
-                    alt="Point Interface"
-                    className="light-desktop"
-                  />
-                  <img
-                    src="/images/graph-dark-desktop.png"
-                    alt="Point Interface"
-                    className="dark-desktop"
-                  />
-                  <img
-                    src="/images/graph-light-mobile.png"
-                    alt="Point Interface"
-                    className="light-mobile"
-                  />
-                  <img
-                    src="/images/graph-dark-mobile.png"
-                    alt="Point Interface"
-                    className="dark-mobile"
-                  />
-                  <p className="placeholder-text">Point Interface Example</p>
-                </div>
-
                 <ul>
                   <li>
                     <strong>Click any point:</strong> View its details (coordinates, address, etc.)
