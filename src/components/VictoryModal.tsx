@@ -165,7 +165,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
             <div className="stat-label">
               {gaveUp ? 'Point Operations tried' : 'Point Operations'}
             </div>
-            <div className="stat-value">{operationCount}</div>
+            <div className="stat-value address-value">{operationCount}</div>
           </div>
 
           {signature && !gaveUp && (
