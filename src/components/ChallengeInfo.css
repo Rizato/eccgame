@@ -11,6 +11,17 @@
   align-items: center;
 }
 
+.challenge-header.collapsible {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.challenge-header.collapsible:hover {
+  background: var(--surface-variant);
+  border-radius: var(--radius);
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -48,22 +59,11 @@
 .loading-placeholder {
   background: var(--surface-variant);
   color: var(--text-dim);
-  animation: pulse 1.5s ease-in-out infinite;
 }
 
 .disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
 }
 
 .challenge-header h3 {
@@ -96,7 +96,7 @@
 }
 
 .address-heading {
-  margin: 0 0 8px 0;
+  margin: 0;
   color: var(--text-primary);
   font-size: 1rem;
   font-weight: 600;
@@ -499,5 +499,42 @@
     background: var(--primary);
     color: var(--text-inverse);
     border-color: var(--primary);
+  }
+}
+
+/* Collapse button */
+.collapse-button {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.collapse-button:hover {
+  color: var(--text);
+  background: var(--surface-variant);
+  border-radius: var(--radius);
+}
+
+/* Challenge actions section */
+.challenge-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .challenge-actions {
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
   }
 }

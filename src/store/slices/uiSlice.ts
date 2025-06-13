@@ -3,11 +3,13 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 interface UIState {
   hasSeenHowToPlay: boolean;
   showHowToPlay: boolean;
+  privateKeyDisplayMode: 'decimal' | 'hex';
 }
 
 const initialState: UIState = {
   hasSeenHowToPlay: false,
   showHowToPlay: false,
+  privateKeyDisplayMode: 'decimal', // Start in decimal mode
 };
 
 const uiSlice = createSlice({
@@ -34,9 +36,21 @@ const uiSlice = createSlice({
         state.hasSeenHowToPlay = true;
       }
     },
+    setPrivateKeyDisplayMode: (state, action: PayloadAction<'decimal' | 'hex'>) => {
+      state.privateKeyDisplayMode = action.payload;
+    },
+    togglePrivateKeyDisplayMode: state => {
+      state.privateKeyDisplayMode = state.privateKeyDisplayMode === 'decimal' ? 'hex' : 'decimal';
+    },
   },
 });
 
-export const { setShowHowToPlay, markHowToPlayAsSeen, openHowToPlay, closeHowToPlay } =
-  uiSlice.actions;
+export const {
+  setShowHowToPlay,
+  markHowToPlayAsSeen,
+  openHowToPlay,
+  closeHowToPlay,
+  setPrivateKeyDisplayMode,
+  togglePrivateKeyDisplayMode,
+} = uiSlice.actions;
 export default uiSlice.reducer;

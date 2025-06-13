@@ -1,5 +1,7 @@
-import React, { type ReactNode, useState } from 'react';
+import React, { type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
 import { publicKeyToPoint } from '../utils/ecc';
 import type { ECPoint } from '../types/ecc';
 import type { Challenge } from '../types/game';
@@ -50,7 +52,9 @@ export const Modal: React.FC<ModalProps> = ({
   onLoadPoint,
   onCopyPrivateKeyToCalculator,
 }) => {
-  const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
+  const dispatch = useAppDispatch();
+  const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
+  const privateKeyHexMode = privateKeyDisplayMode === 'hex';
 
   if (!isOpen) return null;
 
@@ -99,7 +103,7 @@ export const Modal: React.FC<ModalProps> = ({
               <div className="modal-value-container">
                 <span
                   className="modal-value-display clickable"
-                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                  onClick={() => dispatch(togglePrivateKeyDisplayMode())}
                   title={
                     privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
                   }
@@ -306,7 +310,7 @@ export const Modal: React.FC<ModalProps> = ({
                   onClose();
                 }}
               >
-                Use as Current Point
+                Switch here
               </button>
             )}
           </div>

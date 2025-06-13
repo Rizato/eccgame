@@ -74,7 +74,7 @@
 .point-compressed-key {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--text-dim);
   background: var(--surface-variant);
   padding: 4px 8px;
   border-radius: 4px;
@@ -276,12 +276,13 @@
 .calculator-display {
   width: 100%;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
   flex: 1;
 }
 
 .calculator-input {
-  width: 100%;
+  flex: 1;
   padding: var(--spacing) var(--spacing-lg);
   border: 2px solid var(--border);
   border-radius: var(--radius);
@@ -297,6 +298,89 @@
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+}
+
+/* Go Here button in display */
+.gohere-display {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--primary);
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-radius: var(--radius);
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gohere-display:hover:not(:disabled) {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.gohere-display:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: var(--surface-variant);
+  border-color: var(--border);
+  color: var(--text-dim);
+}
+
+/* Top buttons row for operations column */
+.top-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.calc-button.compact {
+  flex: 1;
+  font-size: 0.875rem;
+  padding: var(--spacing-xs);
+}
+
+/* Quick operation button colors */
+.calc-button.quick-op.add,
+.calc-button.quick-op.subtract {
+  background: #10b981; /* emerald-500 */
+  border-color: #10b981;
+  color: white;
+}
+
+.calc-button.quick-op.add:hover,
+.calc-button.quick-op.subtract:hover {
+  background: #047857; /* emerald-700 */
+  border-color: #047857;
+}
+
+.calc-button.quick-op.multiply,
+.calc-button.quick-op.divide {
+  background: #3b82f6; /* blue-500 */
+  border-color: #3b82f6;
+  color: white;
+}
+
+.calc-button.quick-op.multiply:hover,
+.calc-button.quick-op.divide:hover {
+  background: #1d4ed8; /* blue-700 */
+  border-color: #1d4ed8;
+}
+
+.calc-button.quick-op.negate {
+  background: #f59e0b; /* amber-500 */
+  border-color: #f59e0b;
+  color: white;
+}
+
+.calc-button.quick-op.negate:hover {
+  background: #d97706; /* amber-600 */
+  border-color: #d97706;
 }
 
 .calculator-input::placeholder {
@@ -563,7 +647,7 @@
 }
 
 .operation-help small {
-  color: var(--text-secondary);
+  color: var(--text-dim);
   font-size: 0.8rem;
 }
 
@@ -663,7 +747,7 @@
   gap: 8px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--text-dim);
 }
 
 .private-key-value {

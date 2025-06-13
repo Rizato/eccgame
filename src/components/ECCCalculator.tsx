@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './ECCCalculator.css';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
 import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
 import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
 import { getP2PKHAddress } from '../utils/crypto';
@@ -68,7 +69,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   >(null);
   const [hexMode, setHexMode] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<string>('');
-  const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
+  const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
+  const privateKeyHexMode = privateKeyDisplayMode === 'hex';
   const [showSaveModal, setShowSaveModal] = useState(false);
 
   const generatorPoint = getGeneratorPoint();
@@ -378,6 +380,69 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     }
   }, [currentPoint, dispatchOperation, onPointChange, onError, isLocked]);
 
+  // Go Here function - jumps directly to G × scalar
+  const goHere = useCallback(() => {
+    if (isLocked || !calculatorDisplay) return;
+    try {
+      onError(null);
+
+      let scalar: bigint;
+      try {
+        const value = calculatorDisplay.trim();
+        if (value.startsWith('0x')) {
+          scalar = hexToBigint(value);
+        } else if (value.includes('.')) {
+          onError('Decimal numbers not supported. Use integers or hex values.');
+          return;
+        } else {
+          scalar = BigInt(value);
+        }
+      } catch {
+        onError('Invalid scalar value');
+        return;
+      }
+
+      if (scalar <= 0n) {
+        onError('Scalar must be positive');
+        return;
+      }
+
+      if (scalar >= CURVE_N) {
+        scalar %= CURVE_N;
+      }
+
+      const newPoint = pointMultiply(scalar, generatorPoint);
+      const operation: Operation = {
+        id: `op_${Date.now()}`,
+        type: 'gohere',
+        description: `→ G×${calculatorDisplay}`,
+        value: calculatorDisplay,
+      };
+
+      // Add to graph through Redux
+      dispatchOperation({
+        fromPoint: currentPoint,
+        toPoint: newPoint,
+        operation,
+      });
+
+      // Also notify parent for any UI updates
+      onPointChange(newPoint, operation);
+      clearCalculator();
+    } catch (error) {
+      onError(`Go here failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [
+    calculatorDisplay,
+    currentPoint,
+    isLocked,
+    generatorPoint,
+    dispatchOperation,
+    onPointChange,
+    onError,
+    clearCalculator,
+  ]);
+
   const executeCalculatorOperation = useCallback(
     (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
       if (isLocked) return;
@@ -633,7 +698,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                   return (
                     <span
                       className="private-key-value clickable"
-                      onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                      onClick={() => dispatch(togglePrivateKeyDisplayMode())}
                       title={
                         privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
                       }
@@ -659,18 +724,20 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             className="calculator-input"
             readOnly
           />
+          <button
+            onClick={goHere}
+            className={`calc-button gohere-display ${!calculatorDisplay ? 'disabled' : ''}`}
+            disabled={!calculatorDisplay}
+            title="Jump to G × scalar"
+            data-testid="gohere-button"
+          >
+            →
+          </button>
         </div>
         <div className="calculator-buttons">
           <div className="calculator-main-grid">
             <div className="number-section">
               <div className="button-row top-row">
-                <button
-                  onClick={clearCalculator}
-                  className="calc-button clear"
-                  data-testid="clear-button"
-                >
-                  C
-                </button>
                 <button onClick={quickAddG} className="calc-button quick-op add">
                   +1
                 </button>
@@ -682,6 +749,9 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 </button>
                 <button onClick={quickHalve} className="calc-button quick-op divide">
                   ÷2
+                </button>
+                <button onClick={quickNegate} className="calc-button quick-op negate">
+                  ±
                 </button>
               </div>
               <div className="button-row">
@@ -749,17 +819,24 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 >
                   0x
                 </button>
-                <button onClick={quickNegate} className="calc-button quick-op negate">
-                  ±
-                </button>
+                <button className="calc-button spacer"></button>
                 <button className="calc-button spacer"></button>
                 <button className="calc-button spacer"></button>
               </div>
             </div>
             <div className="operations-column">
-              <button onClick={backspaceCalculator} className="calc-button backspace">
-                ⌫
-              </button>
+              <div className="top-buttons">
+                <button
+                  onClick={clearCalculator}
+                  className="calc-button clear compact"
+                  data-testid="clear-button"
+                >
+                  C
+                </button>
+                <button onClick={backspaceCalculator} className="calc-button backspace compact">
+                  ⌫
+                </button>
+              </div>
               <div className="operators-grid">
                 <button
                   onClick={() => setCalculatorOperation('divide')}

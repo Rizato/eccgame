@@ -126,7 +126,7 @@
   border: 1px solid var(--border);
   border-right: none;
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: var(--spacing-sm);
   font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
   font-size: 0.875rem;
   flex: 1;
@@ -142,9 +142,8 @@
 }
 
 .modal-value-display:hover {
-  background: var(--primary);
-  color: var(--text-inverse);
-  border-color: var(--primary);
+  background: var(--surface-dim);
+  border-color: var(--border);
 }
 
 .modal-value-display.clickable {

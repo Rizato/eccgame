@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
 import './VictoryModal.css';
 import { getPublicKeyFromPrivate } from '../utils/crypto.ts';
 import { generateShareMessage, shareMessage } from '../utils/gameUtils';
@@ -28,8 +30,10 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
   gaveUp = false,
   challenge,
 }) => {
+  const dispatch = useAppDispatch();
+  const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
+  const privateKeyHexMode = privateKeyDisplayMode === 'hex';
   const [shareStatus, setShareStatus] = useState<string | null>(null);
-  const [privateKeyHexMode, setPrivateKeyHexMode] = useState(true);
   if (!isOpen || !challenge || !(victoryPrivateKey || gaveUp)) return null;
 
   const victoryPublicKey =
@@ -105,7 +109,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
               <div className="modal-value-container">
                 <span
                   className="stat-value address-value clickable"
-                  onClick={() => setPrivateKeyHexMode(!privateKeyHexMode)}
+                  onClick={() => dispatch(togglePrivateKeyDisplayMode())}
                   title={
                     privateKeyHexMode ? 'Click to switch to decimal' : 'Click to switch to hex'
                   }
