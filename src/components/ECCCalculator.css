@@ -59,7 +59,6 @@
   background: var(--surface-variant);
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  border-left: 3px solid var(--primary);
   overflow: hidden;
 }
 
@@ -258,7 +257,8 @@
   background: var(--surface);
   border-radius: 0 0 var(--radius) var(--radius);
   padding: var(--spacing);
-  flex: 1;
+  max-width: 400px;
+  width: 100%;
 }
 
 .calculator-status {
@@ -278,7 +278,6 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  flex: 1;
 }
 
 .calculator-input {
@@ -304,9 +303,10 @@
 .gohere-display {
   flex-shrink: 0;
   width: 48px;
-  height: 48px;
+  height: 56px; /* Match calculator input height */
   border: 2px solid var(--primary);
-  background: var(--primary);
+  background: var(--info);
+  border-color: var(--info);
   color: var(--text-inverse);
   border-radius: var(--radius);
   font-size: 1.2rem;
@@ -318,31 +318,11 @@
   justify-content: center;
 }
 
-.gohere-display:hover:not(:disabled) {
-  background: var(--primary-dark);
-  border-color: var(--primary-dark);
-  transform: translateY(-1px);
-}
-
 .gohere-display:disabled {
   opacity: 0.3;
-  cursor: not-allowed;
   background: var(--surface-variant);
   border-color: var(--border);
   color: var(--text-dim);
-}
-
-/* Top buttons row for operations column */
-.top-buttons {
-  display: flex;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-sm);
-}
-
-.calc-button.compact {
-  flex: 1;
-  font-size: 0.875rem;
-  padding: var(--spacing-xs);
 }
 
 /* Quick operation button colors */
@@ -392,7 +372,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  flex: 1;
 }
 
 /* Main calculator grid */
@@ -415,12 +394,12 @@
 .button-row {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: var(--spacing-xs);
+  gap: 4px;
   flex: 1;
 }
 
 .button-row.top-row {
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-xs);
 }
 
 /* Operations column */
@@ -431,8 +410,13 @@
   grid-column: 6 / span 2;
 }
 
-.operations-column .backspace {
+/* Top buttons row for operations column - now using grid */
+.top-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xs);
   margin-bottom: var(--spacing-sm);
+  min-height: 32px;
 }
 
 .operators-grid {
@@ -591,7 +575,6 @@
   background: var(--text-dim);
   color: var(--text-inverse);
   border-color: var(--text-dim);
-  aspect-ratio: 2;
 }
 
 .calc-button.backspace:hover {

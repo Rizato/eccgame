@@ -4,12 +4,48 @@
  * This single test demonstrates the complete user journey by testing each
  * component interface in isolation to verify the full workflow is possible.
  */
+import { configureStore } from '@reduxjs/toolkit';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
+import { Provider } from 'react-redux';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import HowToPlayModal from '../components/HowToPlayModal';
 import { VictoryModal } from '../components/VictoryModal';
+import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
+import gameSlice from '../store/slices/gameSlice';
+import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
+import practiceModeSlice from '../store/slices/practiceModeSlice';
+import themeSlice from '../store/slices/themeSlice';
+import uiSlice from '../store/slices/uiSlice';
+import type { ReactNode } from 'react';
+
+// Create a test store
+const createTestStore = () => {
+  return configureStore({
+    reducer: {
+      game: gameSlice,
+      ui: uiSlice,
+      practiceCalculator: practiceCalculatorSlice,
+      dailyCalculator: eccCalculatorSlice,
+      practiceMode: practiceModeSlice,
+      theme: themeSlice,
+    },
+    preloadedState: {
+      ui: {
+        hasSeenHowToPlay: false,
+        showHowToPlay: false,
+        privateKeyDisplayMode: 'decimal' as const,
+      },
+    },
+  });
+};
+
+// Helper function to render with provider
+const renderWithProvider = (ui: ReactNode) => {
+  const store = createTestStore();
+  return render(<Provider store={store}>{ui}</Provider>);
+};
 
 // Mock all utilities to avoid complex state management
 vi.mock('../utils/storage', () => ({
@@ -66,15 +102,15 @@ describe('Complete User Journey - Interface Testing', () => {
     // STEP 1: Welcome Modal Workflow
     console.log('📋 STEP 1: User opens site → Welcome modal appears');
     const mockCloseWelcome = vi.fn();
-    render(<HowToPlayModal isOpen={true} onClose={mockCloseWelcome} />);
+    renderWithProvider(<HowToPlayModal isOpen={true} onClose={mockCloseWelcome} />);
 
     // Verify welcome modal content is shown
-    expect(screen.getByText('How to Play ECC Game')).toBeInTheDocument();
+    expect(screen.getByText('How to Play?')).toBeInTheDocument();
     console.log('✅ Welcome modal displays with instructions');
 
     // User closes the welcome modal
-    const gotItButton = screen.getByRole('button', { name: /got it.*let.*play/i });
-    await user.click(gotItButton);
+    const closeButton = screen.getByLabelText('Close');
+    await user.click(closeButton);
     expect(mockCloseWelcome).toHaveBeenCalled();
     console.log('✅ User can close welcome modal to start playing');
 
@@ -166,7 +202,7 @@ describe('Complete User Journey - Interface Testing', () => {
       );
     };
 
-    render(<MockCalculatorInterface />);
+    renderWithProvider(<MockCalculatorInterface />);
 
     // Test quick operations
     console.log('🔥 Testing quick operation buttons...');
@@ -230,7 +266,7 @@ describe('Complete User Journey - Interface Testing', () => {
     // STEP 9: Victory Modal Workflow
     console.log('');
     console.log('🏆 STEP 9: Victory modal workflow');
-    render(
+    renderWithProvider(
       <VictoryModal
         isOpen={true}
         onClose={vi.fn()}
@@ -252,7 +288,9 @@ describe('Complete User Journey - Interface Testing', () => {
     expect(screen.getByText('Private Key Found!')).toBeInTheDocument();
     expect(screen.getByText(/successfully found the private key/i)).toBeInTheDocument();
     expect(screen.getByText('Steps to solve')).toBeInTheDocument();
-    expect(screen.getByText('7')).toBeInTheDocument();
+    // More specific test for operation count
+    const stepsSection = screen.getByText('Steps to solve').closest('.stat-item');
+    expect(stepsSection).toHaveTextContent('7');
     console.log('✅ Victory modal displays success information');
 
     // Test stats (separate render)

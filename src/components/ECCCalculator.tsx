@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './ECCCalculator.css';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
 import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
 import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
+import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
 import { getP2PKHAddress } from '../utils/crypto';
 import {
   bigintToHex,
@@ -435,7 +435,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     }
   }, [
     calculatorDisplay,
-    currentPoint,
     isLocked,
     generatorPoint,
     dispatchOperation,
