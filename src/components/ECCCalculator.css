@@ -8,6 +8,7 @@
   margin-bottom: 0;
   position: relative;
   box-shadow: var(--shadow);
+  flex: 1;
 }
 
 .calculator-point-display::before {
@@ -316,6 +317,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  aspect-ratio: 1;
 }
 
 .gohere-display:disabled {
@@ -672,7 +674,6 @@
   .calc-button {
     font-size: 0.75rem;
     min-height: 40px;
-    width: 100%;
     padding: 0;
     min-width: 0;
     box-sizing: border-box;
@@ -683,6 +684,11 @@
     font-size: 0.8rem;
     width: 100%;
     box-sizing: border-box;
+  }
+
+  .gohere-display {
+    height: 38px;
+    font-size: 1rem;
   }
 
   .calculator-status {
