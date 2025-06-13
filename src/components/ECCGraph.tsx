@@ -308,23 +308,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
         <div className="curve-line"></div>
 
         {/* Plot points */}
-        {graphPoints.map((point, index) => {
-          // Calculate label offset to prevent overlap
-          let labelOffset = 0;
-          const labelSpacing = 25; // pixels
-
-          // Check for nearby points and adjust label position
-          for (let i = 0; i < index; i++) {
-            const otherPoint = graphPoints[i];
-            const dx = Math.abs(point.x - otherPoint.x);
-            const dy = Math.abs(point.y - otherPoint.y);
-
-            // If points are close, offset the label
-            if (dx < 8 && dy < 8) {
-              labelOffset += labelSpacing;
-            }
-          }
-
+        {graphPoints.map(point => {
           return (
             <div
               key={point.id}
@@ -350,15 +334,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
                     : {}
                 }
               ></div>
-              <div
-                className="point-label"
-                style={{
-                  transform: labelOffset > 0 ? `translateY(${labelOffset}px)` : undefined,
-                  zIndex: 1000 + index, // Ensure labels don't overlap
-                }}
-              >
-                {point.label}
-              </div>
+              <div className="point-label">{point.label}</div>
             </div>
           );
         })}

@@ -354,44 +354,6 @@
   color: var(--text-dim);
 }
 
-/* Quick operation button colors */
-.calc-button.quick-op.add,
-.calc-button.quick-op.subtract {
-  background: #10b981; /* emerald-500 */
-  border-color: #10b981;
-  color: white;
-}
-
-.calc-button.quick-op.add:hover,
-.calc-button.quick-op.subtract:hover {
-  background: #047857; /* emerald-700 */
-  border-color: #047857;
-}
-
-.calc-button.quick-op.multiply,
-.calc-button.quick-op.divide {
-  background: #3b82f6; /* blue-500 */
-  border-color: #3b82f6;
-  color: white;
-}
-
-.calc-button.quick-op.multiply:hover,
-.calc-button.quick-op.divide:hover {
-  background: #1d4ed8; /* blue-700 */
-  border-color: #1d4ed8;
-}
-
-.calc-button.quick-op.negate {
-  background: #f59e0b; /* amber-500 */
-  border-color: #f59e0b;
-  color: white;
-}
-
-.calc-button.quick-op.negate:hover {
-  background: #d97706; /* amber-600 */
-  border-color: #d97706;
-}
-
 .calculator-input::placeholder {
   color: var(--text-dim);
   opacity: 0.7;
