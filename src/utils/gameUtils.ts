@@ -29,9 +29,7 @@ export function generateShareMessage({
   gaveUp: _gaveUp = false,
 }: ShareMessageOptions): string {
   const walletType =
-    gameMode === 'daily' && challenge?.id !== undefined
-      ? `Daily Wallet #${challenge.id}`
-      : 'Practice Wallet';
+    gameMode === 'daily' && challenge?.id !== undefined ? `#${challenge.id}` : 'Practice';
 
   if (solved) {
     return `ECC Game ${walletType}
