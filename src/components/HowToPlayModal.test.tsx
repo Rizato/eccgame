@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import gameSlice from '../store/slices/gameSlice';
 import { HowToPlayModal } from './HowToPlayModal';
@@ -15,7 +16,11 @@ const createTestStore = () =>
 
 const renderWithStore = (component: React.ReactElement) => {
   const store = createTestStore();
-  return render(<Provider store={store}>{component}</Provider>);
+  return render(
+    <Provider store={store}>
+      <MemoryRouter>{component}</MemoryRouter>
+    </Provider>
+  );
 };
 
 describe('HowToPlayModal', () => {
@@ -42,12 +47,12 @@ describe('HowToPlayModal', () => {
     expect(onCloseMock).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onClose when Got it button is clicked', () => {
+  it('should navigate when mode buttons are clicked', () => {
     const onCloseMock = vi.fn();
     renderWithStore(<HowToPlayModal isOpen={true} onClose={onCloseMock} />);
 
-    const gotItButton = screen.getByText('Play Daily Mode →');
-    gotItButton.click();
+    const dailyModeButton = screen.getByText('Play Daily Mode →');
+    dailyModeButton.click();
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);
   });

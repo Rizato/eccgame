@@ -9,6 +9,7 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import HowToPlayModal from '../components/HowToPlayModal';
 import { VictoryModal } from '../components/VictoryModal';
@@ -44,7 +45,11 @@ const createTestStore = () => {
 // Helper function to render with provider
 const renderWithProvider = (ui: ReactNode) => {
   const store = createTestStore();
-  return render(<Provider store={store}>{ui}</Provider>);
+  return render(
+    <Provider store={store}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </Provider>
+  );
 };
 
 // Mock all utilities to avoid complex state management
