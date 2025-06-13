@@ -668,6 +668,15 @@
     box-sizing: border-box;
   }
 
+  .calc-button.operator {
+    font-size: 0.75rem;
+  }
+
+  .calc-button.equals {
+    font-size: 0.75rem;
+    margin-top: 0;
+  }
+
   .calculator-input {
     padding: 6px 8px;
     font-size: 0.8rem;
