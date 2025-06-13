@@ -162,7 +162,9 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
           )}
 
           <div className="stat-item">
-            <div className="stat-label">{gaveUp ? 'Steps tried' : 'Steps to solve'}</div>
+            <div className="stat-label">
+              {gaveUp ? 'Point Operations tried' : 'Point Operations'}
+            </div>
             <div className="stat-value">{operationCount}</div>
           </div>
 

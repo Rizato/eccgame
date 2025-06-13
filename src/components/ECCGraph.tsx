@@ -233,9 +233,9 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
                   }
                   className={`graph-action-button practice-button ${isGenerating ? 'disabled' : ''}`}
                   disabled={isGenerating}
-                  title={isGenerating ? 'Generating new challenge...' : 'Create new challenge'}
+                  title={isGenerating ? 'Generating new wallet...' : 'Create new wallet'}
                 >
-                  {isGenerating ? 'Generating...' : 'New Challenge ▼'}
+                  {isGenerating ? 'Generating...' : 'New Wallet ▼'}
                 </button>
                 {showDifficultyDropdown && !isGenerating && (
                   <div className="difficulty-dropdown">

@@ -53,22 +53,43 @@
 
 .point-coordinates-compact {
   display: flex;
-  gap: var(--spacing);
+  flex-direction: column;
+  gap: var(--spacing-xs);
   font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
   font-size: 0.75rem;
   color: var(--text-dim);
   background: var(--surface-variant);
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  overflow: hidden;
+  user-select: text;
+  cursor: text;
+  -webkit-touch-callout: none;
+  -webkit-user-select: text;
 }
 
-.point-coordinates-compact span {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.coordinate-row {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+.coordinate-label {
+  font-weight: 600;
+  color: var(--text);
+  min-width: 12px;
+  flex-shrink: 0;
+}
+
+.coordinate-value {
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  user-select: text;
+  cursor: text;
+  -webkit-touch-callout: none;
+  -webkit-user-select: text;
 }
 
 .point-compressed-key {
@@ -78,9 +99,13 @@
   background: var(--surface-variant);
   padding: 4px 8px;
   border-radius: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
+  user-select: text;
+  cursor: text;
+  -webkit-touch-callout: none;
+  -webkit-user-select: text;
 }
 
 .calculator-point-display .point-address {
@@ -88,9 +113,11 @@
   font-size: 0.875rem;
   color: var(--text);
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
+  user-select: text;
+  cursor: text;
 }
 
 .calculator-point-display .point-progress {
@@ -742,19 +769,22 @@
 .private-key-value {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
   flex: 1;
   min-width: 0;
+  user-select: text;
+  cursor: text;
 }
 
 .private-key-value.clickable {
-  cursor: pointer;
+  cursor: text;
   border-radius: 3px;
   padding: 1px 2px;
   margin: -1px -2px;
   transition: all 0.2s ease;
+  user-select: text;
 }
 
 .private-key-value.clickable:hover {

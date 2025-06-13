@@ -168,23 +168,27 @@
   font-weight: 600;
   color: var(--text);
   word-wrap: break-word;
+  user-select: text;
+  cursor: text;
 }
 
 .stat-value.address-value {
   font-family: 'Monaco', 'Fira Code', 'Consolas', monospace;
   font-size: 0.875rem;
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
   background: var(--surface);
   padding: var(--spacing-sm);
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  cursor: pointer;
-  user-select: none;
+  cursor: text;
+  user-select: text;
   text-align: start;
   flex-grow: 1;
+  -webkit-touch-callout: none;
+  -webkit-user-select: text;
 }
 
 /* Import modal value container and copy button styles from Modal.css */
@@ -214,8 +218,8 @@
 }
 
 .victory-modal .stat-value.clickable {
-  cursor: pointer;
-  user-select: none;
+  cursor: text;
+  user-select: text;
   border-right: none;
   border-radius: var(--radius-sm) 0 0 var(--radius-sm);
 }

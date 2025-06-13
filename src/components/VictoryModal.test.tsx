@@ -82,7 +82,7 @@ describe('VictoryModal', () => {
   it('should display correct stats', () => {
     renderWithProvider(<VictoryModal {...createDefaultProps()} />);
 
-    expect(screen.getByText('Steps to solve')).toBeInTheDocument();
+    expect(screen.getByText('Point Operations')).toBeInTheDocument();
     expect(screen.getByText('5')).toBeInTheDocument();
     expect(screen.getByText('Wallet Address')).toBeInTheDocument();
     expect(screen.getByText('1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2')).toBeInTheDocument();

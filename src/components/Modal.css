@@ -110,9 +110,10 @@
   flex: 1;
   outline: none;
   text-align: start;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  user-select: text;
 }
 
 .modal-value-input:focus {
@@ -131,14 +132,16 @@
   font-size: 0.875rem;
   flex: 1;
   text-align: start;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
   display: block;
   line-height: 1.4;
   user-select: text;
   cursor: text;
   transition: all 0.2s ease;
+  -webkit-touch-callout: none;
+  -webkit-user-select: text;
 }
 
 .modal-value-display:hover {

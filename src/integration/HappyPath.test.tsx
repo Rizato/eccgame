@@ -287,9 +287,9 @@ describe('Complete User Journey - Interface Testing', () => {
     // Verify victory content
     expect(screen.getByText('Private Key Found!')).toBeInTheDocument();
     expect(screen.getByText(/successfully found the private key/i)).toBeInTheDocument();
-    expect(screen.getByText('Steps to solve')).toBeInTheDocument();
+    expect(screen.getByText('Point Operations')).toBeInTheDocument();
     // More specific test for operation count
-    const stepsSection = screen.getByText('Steps to solve').closest('.stat-item');
+    const stepsSection = screen.getByText('Point Operations').closest('.stat-item');
     expect(stepsSection).toHaveTextContent('7');
     console.log('✅ Victory modal displays success information');
 

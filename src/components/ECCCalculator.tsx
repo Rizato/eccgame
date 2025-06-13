@@ -666,11 +666,17 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           <>
             <div className="point-coordinates-compact desktop-only">
               {currentPoint.isInfinity ? (
-                <span>Point at Infinity</span>
+                <div className="coordinate-value">Point at Infinity</div>
               ) : (
                 <>
-                  <span>x: {bigintToHex(currentPoint.x)}</span>
-                  <span>y: {bigintToHex(currentPoint.y)}</span>
+                  <div className="coordinate-row">
+                    <span>x:</span>
+                    <span className="coordinate-value">{bigintToHex(currentPoint.x)}</span>
+                  </div>
+                  <div className="coordinate-row">
+                    <span>y:</span>
+                    <span className="coordinate-value">{bigintToHex(currentPoint.y)}</span>
+                  </div>
                 </>
               )}
             </div>

@@ -107,7 +107,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   // Reset current point when challenge changes
   useEffect(() => {
     if (challenge) {
-      calculatorFunctionsRef.current.resetToChallenge(challenge.public_key);
+      calculatorFunctionsRef.current.resetToGenerator();
     }
   }, [challenge]);
 

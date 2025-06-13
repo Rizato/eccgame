@@ -35,14 +35,14 @@ export function generateShareMessage({
 
   if (solved) {
     return `ECC Game ${walletType}
-🏆 I solved the private key in just ${operationCount} steps!
+🏆 I solved the private key in just ${operationCount} point operations!
 
 ${import.meta.env.VITE_APP_URL || 'https://eccgame.com'}`;
   }
 
   // Gave up
   return `ECC Game ${walletType}
-🤷 I gave up after ${operationCount} steps!
+🤷 I gave up after ${operationCount} tries!
 
 ${import.meta.env.VITE_APP_URL || 'https://eccgame.com'}`;
 }

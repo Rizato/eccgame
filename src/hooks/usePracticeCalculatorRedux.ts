@@ -24,7 +24,7 @@ export function usePracticeCalculatorRedux(challengePublicKey: string, practiceP
   const dispatch = useAppDispatch();
   const practiceState = useAppSelector(state => state.practiceCalculator);
 
-  // Clear state and set new challenge when challenge changes
+  // Clear state and set new wallet when wallet changes
   useEffect(() => {
     if (
       challengePublicKey !== practiceState.challengePublicKey ||
@@ -37,7 +37,7 @@ export function usePracticeCalculatorRedux(challengePublicKey: string, practiceP
         practicePrivateKey &&
         practicePrivateKey.length > 0
       ) {
-        // Clear the practice state first if this is a new challenge (not just initialization)
+        // Clear the practice state first if this is a new wallet (not just initialization)
         if (
           practiceState.challengePublicKey &&
           challengePublicKey !== practiceState.challengePublicKey
