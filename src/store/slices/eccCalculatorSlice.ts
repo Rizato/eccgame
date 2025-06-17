@@ -174,7 +174,7 @@ const dailyCalculatorSlice = createSlice({
     resetToChallenge: (state, action: PayloadAction<string>) => {
       const challengePublicKey = action.payload;
       const challengePoint = publicKeyToPoint(challengePublicKey);
-      state.selectedPoint = generatorPoint;
+      state.selectedPoint = challengePoint;
 
       // Ensure challenge node exists in graph (don't clear the graph, just ensure the node exists)
       const challengeNode = addNode(state.graph, challengePoint, {
@@ -200,7 +200,7 @@ const dailyCalculatorSlice = createSlice({
     ) => {
       const { publicKey, privateKey } = action.payload;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = generatorPoint;
+      state.selectedPoint = challengePoint;
 
       // Ensure challenge node exists in graph with known private key
       const challengeNode = addNode(state.graph, challengePoint, {

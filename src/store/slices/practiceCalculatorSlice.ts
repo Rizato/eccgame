@@ -181,7 +181,7 @@ const practiceCalculatorSlice = createSlice({
     ) => {
       const { publicKey, privateKey } = action.payload;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = generatorPoint;
+      state.selectedPoint = challengePoint;
 
       // Ensure challenge node exists in graph with known private key
       const nodeOptions: {
