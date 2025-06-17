@@ -7,9 +7,10 @@ import {
   createEmptyGraph,
   addNode,
 } from '../../utils/graphOperations';
+import { savePracticeState, loadPracticeState } from '../../utils/storage';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
-interface PracticeCalculatorState {
+export interface PracticeCalculatorState {
   selectedPoint: ECPoint;
   graph: PointGraph;
   generatorNodeId: string | null;
@@ -340,6 +341,9 @@ const practiceCalculatorSlice = createSlice({
       state.calculatorDisplay = '';
       state.pendingOperation = null;
       state.lastOperationValue = null;
+
+      // Save the cleared state to memory storage
+      savePracticeState(state);
     },
     addOperationToGraph: (
       state,
@@ -354,6 +358,17 @@ const practiceCalculatorSlice = createSlice({
 
       // Update selected point to the result
       state.selectedPoint = toPoint;
+    },
+    saveState: state => {
+      // Save current state to localStorage
+      savePracticeState(state);
+    },
+    loadState: state => {
+      // Load state from localStorage
+      const saved = loadPracticeState();
+      if (saved) {
+        Object.assign(state, saved);
+      }
     },
   },
   extraReducers: builder => {
@@ -386,6 +401,8 @@ export const {
   checkWinCondition,
   clearGraph,
   addOperationToGraph,
+  saveState,
+  loadState,
 } = practiceCalculatorSlice.actions;
 
 export default practiceCalculatorSlice.reducer;

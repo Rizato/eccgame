@@ -7,9 +7,10 @@ import {
   calculatePrivateKeyFromGraph,
   ensureOperationInGraph,
 } from '../../utils/graphOperations';
+import { saveDailyState, loadDailyState } from '../../utils/storage';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
-interface DailyCalculatorState {
+export interface DailyCalculatorState {
   selectedPoint: ECPoint;
   graph: PointGraph;
   generatorNodeId: string | null;
@@ -321,6 +322,9 @@ const dailyCalculatorSlice = createSlice({
       state.calculatorDisplay = '';
       state.pendingOperation = null;
       state.lastOperationValue = null;
+
+      // Save the cleared state to memory storage
+      saveDailyState(state);
     },
     addOperationToGraph: (
       state,
@@ -335,6 +339,17 @@ const dailyCalculatorSlice = createSlice({
 
       // Update selected point to the result
       state.selectedPoint = toPoint;
+    },
+    saveState: state => {
+      // Save current state to localStorage
+      saveDailyState(state);
+    },
+    loadState: state => {
+      // Load state from localStorage
+      const saved = loadDailyState();
+      if (saved) {
+        Object.assign(state, saved);
+      }
     },
   },
   extraReducers: builder => {
@@ -365,6 +380,8 @@ export const {
   checkWinCondition,
   clearGraph,
   addOperationToGraph,
+  saveState,
+  loadState,
 } = dailyCalculatorSlice.actions;
 
 export default dailyCalculatorSlice.reducer;

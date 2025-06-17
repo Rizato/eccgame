@@ -1,10 +1,13 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { challenges } from '../../data/challenges.json';
 import { getP2PKHAddress } from '../../utils/crypto';
+import { loadState as loadDailyState, saveState as saveDailyState } from './eccCalculatorSlice';
+import {
+  loadState as loadPracticeState,
+  saveState as savePracticeState,
+} from './practiceCalculatorSlice';
 import type { Challenge, ChallengeData } from '../../types/game';
 import type { AppThunk } from '../index.ts';
-import { clearGraph as clearDailyGraph } from './eccCalculatorSlice';
-import { clearGraph as clearPracticeGraph } from './practiceCalculatorSlice';
 
 export type GameMode = 'daily' | 'practice';
 
@@ -29,13 +32,26 @@ const initialState: GameState = {
 };
 
 export const switchGameMode = (mode: GameMode): AppThunk => {
-  return dispatch => {
-    // Clear both calculator states when switching modes to prevent state bleed
-    dispatch(clearDailyGraph());
-    dispatch(clearPracticeGraph());
+  return (dispatch, getState) => {
+    const currentState = getState();
+    const currentMode = currentState.game.gameMode;
+
+    // Save current mode's state before switching
+    if (currentMode === 'daily') {
+      dispatch(saveDailyState());
+    } else if (currentMode === 'practice') {
+      dispatch(savePracticeState());
+    }
 
     // Set the new game mode
     dispatch(setGameMode(mode));
+
+    // Load the new mode's state
+    if (mode === 'daily') {
+      dispatch(loadDailyState());
+    } else if (mode === 'practice') {
+      dispatch(loadPracticeState());
+    }
   };
 };
 
