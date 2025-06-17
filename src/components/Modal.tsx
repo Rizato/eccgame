@@ -56,6 +56,17 @@ export const Modal: React.FC<ModalProps> = ({
   const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
   const privateKeyHexMode = privateKeyDisplayMode === 'hex';
 
+  // Check if the current point is the challenge/goal point
+  const isChallengePoint = (() => {
+    if (!challenge?.public_key || !point) return false;
+    try {
+      const challengePoint = publicKeyToPoint(challenge.public_key);
+      return point.x === challengePoint.x && point.y === challengePoint.y;
+    } catch {
+      return false;
+    }
+  })();
+
   if (!isOpen) return null;
 
   // If children are provided, use them (legacy mode)
@@ -299,6 +310,24 @@ export const Modal: React.FC<ModalProps> = ({
             }}
           />
 
+          {/* Tags for Daily Mode - only when viewing challenge point */}
+          {!isPracticeMode &&
+            challenge &&
+            isChallengePoint &&
+            challenge.tags &&
+            challenge.tags.length > 0 && (
+              <div className="modal-item">
+                <span className="modal-label">Tags:</span>
+                <div className="metadata-tags">
+                  {challenge.tags.map((tag, index) => (
+                    <span key={tag || index} className="tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
           {/* Action Buttons */}
           <div className="modal-actions">
             {/* Use as Current Point button for all points */}
@@ -312,6 +341,18 @@ export const Modal: React.FC<ModalProps> = ({
               >
                 Switch here
               </button>
+            )}
+
+            {/* Explorer Link for Daily Mode - only when viewing challenge point */}
+            {!isPracticeMode && challenge && isChallengePoint && challenge.p2pkh_address && (
+              <a
+                href={`${import.meta.env.VITE_EXPLORER_BASE_URL}${challenge.p2pkh_address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="action-button secondary"
+              >
+                View in Explorer
+              </a>
             )}
           </div>
         </div>

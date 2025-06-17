@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
-import ChallengeInfo from './ChallengeInfo';
 import ECCPlayground from './ECCPlayground';
 import './PracticeMode.css';
 
@@ -29,12 +28,6 @@ const PracticeMode: React.FC = () => {
 
   return (
     <div className="daily-challenge-container">
-      <div className="challenge-info-sidebar">
-        <div className="challenge-info-card">
-          <ChallengeInfo />
-        </div>
-      </div>
-
       <div className="playground-container">
         <ECCPlayground
           challenge={!practiceChallenge || isGenerating ? null : practiceChallenge}

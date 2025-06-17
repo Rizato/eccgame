@@ -260,7 +260,7 @@
 }
 
 .calculator-section.locked::after {
-  content: '🔒 Calculator Locked - Challenge Complete!';
+  content: '🔒 Calculator Locked - Goal Found!';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -285,7 +285,6 @@
   background: var(--surface);
   border-radius: 0 0 var(--radius) var(--radius);
   padding: var(--spacing);
-  max-width: 400px;
   width: 100%;
 }
 
@@ -396,6 +395,30 @@
   box-shadow: var(--shadow);
   min-height: 32px;
   min-width: 32px;
+  height: auto;
+  width: auto;
+}
+
+/* Desktop scaling for calculator buttons */
+@media (min-width: 769px) {
+  .calc-button {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 8px;
+  }
+
+  .calc-button.operator {
+    font-size: 1rem;
+  }
+
+  .calc-button.equals {
+    font-size: 1rem;
+  }
+
+  .calc-button.rand {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
 }
 
 .calc-button:hover {
@@ -570,6 +593,18 @@
 .calc-button.spacer:hover {
   background: transparent;
   transform: none;
+}
+
+.calc-button.rand {
+  background: var(--error);
+  color: var(--text-inverse);
+  border-color: var(--error);
+  font-weight: 600;
+}
+
+.calc-button.rand:hover {
+  background: #dc2626;
+  opacity: 0.9;
 }
 
 .operation-help {

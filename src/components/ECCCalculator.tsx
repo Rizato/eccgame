@@ -652,7 +652,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               disabled={isLocked || isAtBasePoint}
               title={
                 isAtBasePoint
-                  ? 'Cannot save at generator or challenge point'
+                  ? 'Cannot save at start or goal'
                   : currentPointSavedInfo
                     ? `Unsave point "${currentPointSavedInfo.label}"`
                     : 'Save current point'
@@ -861,7 +861,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               =
             </button>
 
-            {/* Row 5: 0, 0x, spacers */}
+            {/* Row 5: 0, 0x, rand, spacers */}
             <button onClick={() => addToCalculator('0')} className="calc-button number">
               0
             </button>
@@ -873,7 +873,33 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             </button>
             <button className="calc-button spacer"></button>
             <button className="calc-button spacer"></button>
-            <button className="calc-button spacer"></button>
+            <button
+              onClick={() => {
+                // Generate a random number between 2 and CURVE_N
+                // Use crypto.getRandomValues for better randomness
+                const randomBytes = new Uint8Array(32);
+                crypto.getRandomValues(randomBytes);
+
+                // Convert to BigInt and ensure it's in the range [2, CURVE_N)
+                let randomBigInt = BigInt(
+                  '0x' +
+                    Array.from(randomBytes)
+                      .map(b => b.toString(16).padStart(2, '0'))
+                      .join('')
+                );
+
+                // Ensure the number is within the valid range
+                const range = CURVE_N - BigInt(2);
+                randomBigInt = (randomBigInt % range) + BigInt(2);
+
+                setHexMode(true);
+                setCalculatorDisplay('0x' + randomBigInt.toString(16).toUpperCase());
+              }}
+              className="calc-button rand"
+              title="Generate random number"
+            >
+              rand
+            </button>
           </div>
         </div>
       </div>

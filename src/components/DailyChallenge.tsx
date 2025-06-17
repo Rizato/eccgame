@@ -1,6 +1,5 @@
 import React from 'react';
 import { useGameStateRedux } from '../hooks/useGameStateRedux';
-import ChallengeInfo from './ChallengeInfo';
 import ECCPlayground from './ECCPlayground';
 
 const DailyChallenge: React.FC = () => {
@@ -12,12 +11,6 @@ const DailyChallenge: React.FC = () => {
 
   return (
     <div className="daily-challenge-container">
-      <div className="challenge-info-sidebar">
-        <div className="challenge-info-card">
-          <ChallengeInfo />
-        </div>
-      </div>
-
       <div className="playground-container">
         <ECCPlayground challenge={challenge} isPracticeMode={false} />
       </div>

@@ -353,3 +353,73 @@
     border-bottom: 1px solid var(--border);
   }
 }
+
+/* iOS-specific improvements for better readability */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 768px) {
+    .modal-value-input,
+    .modal-value-display {
+      font-size: 1rem;
+      min-height: 48px;
+      padding: 0 var(--spacing);
+    }
+
+    .modal-label {
+      font-size: 1rem;
+    }
+
+    .copy-button {
+      font-size: 1rem;
+      min-height: 48px;
+    }
+
+    .action-button {
+      font-size: 1rem;
+      min-height: 48px;
+    }
+  }
+}
+
+/* Tags and Explorer Link styles */
+.explorer-link-button {
+  background: var(--primary);
+  color: var(--text-inverse);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  border: none;
+}
+
+.explorer-link-button:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  text-decoration: none;
+  color: var(--text-inverse);
+}
+
+.explorer-link-button:active {
+  background: var(--primary-dark);
+  transform: translateY(0);
+}
+
+.metadata-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  background: rgb(99 102 241 / 0.1);
+  color: var(--primary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid rgb(99 102 241 / 0.2);
+}

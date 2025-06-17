@@ -63,7 +63,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
       return "Don't feel bad, this is literally impossible.";
     }
     if (isPracticeMode) {
-      return 'Great work! You successfully solved the practice challenge.';
+      return 'Great work! You successfully solved the practice private key.';
     }
 
     return 'Incredible! You successfully found the private key from the public key.';
@@ -108,8 +108,10 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
         <div className="victory-stats">
           <div className="stat-item">
             <div className="stat-label">Wallet Address</div>
-            <div className="stat-value address-value" title={challenge.p2pkh_address}>
-              {challenge.p2pkh_address}
+            <div className="modal-value-container">
+              <span className="stat-value address-value" title={challenge.p2pkh_address}>
+                {challenge.p2pkh_address}
+              </span>
             </div>
           </div>
 

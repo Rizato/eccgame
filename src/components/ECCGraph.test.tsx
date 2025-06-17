@@ -1,6 +1,7 @@
+import { fireEvent, act, screen } from '@testing-library/react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createTestStore } from '../utils/testUtils';
 import ECCGraph from './ECCGraph';
 
@@ -67,6 +68,7 @@ describe('ECCGraph', () => {
       <Provider store={store}>
         <ECCGraph
           challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+          challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
           onPointClick={vi.fn()}
         />
       </Provider>
@@ -74,7 +76,8 @@ describe('ECCGraph', () => {
 
     // Verify the graph renders
     expect(container.querySelector('.ecc-graph')).toBeInTheDocument();
-    expect(container.querySelector('.formula')).toBeInTheDocument();
+    // Should show goal address in daily mode (default)
+    expect(container.querySelector('.goal-address')).toBeInTheDocument();
 
     // Check that generator point is rendered
     expect(container.querySelector('.generator')).toBeInTheDocument();
@@ -82,5 +85,159 @@ describe('ECCGraph', () => {
     // The key test: verify that decimal.js doesn't throw errors and coordinates are calculated
     const points = container.querySelectorAll('.ecc-point');
     expect(points.length).toBeGreaterThan(0);
+  });
+
+  it('should show address in practice mode', () => {
+    const store = createTestStore();
+
+    // Initialize store state for practice mode
+    store.dispatch({
+      type: 'game/setGameMode',
+      payload: 'practice',
+    });
+
+    store.dispatch({
+      type: 'practiceCalculator/resetToGenerator',
+      payload: undefined,
+    });
+
+    const { container } = render(
+      <Provider store={store}>
+        <ECCGraph
+          challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+          challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+          onPointClick={vi.fn()}
+        />
+      </Provider>
+    );
+
+    // Should show address in practice mode (same as daily mode now)
+    expect(container.querySelector('.goal-address')).toBeInTheDocument();
+    expect(container.querySelector('.formula')).not.toBeInTheDocument();
+  });
+
+  describe('Basic Functionality', () => {
+    let store: ReturnType<typeof createTestStore>;
+    let mockOnPointClick: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      store = createTestStore();
+      mockOnPointClick = vi.fn();
+
+      // Initialize store state
+      store.dispatch({
+        type: 'game/setGameMode',
+        payload: 'daily',
+      });
+
+      store.dispatch({
+        type: 'dailyCalculator/resetToGenerator',
+        payload: undefined,
+      });
+    });
+
+    it('should render with static range indicators', () => {
+      const { container } = render(
+        <Provider store={store}>
+          <ECCGraph
+            challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+            onPointClick={mockOnPointClick}
+          />
+        </Provider>
+      );
+
+      const graph = container.querySelector('.ecc-graph');
+      expect(graph).toBeInTheDocument();
+
+      // Check that range indicators show static values
+      const bottomRight = container.querySelector('.range-indicator.bottom-right');
+      const topLeft = container.querySelector('.range-indicator.top-left');
+      expect(bottomRight).toHaveTextContent('p');
+      expect(topLeft).toHaveTextContent('p');
+    });
+
+    it('should render all points correctly', () => {
+      const { container } = render(
+        <Provider store={store}>
+          <ECCGraph
+            challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+            onPointClick={mockOnPointClick}
+          />
+        </Provider>
+      );
+
+      const points = container.querySelectorAll('.ecc-point');
+      expect(points.length).toBeGreaterThanOrEqual(1);
+
+      // Should have generator point
+      const generatorPoint = container.querySelector('.ecc-point.generator');
+      expect(generatorPoint).toBeInTheDocument();
+    });
+
+    it('should render fullscreen button and open fullscreen modal', async () => {
+      const { container } = render(
+        <Provider store={store}>
+          <ECCGraph
+            challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+            onPointClick={mockOnPointClick}
+          />
+        </Provider>
+      );
+
+      // Find and click fullscreen button
+      const fullscreenButton = container.querySelector('.fullscreen-button');
+      expect(fullscreenButton).toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(fullscreenButton!);
+      });
+
+      // Check that fullscreen modal is rendered
+      const modal = screen.getByText('×'); // Close button
+      expect(modal).toBeInTheDocument();
+
+      // Check that fullscreen graph is rendered
+      const fullscreenGraph = document.querySelector('.ecc-graph-fullscreen');
+      expect(fullscreenGraph).toBeInTheDocument();
+
+      // Close modal
+      await act(async () => {
+        fireEvent.click(modal);
+      });
+
+      // Modal should be closed
+      expect(document.querySelector('.ecc-graph-fullscreen')).not.toBeInTheDocument();
+    });
+
+    it('should maintain consistent state between inline and fullscreen views', async () => {
+      const { container } = render(
+        <Provider store={store}>
+          <ECCGraph
+            challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+            onPointClick={mockOnPointClick}
+          />
+        </Provider>
+      );
+
+      // Check initial state
+      const bottomRightBefore = container.querySelector('.range-indicator.bottom-right');
+      expect(bottomRightBefore?.textContent).toBe('p');
+
+      // Open fullscreen
+      const fullscreenButton = container.querySelector('.fullscreen-button');
+      await act(async () => {
+        fireEvent.click(fullscreenButton!);
+      });
+
+      // Check that fullscreen graph shows same state
+      const fullscreenBottomRight = document.querySelector(
+        '.ecc-graph-fullscreen .range-indicator.bottom-right'
+      );
+      expect(fullscreenBottomRight?.textContent).toBe('p');
+    });
   });
 });

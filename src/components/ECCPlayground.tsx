@@ -190,6 +190,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           {/* ECC Graph Visualization */}
           <ECCGraph
             challengePublicKey={challenge.public_key}
+            challengeAddress={challenge.p2pkh_address}
             onPointClick={handlePointClick}
             operationCount={totalOperationCount}
           />
@@ -234,24 +235,25 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           // Check for special points
           const generatorPoint = getGeneratorPoint();
           if (modalPoint.x === generatorPoint.x && modalPoint.y === generatorPoint.y) {
-            return 'Generator (G) Point Information';
+            return 'Start (G) Information';
           }
 
           if (challenge) {
             const challengePoint = publicKeyToPoint(challenge.public_key);
             if (modalPoint.x === challengePoint.x && modalPoint.y === challengePoint.y) {
-              return 'Challenge Point Information';
+              return 'Goal Information';
             }
           }
 
           // Look up point information from the graph
           const node = findNodeByPoint(graph, modalPoint);
           if (node) {
-            return `${node.label} Point Information`;
+            return `${node.label} Information`;
           }
 
           return 'Point Information';
         })()}
+        challenge={challenge}
         isPracticeMode={isPracticeMode}
         practicePrivateKey={practicePrivateKey}
         point={modalPoint}

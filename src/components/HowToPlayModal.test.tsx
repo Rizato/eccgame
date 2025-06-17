@@ -1,18 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
-import gameSlice from '../store/slices/gameSlice';
+import { createTestStore } from '../utils/testUtils';
 import { HowToPlayModal } from './HowToPlayModal';
-
-// Create a test store
-const createTestStore = () =>
-  configureStore({
-    reducer: {
-      game: gameSlice,
-    },
-  });
 
 const renderWithStore = (component: React.ReactElement) => {
   const store = createTestStore();

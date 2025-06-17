@@ -1,15 +1,17 @@
-import Decimal from 'decimal.js';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
 import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
-import { CURVE_P, getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
+import { mapToScreenCoordinate, isPointVisible } from '../utils/coordinateMapping';
+import { getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
 import type { ECPoint } from '../types/ecc';
 import './ECCGraph.css';
 
 interface ECCGraphProps {
   challengePublicKey: string;
+  challengeAddress?: string;
   onPointClick: (point: ECPoint) => void;
   operationCount?: number;
 }
@@ -29,6 +31,7 @@ interface GraphPoint {
 
 const ECCGraph: React.FC<ECCGraphProps> = ({
   challengePublicKey,
+  challengeAddress,
   onPointClick,
   operationCount = 0,
 }) => {
@@ -44,7 +47,11 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
 
   const isPracticeMode = gameMode === 'practice';
   const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const graphRef = useRef<HTMLDivElement>(null);
+  const fullscreenGraphRef = useRef<HTMLDivElement>(null);
 
   // Always show give up button in daily mode, but enable only after 3 operations and when not won/given up
   const showGiveUpButton = !isPracticeMode;
@@ -75,24 +82,14 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
 
   const generatorPoint = getGeneratorPoint();
 
-  // Map large coordinate values to screen percentage (0-100)
-  const mapToScreenCoordinate = useCallback((coord: bigint) => {
-    // Use Decimal.js for precise arithmetic to avoid precision loss
-    const coordDecimal = new Decimal(coord.toString());
-    const curvePDecimal = new Decimal(CURVE_P.toString());
-
-    // Calculate percentage with high precision
-    const percent = coordDecimal.dividedBy(curvePDecimal);
-
-    // Convert to screen coordinate (5-95% to avoid edges)
-    const screenCoord = percent.times(90).plus(5);
-
-    return screenCoord.toNumber();
+  // Create a memoized version of mapToScreenCoordinate with default zoom/pan state
+  const mapCoordinate = useCallback((coord: bigint, isY = false) => {
+    return mapToScreenCoordinate(coord, isY, 1, 0, 0);
   }, []);
 
   // Calculate generator point screen coordinates
-  const generatorX = generatorPoint.isInfinity ? 50 : mapToScreenCoordinate(generatorPoint.x);
-  const generatorY = generatorPoint.isInfinity ? 50 : mapToScreenCoordinate(generatorPoint.y);
+  const generatorX = generatorPoint.isInfinity ? 50 : mapCoordinate(generatorPoint.x, false);
+  const generatorY = generatorPoint.isInfinity ? 50 : mapCoordinate(generatorPoint.y, true);
 
   const getVisiblePoints = useCallback((): GraphPoint[] => {
     const allPoints: GraphPoint[] = [];
@@ -102,7 +99,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
       id: 'generator',
       x: generatorX,
       y: generatorY,
-      label: 'G',
+      label: 'Start (G)',
       color: '#3b82f6', // blue
       description: 'Generator point',
       point: generatorPoint,
@@ -113,16 +110,16 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
     // Add original challenge point if available
     if (challengePublicKey) {
       const originalPoint = publicKeyToPoint(challengePublicKey);
-      const originalX = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.x);
-      const originalY = originalPoint.isInfinity ? 50 : mapToScreenCoordinate(originalPoint.y);
+      const originalX = originalPoint.isInfinity ? 50 : mapCoordinate(originalPoint.x, false);
+      const originalY = originalPoint.isInfinity ? 50 : mapCoordinate(originalPoint.y, true);
 
       const originalEntry: GraphPoint = {
         id: 'original',
         x: originalX,
         y: originalY,
-        label: 'Wallet',
+        label: 'Goal',
         color: '#f59e0b', // amber
-        description: 'Wallet point',
+        description: 'Goal point',
         point: originalPoint,
         type: 'challenge',
       };
@@ -132,8 +129,8 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
     // Add saved points
     savedPoints.forEach(savedPoint => {
       if (!savedPoint.point.isInfinity) {
-        const savedX = mapToScreenCoordinate(savedPoint.point.x);
-        const savedY = mapToScreenCoordinate(savedPoint.point.y);
+        const savedX = mapCoordinate(savedPoint.point.x, false);
+        const savedY = mapCoordinate(savedPoint.point.y, true);
 
         allPoints.push({
           id: savedPoint.id,
@@ -150,8 +147,8 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
 
     // Add selected point if it's unique
     if (!selectedPoint.isInfinity) {
-      const currentX = mapToScreenCoordinate(selectedPoint.x);
-      const currentY = mapToScreenCoordinate(selectedPoint.y);
+      const currentX = mapCoordinate(selectedPoint.x, false);
+      const currentY = mapCoordinate(selectedPoint.y, true);
 
       allPoints.push({
         id: 'current',
@@ -214,101 +211,35 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
     challengePublicKey,
     savedPoints,
     selectedPoint,
-    mapToScreenCoordinate,
+    mapCoordinate,
   ]);
 
   const graphPoints = getVisiblePoints();
 
-  return (
-    <div className="graph-section graph-display">
-      <div className="graph-content">
-        <div className="graph-header">
-          <div className="formula">y² = x³ + 7 (mod p)</div>
-          <div className="graph-actions">
-            {isPracticeMode && (
-              <div className="combined-control" ref={dropdownRef}>
-                <button
-                  onClick={() =>
-                    !isGenerating && setShowDifficultyDropdown(!showDifficultyDropdown)
-                  }
-                  className={`graph-action-button practice-button ${isGenerating ? 'disabled' : ''}`}
-                  disabled={isGenerating}
-                  title={isGenerating ? 'Generating new wallet...' : 'Create new wallet'}
-                >
-                  {isGenerating ? 'Generating...' : 'New Wallet ▼'}
-                </button>
-                {showDifficultyDropdown && !isGenerating && (
-                  <div className="difficulty-dropdown">
-                    <button
-                      onClick={() => {
-                        setDifficulty('easy');
-                        generatePracticeChallenge();
-                        setShowDifficultyDropdown(false);
-                      }}
-                      className="difficulty-option"
-                    >
-                      Easy
-                    </button>
-                    <button
-                      onClick={() => {
-                        setDifficulty('medium');
-                        generatePracticeChallenge();
-                        setShowDifficultyDropdown(false);
-                      }}
-                      className="difficulty-option"
-                    >
-                      Medium
-                    </button>
-                    <button
-                      onClick={() => {
-                        setDifficulty('hard');
-                        generatePracticeChallenge();
-                        setShowDifficultyDropdown(false);
-                      }}
-                      className="difficulty-option"
-                    >
-                      Hard
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-            {showGiveUpButton && (
-              <button
-                onClick={handleGiveUp}
-                className={`graph-action-button give-up-button ${!enableGiveUpButton ? 'disabled' : ''}`}
-                disabled={!enableGiveUpButton}
-                title={
-                  !enableGiveUpButton
-                    ? 'Available after 3 operations'
-                    : 'Give up and reveal solution'
-                }
-              >
-                Give Up
-              </button>
-            )}
-          </div>
-        </div>
+  // Render the graph content that will be used in both normal and fullscreen modes
+  const renderGraphContent = (className = 'ecc-graph') => (
+    <div className={className} ref={className === 'ecc-graph' ? graphRef : fullscreenGraphRef}>
+      {/* Graph border */}
+      <div className="graph-border"></div>
+
+      {/* Coordinate system */}
+      <div className="graph-axes">
+        <div className="axis-label x-label">x</div>
+        <div className="axis-label y-label">y</div>
       </div>
 
-      <div className="ecc-graph">
-        {/* Graph border */}
-        <div className="graph-border"></div>
-
-        {/* Coordinate system */}
-        <div className="graph-axes">
-          <div className="axis-label x-label">x</div>
-          <div className="axis-label y-label">y</div>
-        </div>
-
-        {/* Vertical dashed line at G */}
+      {/* Vertical dashed line at G - only show if generator is within visible area */}
+      {generatorX >= 0 && generatorX <= 100 && (
         <div className="generator-line" style={{ left: `${generatorX}%` }}></div>
+      )}
 
-        {/* Curve visualization */}
-        <div className="curve-line"></div>
+      {/* Curve visualization */}
+      <div className="curve-line"></div>
 
-        {/* Plot points */}
-        {graphPoints.map(point => {
+      {/* Plot points with visibility culling */}
+      {graphPoints
+        .filter(point => isPointVisible(point.x, point.y, 0))
+        .map(point => {
           return (
             <div
               key={point.id}
@@ -339,12 +270,121 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
           );
         })}
 
-        {/* Graph range indicators */}
-        <div className="range-indicator bottom-left">0</div>
-        <div className="range-indicator bottom-right">p</div>
-        <div className="range-indicator top-left">p</div>
-      </div>
+      {/* Graph range indicators */}
+      <div className="range-indicator bottom-left">0</div>
+      <div className="range-indicator bottom-right">p</div>
+      <div className="range-indicator top-left">p</div>
+
+      {/* Fullscreen button - only show in normal mode */}
+      {className === 'ecc-graph' && (
+        <button
+          className="fullscreen-button"
+          onClick={() => setIsFullscreen(true)}
+          title="View in fullscreen"
+        >
+          ⛶
+        </button>
+      )}
     </div>
+  );
+
+  return (
+    <>
+      <div className="graph-section graph-display">
+        <div className="graph-content">
+          <div className="graph-header">
+            <div className="goal-address">{challengeAddress || 'Loading...'}</div>
+            <div className="graph-actions">
+              {isPracticeMode && (
+                <div className="combined-control" ref={dropdownRef}>
+                  <button
+                    onClick={() =>
+                      !isGenerating && setShowDifficultyDropdown(!showDifficultyDropdown)
+                    }
+                    className={`graph-action-button practice-button ${isGenerating ? 'disabled' : ''}`}
+                    disabled={isGenerating}
+                    title={isGenerating ? 'Generating new wallet...' : 'Create new wallet'}
+                  >
+                    {isGenerating ? 'Generating...' : 'New Goal ▼'}
+                  </button>
+                  {showDifficultyDropdown && !isGenerating && (
+                    <div className="difficulty-dropdown">
+                      <button
+                        onClick={() => {
+                          setDifficulty('easy');
+                          generatePracticeChallenge();
+                          setShowDifficultyDropdown(false);
+                        }}
+                        className="difficulty-option"
+                      >
+                        Easy
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDifficulty('medium');
+                          generatePracticeChallenge();
+                          setShowDifficultyDropdown(false);
+                        }}
+                        className="difficulty-option"
+                      >
+                        Medium
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDifficulty('hard');
+                          generatePracticeChallenge();
+                          setShowDifficultyDropdown(false);
+                        }}
+                        className="difficulty-option"
+                      >
+                        Hard
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {showGiveUpButton && (
+                <button
+                  onClick={handleGiveUp}
+                  className={`graph-action-button give-up-button ${!enableGiveUpButton ? 'disabled' : ''}`}
+                  disabled={!enableGiveUpButton}
+                  title={
+                    !enableGiveUpButton
+                      ? 'Available after 3 operations'
+                      : 'Give up and reveal solution'
+                  }
+                >
+                  Give Up
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {renderGraphContent()}
+      </div>
+
+      {/* Fullscreen Modal */}
+      {isFullscreen &&
+        createPortal(
+          <div className="modal-overlay" onClick={() => setIsFullscreen(false)}>
+            <div className="fullscreen-graph-modal" onClick={e => e.stopPropagation()}>
+              <div className="fullscreen-header">
+                <div className="goal-address">{challengeAddress || 'Loading...'}</div>
+                <button
+                  className="modal-close"
+                  onClick={() => setIsFullscreen(false)}
+                  title="Exit fullscreen"
+                >
+                  ×
+                </button>
+              </div>
+              {renderGraphContent('ecc-graph-fullscreen')}
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 };
 

@@ -31,7 +31,7 @@ const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClose }) =>
               className={location.pathname === '/' ? 'mobile-nav-link active' : 'mobile-nav-link'}
               onClick={onClose}
             >
-              Daily Challenge
+              Daily
             </Link>
             <Link
               to="/practice"
@@ -40,7 +40,7 @@ const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClose }) =>
               }
               onClick={onClose}
             >
-              Practice Mode
+              Practice
             </Link>
           </div>
 

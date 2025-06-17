@@ -1,8 +1,7 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import themeReducer from '../store/slices/themeSlice';
+import { createTestStore } from '../utils/testUtils';
 import { themeUtils } from '../utils/theme';
 import ThemeToggle from './ThemeToggle';
 import type { ReactNode } from 'react';
@@ -20,21 +19,11 @@ vi.mock('../utils/theme', () => ({
 
 const mockThemeUtils = vi.mocked(themeUtils);
 
-// Create a test store
-const createTestStore = (initialTheme: 'light' | 'dark' = 'light') => {
-  return configureStore({
-    reducer: {
-      theme: themeReducer,
-    },
-    preloadedState: {
-      theme: { theme: initialTheme },
-    },
-  });
-};
-
 // Helper function to render with provider
 const renderWithProvider = (ui: ReactNode, initialTheme: 'light' | 'dark' = 'light') => {
-  const store = createTestStore(initialTheme);
+  const store = createTestStore();
+  // Set initial theme state
+  store.dispatch({ type: 'theme/setTheme', payload: initialTheme });
   return render(<Provider store={store}>{ui}</Provider>);
 };
 

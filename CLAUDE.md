@@ -68,6 +68,7 @@ Access Django admin at `http://localhost:8000/admin/` after creating a superuser
 - Break down large features into smaller, specific tasks
 - Use descriptive task names that clearly indicate the work to be done
 - When leaving a mock or fake implementation, leave a `TODO` so that it is obvious the implementation is incomplete
+- Create git commits for each task as it is completed
 - This project is brand new and not yet released, don't worry about backwards compatibility yet
 - Write DRY (Don't repeat yourself) code
 - Follow the Zen of Python
