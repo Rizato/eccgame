@@ -652,7 +652,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               disabled={isLocked || isAtBasePoint}
               title={
                 isAtBasePoint
-                  ? 'Cannot save at generator or goal point'
+                  ? 'Cannot save at start or goal'
                   : currentPointSavedInfo
                     ? `Unsave point "${currentPointSavedInfo.label}"`
                     : 'Save current point'

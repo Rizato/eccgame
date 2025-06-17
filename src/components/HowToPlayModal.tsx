@@ -209,7 +209,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                   <strong>Save interesting points</strong> to create your own landmarks.
                 </li>
                 <li>
-                  <strong>Try the Daily Goal</strong> and accept inevitable defeat.
+                  <strong>Try Daily Mode</strong> and accept inevitable defeat.
                 </li>
                 <li>
                   <strong>Share your attempts</strong> and spread the mathematical madness!

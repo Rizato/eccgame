@@ -260,7 +260,7 @@
 }
 
 .calculator-section.locked::after {
-  content: '🔒 Calculator Locked - Goal Complete!';
+  content: '🔒 Calculator Locked - Goal Found!';
   position: absolute;
   top: 50%;
   left: 50%;

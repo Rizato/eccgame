@@ -63,7 +63,7 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
       return "Don't feel bad, this is literally impossible.";
     }
     if (isPracticeMode) {
-      return 'Great work! You successfully solved the practice goal.';
+      return 'Great work! You successfully solved the practice private key.';
     }
 
     return 'Incredible! You successfully found the private key from the public key.';
