@@ -895,9 +895,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                 setHexMode(true);
                 setCalculatorDisplay('0x' + randomBigInt.toString(16).toUpperCase());
               }}
-              className="calc-button hex"
+              className="calc-button rand"
               title="Generate random number"
-              disabled={calculatorDisplay.trim() !== ''}
             >
               rand
             </button>

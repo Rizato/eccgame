@@ -11,6 +11,7 @@ import './ECCGraph.css';
 
 interface ECCGraphProps {
   challengePublicKey: string;
+  challengeAddress?: string;
   onPointClick: (point: ECPoint) => void;
   operationCount?: number;
 }
@@ -30,6 +31,7 @@ interface GraphPoint {
 
 const ECCGraph: React.FC<ECCGraphProps> = ({
   challengePublicKey,
+  challengeAddress,
   onPointClick,
   operationCount = 0,
 }) => {
@@ -85,29 +87,11 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
     dispatch(setShowVictoryModal(true));
   };
 
-  // Zoom and gesture handlers
-  const handleWheel = useCallback(
-    (e: WheelEvent) => {
-      const targetElement = e.currentTarget as HTMLDivElement;
-      if (!targetElement) return;
-
-      e.preventDefault();
-      const rect = targetElement.getBoundingClientRect();
-      const centerX = (e.clientX - rect.left) / rect.width;
-      const centerY = (e.clientY - rect.top) / rect.height;
-
-      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-      setZoomLevel(prev => Math.max(1, Math.min(10, prev * zoomFactor)));
-
-      // Adjust pan to zoom towards mouse position
-      const panAdjustmentX = (centerX - 0.5) * (zoomFactor - 1) * 10;
-      const panAdjustmentY = (centerY - 0.5) * (zoomFactor - 1) * 10;
-      const newZoomLevel = Math.max(1, Math.min(10, zoomLevel * zoomFactor));
-      setPanX(prev => limitPan(prev + panAdjustmentX, newZoomLevel));
-      setPanY(prev => limitPan(prev + panAdjustmentY, newZoomLevel));
-    },
-    [limitPan, zoomLevel]
-  );
+  // Touch-only zoom (no desktop wheel zoom)
+  const handleWheel = useCallback((e: WheelEvent) => {
+    // Disable wheel zoom for now
+    e.preventDefault();
+  }, []);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (e.touches.length === 2) {
@@ -497,7 +481,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
       <div className="graph-section graph-display">
         <div className="graph-content">
           <div className="graph-header">
-            <div className="formula">y² = x³ + 7 (mod p)</div>
+            <div className="goal-address">{challengeAddress || 'Loading...'}</div>
             <div className="graph-actions">
               {isPracticeMode && (
                 <div className="combined-control" ref={dropdownRef}>
@@ -574,7 +558,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
           <div className="modal-overlay" onClick={() => setIsFullscreen(false)}>
             <div className="fullscreen-graph-modal" onClick={e => e.stopPropagation()}>
               <div className="fullscreen-header">
-                <div className="formula">y² = x³ + 7 (mod p)</div>
+                <div className="goal-address">{challengeAddress || 'Loading...'}</div>
                 <button
                   className="modal-close"
                   onClick={() => setIsFullscreen(false)}

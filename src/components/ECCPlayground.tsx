@@ -194,6 +194,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           {/* ECC Graph Visualization */}
           <ECCGraph
             challengePublicKey={challenge.public_key}
+            challengeAddress={challenge.p2pkh_address}
             onPointClick={handlePointClick}
             operationCount={totalOperationCount}
           />
@@ -256,6 +257,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
           return 'Point Information';
         })()}
+        challenge={challenge}
         isPracticeMode={isPracticeMode}
         practicePrivateKey={practicePrivateKey}
         point={modalPoint}

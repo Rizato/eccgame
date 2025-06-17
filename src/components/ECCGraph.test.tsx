@@ -99,6 +99,7 @@ describe('ECCGraph', () => {
       <Provider store={store}>
         <ECCGraph
           challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+          challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
           onPointClick={vi.fn()}
         />
       </Provider>
@@ -106,7 +107,8 @@ describe('ECCGraph', () => {
 
     // Verify the graph renders
     expect(container.querySelector('.ecc-graph')).toBeInTheDocument();
-    expect(container.querySelector('.formula')).toBeInTheDocument();
+    // Should show goal address in daily mode (default)
+    expect(container.querySelector('.goal-address')).toBeInTheDocument();
 
     // Check that generator point is rendered
     expect(container.querySelector('.generator')).toBeInTheDocument();
@@ -114,6 +116,35 @@ describe('ECCGraph', () => {
     // The key test: verify that decimal.js doesn't throw errors and coordinates are calculated
     const points = container.querySelectorAll('.ecc-point');
     expect(points.length).toBeGreaterThan(0);
+  });
+
+  it('should show address in practice mode', () => {
+    const store = createTestStore();
+
+    // Initialize store state for practice mode
+    store.dispatch({
+      type: 'game/setGameMode',
+      payload: 'practice',
+    });
+
+    store.dispatch({
+      type: 'practiceCalculator/resetToGenerator',
+      payload: undefined,
+    });
+
+    const { container } = render(
+      <Provider store={store}>
+        <ECCGraph
+          challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+          challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+          onPointClick={vi.fn()}
+        />
+      </Provider>
+    );
+
+    // Should show address in practice mode (same as daily mode now)
+    expect(container.querySelector('.goal-address')).toBeInTheDocument();
+    expect(container.querySelector('.formula')).not.toBeInTheDocument();
   });
 
   describe('Zoom Functionality', () => {
@@ -141,6 +172,7 @@ describe('ECCGraph', () => {
         <Provider store={store}>
           <ECCGraph
             challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
             onPointClick={mockOnPointClick}
           />
         </Provider>
@@ -161,6 +193,7 @@ describe('ECCGraph', () => {
         <Provider store={store}>
           <ECCGraph
             challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
             onPointClick={mockOnPointClick}
           />
         </Provider>
@@ -204,6 +237,7 @@ describe('ECCGraph', () => {
         <Provider store={store}>
           <ECCGraph
             challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
             onPointClick={mockOnPointClick}
           />
         </Provider>
@@ -260,6 +294,7 @@ describe('ECCGraph', () => {
         <Provider store={store}>
           <ECCGraph
             challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
             onPointClick={mockOnPointClick}
           />
         </Provider>
@@ -303,6 +338,7 @@ describe('ECCGraph', () => {
         <Provider store={store}>
           <ECCGraph
             challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
             onPointClick={mockOnPointClick}
           />
         </Provider>
@@ -338,6 +374,7 @@ describe('ECCGraph', () => {
         <Provider store={store}>
           <ECCGraph
             challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
             onPointClick={mockOnPointClick}
           />
         </Provider>

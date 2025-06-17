@@ -407,6 +407,8 @@
   box-sizing: border-box;
   flex: 1;
   min-height: 600px;
+  max-height: 80vh;
+  overflow: hidden;
 }
 
 /* Graph Section as Display */

@@ -108,8 +108,20 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
         <div className="victory-stats">
           <div className="stat-item">
             <div className="stat-label">Wallet Address</div>
-            <div className="stat-value address-value" title={challenge.p2pkh_address}>
-              {challenge.p2pkh_address}
+            <div className="modal-value-container">
+              <span className="stat-value address-value" title={challenge.p2pkh_address}>
+                {challenge.p2pkh_address}
+              </span>
+              {!isPracticeMode && (
+                <a
+                  href={`${import.meta.env.VITE_EXPLORER_BASE_URL}${challenge.p2pkh_address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="explorer-link-button"
+                >
+                  View
+                </a>
+              )}
             </div>
           </div>
 
@@ -167,6 +179,19 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
             </div>
             <div className="stat-value address-value">{operationCount}</div>
           </div>
+
+          {!isPracticeMode && challenge.tags && challenge.tags.length > 0 && (
+            <div className="stat-item">
+              <div className="stat-label">Tags</div>
+              <div className="metadata-tags">
+                {challenge.tags.map((tag, index) => (
+                  <span key={tag || index} className="tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {signature && !gaveUp && (
             <div className="stat-item">

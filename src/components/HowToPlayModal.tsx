@@ -110,6 +110,10 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                     <strong>-P (Negation):</strong> Flip the point across the X-axis (negates the Y
                     coordinate)
                   </li>
+                  <li>
+                    <strong>rand:</strong> Generate a random number between 2 and the curve order
+                    for quick experimentation
+                  </li>
                 </ul>
               </div>
 

@@ -239,7 +239,7 @@ describe('ECCCalculator', () => {
       expect(randButton).not.toBeDisabled();
     });
 
-    it('should be disabled when calculator display has content', async () => {
+    it('should work even when calculator display has content', async () => {
       await act(async () => {
         renderWithStore(<ECCCalculator {...createDefaultProps()} />);
       });
@@ -252,7 +252,16 @@ describe('ECCCalculator', () => {
       fireEvent.click(buttonElement!);
 
       const randButton = screen.getByText('rand');
-      expect(randButton).toBeDisabled();
+      expect(randButton).not.toBeDisabled();
+
+      // Should be able to click it and replace the content
+      await act(async () => {
+        fireEvent.click(randButton);
+      });
+
+      // Should now have a hex value that starts with 0x
+      const input = screen.getByDisplayValue(/^0x/);
+      expect(input).toBeInTheDocument();
     });
 
     it('should generate random number when clicked', async () => {
