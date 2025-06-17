@@ -7,9 +7,10 @@ import {
   createEmptyGraph,
   addNode,
 } from '../../utils/graphOperations';
+import { savePracticeState, loadPracticeState } from '../../utils/storage';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
-interface PracticeCalculatorState {
+export interface PracticeCalculatorState {
   selectedPoint: ECPoint;
   graph: PointGraph;
   generatorNodeId: string | null;
@@ -33,7 +34,7 @@ const generatorPoint = getGeneratorPoint();
 const initializeGraph = (): { graph: PointGraph; generatorNodeId: string } => {
   const graph = createEmptyGraph();
   const generatorNode = addNode(graph, generatorPoint, {
-    id: 'generator',
+    id: 'practice_generator',
     label: 'Generator (G)',
     privateKey: 1n,
     isGenerator: true,
@@ -111,7 +112,7 @@ const practiceCalculatorSlice = createSlice({
       state.challengePublicKey = publicKey;
       state.practicePrivateKey = privateKey;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = challengePoint;
+      // Keep selectedPoint as generator point G, don't change to challenge point
 
       // Add challenge node to graph with known private key (only if privateKey is valid)
       const nodeOptions: {
@@ -120,7 +121,7 @@ const practiceCalculatorSlice = createSlice({
         isChallenge: boolean;
         privateKey?: bigint;
       } = {
-        id: 'challenge',
+        id: 'practice_challenge',
         label: 'Challenge Point',
         isChallenge: true,
       };
@@ -180,7 +181,7 @@ const practiceCalculatorSlice = createSlice({
     ) => {
       const { publicKey, privateKey } = action.payload;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = challengePoint;
+      state.selectedPoint = generatorPoint;
 
       // Ensure challenge node exists in graph with known private key
       const nodeOptions: {
@@ -189,7 +190,7 @@ const practiceCalculatorSlice = createSlice({
         isChallenge: boolean;
         privateKey?: bigint;
       } = {
-        id: 'challenge',
+        id: 'practice_challenge',
         label: 'Challenge Point',
         isChallenge: true,
       };
@@ -338,6 +339,17 @@ const practiceCalculatorSlice = createSlice({
       // Update selected point to the result
       state.selectedPoint = toPoint;
     },
+    saveState: state => {
+      // Save current state to localStorage
+      savePracticeState(state);
+    },
+    loadState: state => {
+      // Load state from localStorage
+      const saved = loadPracticeState();
+      if (saved) {
+        Object.assign(state, saved);
+      }
+    },
   },
   extraReducers: builder => {
     builder
@@ -368,6 +380,8 @@ export const {
   unsaveSavedPoint,
   checkWinCondition,
   addOperationToGraph,
+  saveState,
+  loadState,
 } = practiceCalculatorSlice.actions;
 
 export default practiceCalculatorSlice.reducer;

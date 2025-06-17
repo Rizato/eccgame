@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
-  setGameMode,
+  switchGameMode,
   loadDailyChallenge,
   setError,
   setHasWon,
@@ -28,7 +28,7 @@ export function useGameStateRedux() {
     error: gameState.error,
     hasWon: gameState.hasWon,
     // Actions
-    setGameMode: (mode: GameMode) => dispatch(setGameMode(mode)),
+    setGameMode: (mode: GameMode) => dispatch(switchGameMode(mode)),
     setError: (error: string | null) => dispatch(setError(error)),
     setHasWon: (hasWon: boolean) => dispatch(setHasWon(hasWon)),
     clearError: () => dispatch(clearError()),
