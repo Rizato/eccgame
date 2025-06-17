@@ -2,7 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../store/hooks';
-import { setGameMode } from '../store/slices/gameSlice';
+import { switchGameMode } from '../store/slices/gameSlice';
 import './HowToPlayModal.css';
 
 interface HowToPlayModalProps {
@@ -17,7 +17,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
   if (!isOpen) return null;
 
   const handleModeClick = (mode: 'daily' | 'practice') => {
-    dispatch(setGameMode(mode));
+    dispatch(switchGameMode(mode));
     navigate(mode === 'practice' ? '/practice' : '/');
     onClose();
   };

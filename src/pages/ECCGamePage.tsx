@@ -4,7 +4,7 @@ import GameFooter from '../components/GameFooter';
 import HowToPlayModal from '../components/HowToPlayModal';
 import PracticeModeView from '../components/PracticeModeView';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { setGameMode, setError } from '../store/slices/gameSlice';
+import { switchGameMode, setError } from '../store/slices/gameSlice';
 import { openHowToPlay, closeHowToPlay, setShowHowToPlay } from '../store/slices/uiSlice';
 import './ECCGamePage.css';
 
@@ -19,7 +19,7 @@ const ECCGamePage: React.FC<ECCGamePageProps> = ({ mode = 'daily' }) => {
 
   // Set game mode based on route
   useEffect(() => {
-    dispatch(setGameMode(mode));
+    dispatch(switchGameMode(mode));
   }, [dispatch, mode]);
 
   // Show startup warnings and how to play modal for first-time users

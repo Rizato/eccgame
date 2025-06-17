@@ -104,12 +104,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     }, 0);
   }, [graph]);
 
-  // Reset current point when challenge changes
-  useEffect(() => {
-    if (challenge) {
-      calculatorFunctionsRef.current.resetToGenerator();
-    }
-  }, [challenge]);
+  // Note: Removed automatic reset to generator when challenge changes
+  // to preserve current point state when switching between modes
 
   // Save current point (wrapper around Redux action)
   const saveCurrentPoint = useCallback(

@@ -1,6 +1,11 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { challenges } from '../../data/challenges.json';
 import { getP2PKHAddress } from '../../utils/crypto';
+import { loadState as loadDailyState, saveState as saveDailyState } from './eccCalculatorSlice';
+import {
+  loadState as loadPracticeState,
+  saveState as savePracticeState,
+} from './practiceCalculatorSlice';
 import type { Challenge, ChallengeData } from '../../types/game';
 import type { AppThunk } from '../index.ts';
 
@@ -24,6 +29,30 @@ const initialState: GameState = {
   hasWon: false,
   gaveUp: false,
   challenges: challenges,
+};
+
+export const switchGameMode = (mode: GameMode): AppThunk => {
+  return (dispatch, getState) => {
+    const currentState = getState();
+    const currentMode = currentState.game.gameMode;
+
+    // Save current mode's state before switching
+    if (currentMode === 'daily') {
+      dispatch(saveDailyState());
+    } else if (currentMode === 'practice') {
+      dispatch(savePracticeState());
+    }
+
+    // Set the new game mode
+    dispatch(setGameMode(mode));
+
+    // Load the new mode's state
+    if (mode === 'daily') {
+      dispatch(loadDailyState());
+    } else if (mode === 'practice') {
+      dispatch(loadPracticeState());
+    }
+  };
 };
 
 export const loadDailyChallenge = (): AppThunk => {
@@ -104,6 +133,13 @@ const gameSlice = createSlice({
     clearError: state => {
       state.error = null;
     },
+    resetGame: state => {
+      state.challenge = null;
+      state.hasWon = false;
+      state.gaveUp = false;
+      state.loading = false;
+      state.error = null;
+    },
   },
 });
 
@@ -116,5 +152,7 @@ export const {
   setHasWon,
   setGaveUp,
   clearError,
+  resetGame,
 } = gameSlice.actions;
+
 export default gameSlice.reducer;

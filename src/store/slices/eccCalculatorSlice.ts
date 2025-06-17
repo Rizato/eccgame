@@ -7,9 +7,10 @@ import {
   calculatePrivateKeyFromGraph,
   ensureOperationInGraph,
 } from '../../utils/graphOperations';
+import { saveDailyState, loadDailyState } from '../../utils/storage';
 import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
 
-interface DailyCalculatorState {
+export interface DailyCalculatorState {
   selectedPoint: ECPoint;
   graph: PointGraph;
   generatorNodeId: string | null;
@@ -33,7 +34,7 @@ const generatorPoint = getGeneratorPoint();
 const initializeGraph = (): { graph: PointGraph; generatorNodeId: string } => {
   const graph = createEmptyGraph();
   const generatorNode = addNode(graph, generatorPoint, {
-    id: 'generator',
+    id: 'daily_generator',
     label: 'Generator (G)',
     privateKey: 1n,
     isGenerator: true,
@@ -105,11 +106,11 @@ const dailyCalculatorSlice = createSlice({
     setChallengePublicKey: (state, action: PayloadAction<string>) => {
       state.challengePublicKey = action.payload;
       const challengePoint = publicKeyToPoint(action.payload);
-      state.selectedPoint = challengePoint;
+      // Keep selectedPoint as generator point G, don't change to challenge point
 
       // Add challenge node to graph
       const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
+        id: 'daily_challenge',
         label: 'Challenge Point',
         isChallenge: true,
       });
@@ -122,11 +123,11 @@ const dailyCalculatorSlice = createSlice({
       const { publicKey, privateKey } = action.payload;
       state.challengePublicKey = publicKey;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = challengePoint;
+      // Keep selectedPoint as generator point G, don't change to challenge point
 
       // Add challenge node to graph with known private key
       const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
+        id: 'daily_challenge',
         label: 'Challenge Point',
         privateKey: BigInt('0x' + privateKey),
         isChallenge: true,
@@ -173,11 +174,11 @@ const dailyCalculatorSlice = createSlice({
     resetToChallenge: (state, action: PayloadAction<string>) => {
       const challengePublicKey = action.payload;
       const challengePoint = publicKeyToPoint(challengePublicKey);
-      state.selectedPoint = challengePoint;
+      state.selectedPoint = generatorPoint;
 
       // Ensure challenge node exists in graph (don't clear the graph, just ensure the node exists)
       const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
+        id: 'daily_challenge',
         label: 'Challenge Point',
         isChallenge: true,
       });
@@ -199,11 +200,11 @@ const dailyCalculatorSlice = createSlice({
     ) => {
       const { publicKey, privateKey } = action.payload;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = challengePoint;
+      state.selectedPoint = generatorPoint;
 
       // Ensure challenge node exists in graph with known private key
       const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
+        id: 'daily_challenge',
         label: 'Challenge Point',
         privateKey: BigInt('0x' + privateKey),
         isChallenge: true,
@@ -320,6 +321,17 @@ const dailyCalculatorSlice = createSlice({
       // Update selected point to the result
       state.selectedPoint = toPoint;
     },
+    saveState: state => {
+      // Save current state to localStorage
+      saveDailyState(state);
+    },
+    loadState: state => {
+      // Load state from localStorage
+      const saved = loadDailyState();
+      if (saved) {
+        Object.assign(state, saved);
+      }
+    },
   },
   extraReducers: builder => {
     builder
@@ -348,6 +360,8 @@ export const {
   loadSavedPoint,
   checkWinCondition,
   addOperationToGraph,
+  saveState,
+  loadState,
 } = dailyCalculatorSlice.actions;
 
 export default dailyCalculatorSlice.reducer;

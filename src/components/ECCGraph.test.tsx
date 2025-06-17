@@ -1,11 +1,8 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { render, fireEvent, act, screen } from '@testing-library/react';
+import { fireEvent, act, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
-import gameSlice from '../store/slices/gameSlice';
-import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
-import practiceModeSlice from '../store/slices/practiceModeSlice';
+import { createTestStore } from '../utils/testUtils';
 import ECCGraph from './ECCGraph';
 
 // Mock crypto utilities
@@ -42,34 +39,6 @@ vi.mock('secp256k1', () => ({
 }));
 
 describe('ECCGraph', () => {
-  function createTestStore() {
-    return configureStore({
-      reducer: {
-        dailyCalculator: eccCalculatorSlice,
-        game: gameSlice,
-        practiceCalculator: practiceCalculatorSlice,
-        practiceMode: practiceModeSlice,
-      },
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware({
-          serializableCheck: {
-            ignoredActions: [
-              'dailyCalculator/setCurrentPoint',
-              'dailyCalculator/addGraphNode',
-              'practiceCalculator/setCurrentPoint',
-              'practiceCalculator/addGraphNode',
-            ],
-            ignoredPaths: [
-              'dailyCalculator.selectedPoint',
-              'dailyCalculator.graph.nodes',
-              'practiceCalculator.selectedPoint',
-              'practiceCalculator.graph.nodes',
-            ],
-          },
-        }),
-    });
-  }
-
   it('should render ECCGraph with decimal.js coordinate mapping', () => {
     const store = createTestStore();
 
