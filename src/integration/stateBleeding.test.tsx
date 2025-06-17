@@ -1,43 +1,13 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { describe, it, expect, beforeEach } from 'vitest';
-import eccCalculatorReducer from '../store/slices/eccCalculatorSlice';
-import gameReducer, { switchGameMode } from '../store/slices/gameSlice';
-import practiceCalculatorReducer from '../store/slices/practiceCalculatorSlice';
-import practiceModeReducer from '../store/slices/practiceModeSlice';
-import themeReducer from '../store/slices/themeSlice';
-import uiReducer from '../store/slices/uiSlice';
+import { switchGameMode } from '../store/slices/gameSlice';
 import { getGeneratorPoint, hexToBigint, pointMultiply } from '../utils/ecc';
+import { createTestStore, type TestStore } from '../utils/testUtils';
 
-describe('State Bleeding Integration Tests - Store Level', () => {
-  let store: ReturnType<typeof configureStore>;
+describe('State Bleeding Integration Tests', () => {
+  let store: TestStore;
 
   beforeEach(() => {
-    store = configureStore({
-      reducer: {
-        game: gameReducer,
-        dailyCalculator: eccCalculatorReducer,
-        practiceCalculator: practiceCalculatorReducer,
-        practiceMode: practiceModeReducer,
-        theme: themeReducer,
-        ui: uiReducer,
-      },
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware({
-          serializableCheck: {
-            // Ignore BigInt values in ECC points for testing
-            ignoredActions: [
-              'dailyCalculator/addOperationToGraph',
-              'practiceCalculator/addOperationToGraph',
-            ],
-            ignoredPaths: [
-              'dailyCalculator.selectedPoint',
-              'dailyCalculator.graph',
-              'practiceCalculator.selectedPoint',
-              'practiceCalculator.graph',
-            ],
-          },
-        }),
-    });
+    store = createTestStore();
   });
 
   it('should prevent cross-mode victory exploitation', () => {
@@ -54,10 +24,7 @@ describe('State Bleeding Integration Tests - Store Level', () => {
       },
     });
 
-    let state = store.getState();
     store.dispatch(switchGameMode('daily'));
-
-    state = store.getState();
 
     // Try the exploit: connect daily generator to practice challenge
     const generator = getGeneratorPoint();
@@ -80,7 +47,7 @@ describe('State Bleeding Integration Tests - Store Level', () => {
     // Check win condition
     store.dispatch({ type: 'dailyCalculator/checkWinCondition' });
 
-    state = store.getState();
+    const state = store.getState();
 
     // Daily mode should not win
     expect(state.dailyCalculator.hasWon).toBe(false);

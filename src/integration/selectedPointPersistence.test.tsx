@@ -1,52 +1,18 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { describe, it, expect, beforeEach } from 'vitest';
-import eccCalculatorReducer from '../store/slices/eccCalculatorSlice';
-import gameReducer, { switchGameMode } from '../store/slices/gameSlice';
-import practiceCalculatorReducer from '../store/slices/practiceCalculatorSlice';
-import practiceModeReducer from '../store/slices/practiceModeSlice';
-import themeReducer from '../store/slices/themeSlice';
-import uiReducer from '../store/slices/uiSlice';
+import { switchGameMode } from '../store/slices/gameSlice';
 import { getGeneratorPoint, pointMultiply } from '../utils/ecc';
 import { clearDailyState, clearPracticeState } from '../utils/storage';
+import { createTestStore, type TestStore } from '../utils/testUtils';
 
 describe('Selected Point Persistence Tests', () => {
-  let store: ReturnType<typeof configureStore>;
+  let store: TestStore;
 
   beforeEach(() => {
     // Clear in-memory state before each test
     clearDailyState();
     clearPracticeState();
 
-    store = configureStore({
-      reducer: {
-        game: gameReducer,
-        dailyCalculator: eccCalculatorReducer,
-        practiceCalculator: practiceCalculatorReducer,
-        practiceMode: practiceModeReducer,
-        theme: themeReducer,
-        ui: uiReducer,
-      },
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware({
-          serializableCheck: {
-            // Ignore BigInt values in ECC points for testing
-            ignoredActions: [
-              'dailyCalculator/addOperationToGraph',
-              'practiceCalculator/addOperationToGraph',
-              'dailyCalculator/saveState',
-              'practiceCalculator/saveState',
-              'dailyCalculator/loadState',
-              'practiceCalculator/loadState',
-            ],
-            ignoredPaths: [
-              'dailyCalculator.selectedPoint',
-              'dailyCalculator.graph',
-              'practiceCalculator.selectedPoint',
-              'practiceCalculator.graph',
-            ],
-          },
-        }),
-    });
+    store = createTestStore();
   });
 
   it('should maintain selected point when switching between practice and daily modes (core state)', () => {
