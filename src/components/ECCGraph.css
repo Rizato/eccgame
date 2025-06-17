@@ -141,7 +141,7 @@
   background: var(--graph-bg);
   border: 2px solid var(--border);
   border-radius: 8px;
-  overflow: visible; /* Allow labels to overflow */
+  overflow: hidden;
   margin-bottom: 1rem;
 }
 
@@ -362,7 +362,7 @@
   background: var(--graph-bg);
   border: 2px solid var(--border);
   border-radius: 8px;
-  overflow: visible;
+  overflow: hidden;
   margin: 1rem;
   /* Make it square based on available viewport space */
   width: min(85vh, 85vw);
