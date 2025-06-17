@@ -112,7 +112,7 @@ const practiceCalculatorSlice = createSlice({
       state.challengePublicKey = publicKey;
       state.practicePrivateKey = privateKey;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = challengePoint;
+      // Keep selectedPoint as generator point G, don't change to challenge point
 
       // Add challenge node to graph with known private key (only if privateKey is valid)
       const nodeOptions: {
@@ -181,7 +181,7 @@ const practiceCalculatorSlice = createSlice({
     ) => {
       const { publicKey, privateKey } = action.payload;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = challengePoint;
+      state.selectedPoint = generatorPoint;
 
       // Ensure challenge node exists in graph with known private key
       const nodeOptions: {
@@ -325,26 +325,6 @@ const practiceCalculatorSlice = createSlice({
         }
       }
     },
-    clearGraph: state => {
-      // Reset graph to initial state with only generator
-      const { graph: newGraph, generatorNodeId: newGeneratorNodeId } = initializeGraph();
-      state.graph = newGraph;
-      state.generatorNodeId = newGeneratorNodeId;
-      state.challengeNodeId = null;
-      state.selectedPoint = generatorPoint;
-      state.hasWon = false;
-      state.showVictoryModal = false;
-      state.savedPoints = [];
-      state.challengePublicKey = '';
-      state.practicePrivateKey = '';
-      state.error = null;
-      state.calculatorDisplay = '';
-      state.pendingOperation = null;
-      state.lastOperationValue = null;
-
-      // Save the cleared state to memory storage
-      savePracticeState(state);
-    },
     addOperationToGraph: (
       state,
       action: PayloadAction<{
@@ -399,7 +379,6 @@ export const {
   loadSavedPoint,
   unsaveSavedPoint,
   checkWinCondition,
-  clearGraph,
   addOperationToGraph,
   saveState,
   loadState,

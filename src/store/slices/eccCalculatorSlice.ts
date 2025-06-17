@@ -106,7 +106,7 @@ const dailyCalculatorSlice = createSlice({
     setChallengePublicKey: (state, action: PayloadAction<string>) => {
       state.challengePublicKey = action.payload;
       const challengePoint = publicKeyToPoint(action.payload);
-      state.selectedPoint = challengePoint;
+      // Keep selectedPoint as generator point G, don't change to challenge point
 
       // Add challenge node to graph
       const challengeNode = addNode(state.graph, challengePoint, {
@@ -123,7 +123,7 @@ const dailyCalculatorSlice = createSlice({
       const { publicKey, privateKey } = action.payload;
       state.challengePublicKey = publicKey;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = challengePoint;
+      // Keep selectedPoint as generator point G, don't change to challenge point
 
       // Add challenge node to graph with known private key
       const challengeNode = addNode(state.graph, challengePoint, {
@@ -174,7 +174,7 @@ const dailyCalculatorSlice = createSlice({
     resetToChallenge: (state, action: PayloadAction<string>) => {
       const challengePublicKey = action.payload;
       const challengePoint = publicKeyToPoint(challengePublicKey);
-      state.selectedPoint = challengePoint;
+      state.selectedPoint = generatorPoint;
 
       // Ensure challenge node exists in graph (don't clear the graph, just ensure the node exists)
       const challengeNode = addNode(state.graph, challengePoint, {
@@ -200,7 +200,7 @@ const dailyCalculatorSlice = createSlice({
     ) => {
       const { publicKey, privateKey } = action.payload;
       const challengePoint = publicKeyToPoint(publicKey);
-      state.selectedPoint = challengePoint;
+      state.selectedPoint = generatorPoint;
 
       // Ensure challenge node exists in graph with known private key
       const challengeNode = addNode(state.graph, challengePoint, {
@@ -307,25 +307,6 @@ const dailyCalculatorSlice = createSlice({
         }
       }
     },
-    clearGraph: state => {
-      // Reset graph to initial state with only generator
-      const { graph: newGraph, generatorNodeId: newGeneratorNodeId } = initializeGraph();
-      state.graph = newGraph;
-      state.generatorNodeId = newGeneratorNodeId;
-      state.challengeNodeId = null;
-      state.selectedPoint = generatorPoint;
-      state.hasWon = false;
-      state.showVictoryModal = false;
-      state.savedPoints = [];
-      state.challengePublicKey = '';
-      state.error = null;
-      state.calculatorDisplay = '';
-      state.pendingOperation = null;
-      state.lastOperationValue = null;
-
-      // Save the cleared state to memory storage
-      saveDailyState(state);
-    },
     addOperationToGraph: (
       state,
       action: PayloadAction<{
@@ -378,7 +359,6 @@ export const {
   savePoint,
   loadSavedPoint,
   checkWinCondition,
-  clearGraph,
   addOperationToGraph,
   saveState,
   loadState,

@@ -33,8 +33,6 @@ describe('Selected Point Persistence Tests', () => {
             ignoredActions: [
               'dailyCalculator/addOperationToGraph',
               'practiceCalculator/addOperationToGraph',
-              'dailyCalculator/clearGraph',
-              'practiceCalculator/clearGraph',
               'dailyCalculator/saveState',
               'practiceCalculator/saveState',
               'dailyCalculator/loadState',

@@ -33,8 +33,6 @@ describe('State Persistence Integration Tests', () => {
             ignoredActions: [
               'dailyCalculator/addOperationToGraph',
               'practiceCalculator/addOperationToGraph',
-              'dailyCalculator/clearGraph',
-              'practiceCalculator/clearGraph',
               'dailyCalculator/saveState',
               'practiceCalculator/saveState',
               'dailyCalculator/loadState',
@@ -173,47 +171,5 @@ describe('State Persistence Integration Tests', () => {
     // Verify practice state doesn't affect daily
     expect(state.dailyCalculator.hasWon).toBe(false);
     expect(state.practiceCalculator.hasWon).toBe(false);
-  });
-
-  it('should clear individual mode states when requested', () => {
-    // Set up practice mode with data
-    store.dispatch(switchGameMode('practice'));
-    store.dispatch({
-      type: 'practiceCalculator/resetToChallengeWithPrivateKey',
-      payload: {
-        publicKey: '03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6',
-        privateKey: '2a',
-      },
-    });
-
-    // Verify practice has data
-    let state = store.getState();
-    expect(Object.keys(state.practiceCalculator.graph.nodes).length).toBeGreaterThan(1);
-
-    // Set up daily mode with data
-    store.dispatch(switchGameMode('daily'));
-    store.dispatch({
-      type: 'dailyCalculator/resetToChallenge',
-      payload: '02e493dbf1c10d80f3581e4904930b1404cc6c13900ee0758474fa94abe8c4cd13',
-    });
-
-    // Verify daily has data
-    state = store.getState();
-    expect(Object.keys(state.dailyCalculator.graph.nodes).length).toBeGreaterThan(1);
-
-    // Now clear practice state using the clear action while in daily mode
-    store.dispatch({ type: 'practiceCalculator/clearGraph' });
-
-    // Switch to practice and verify it's cleared
-    store.dispatch(switchGameMode('practice'));
-    state = store.getState();
-    const practiceNodeCount = Object.keys(state.practiceCalculator.graph.nodes).length;
-    expect(practiceNodeCount).toBe(1); // Only generator
-
-    // But daily should still have its state
-    store.dispatch(switchGameMode('daily'));
-    state = store.getState();
-    const dailyNodeCount = Object.keys(state.dailyCalculator.graph.nodes).length;
-    expect(dailyNodeCount).toBeGreaterThan(1); // Still has challenge
   });
 });
