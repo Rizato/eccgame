@@ -1,5 +1,19 @@
-import { describe, expect, it } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
+import { describe, expect, it } from 'vitest';
+import {
+  getGeneratorPoint,
+  pointAdd,
+  pointMultiply,
+  pointNegate,
+  hexToBigint,
+} from '../../utils/ecc';
+import type { ChallengeData } from '../../types/game';
+import type { RootState } from '../store';
+import eccCalculatorReducer, {
+  addOperationToGraph,
+  checkWinCondition,
+  resetToChallenge,
+} from './eccCalculatorSlice';
 import gameReducer, {
   setGameMode,
   setError,
@@ -7,22 +21,13 @@ import gameReducer, {
   clearError,
   resetGame,
   switchGameMode,
+  type GameMode,
 } from './gameSlice';
-import eccCalculatorReducer, {
-  addOperationToGraph,
-  checkWinCondition,
-  resetToChallenge,
-} from './eccCalculatorSlice';
 import practiceCalculatorReducer, {
   addOperationToGraph as practiceAddOperationToGraph,
   checkWinCondition as practiceCheckWinCondition,
   resetToChallengeWithPrivateKey as practiceResetToChallenge,
 } from './practiceCalculatorSlice';
-import type { GameMode } from './gameSlice';
-import type { ChallengeData } from '../../types/game';
-import type { RootState } from '../store';
-import { getGeneratorPoint, pointAdd, pointMultiply, pointNegate } from '../../utils/ecc';
-import { hexToBigint } from '../../utils/ecc';
 
 describe('gameSlice', () => {
   // Create test challenge data (without p2pkh_address)
@@ -82,10 +87,32 @@ describe('State Bleed Between Practice and Daily Modes', () => {
         eccCalculator: eccCalculatorReducer,
         practiceCalculator: practiceCalculatorReducer,
       },
+      middleware: getDefaultMiddleware =>
+        getDefaultMiddleware({
+          serializableCheck: {
+            // Ignore BigInt values in ECC points for testing
+            ignoredActions: [
+              'eccCalculator/addOperationToGraph',
+              'practiceCalculator/addOperationToGraph',
+              'eccCalculator/clearGraph',
+              'practiceCalculator/clearGraph',
+              'eccCalculator/saveState',
+              'practiceCalculator/saveState',
+              'eccCalculator/loadState',
+              'practiceCalculator/loadState',
+            ],
+            ignoredPaths: [
+              'eccCalculator.selectedPoint',
+              'eccCalculator.graph',
+              'practiceCalculator.selectedPoint',
+              'practiceCalculator.graph',
+            ],
+          },
+        }),
     });
 
     // Start in practice mode
-    store.dispatch(setGameMode('practice'));
+    store.dispatch(switchGameMode('practice'));
     const privateKey = '123456789abcdef';
     const privateScalar = hexToBigint(privateKey);
 
@@ -224,10 +251,32 @@ describe('State Bleed Between Practice and Daily Modes', () => {
         eccCalculator: eccCalculatorReducer,
         practiceCalculator: practiceCalculatorReducer,
       },
+      middleware: getDefaultMiddleware =>
+        getDefaultMiddleware({
+          serializableCheck: {
+            // Ignore BigInt values in ECC points for testing
+            ignoredActions: [
+              'eccCalculator/addOperationToGraph',
+              'practiceCalculator/addOperationToGraph',
+              'eccCalculator/clearGraph',
+              'practiceCalculator/clearGraph',
+              'eccCalculator/saveState',
+              'practiceCalculator/saveState',
+              'eccCalculator/loadState',
+              'practiceCalculator/loadState',
+            ],
+            ignoredPaths: [
+              'eccCalculator.selectedPoint',
+              'eccCalculator.graph',
+              'practiceCalculator.selectedPoint',
+              'practiceCalculator.graph',
+            ],
+          },
+        }),
     });
 
     // Start in practice mode and create nodes
-    store.dispatch(setGameMode('practice'));
+    store.dispatch(switchGameMode('practice'));
     store.dispatch(
       practiceResetToChallenge({
         publicKey: '03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6',
@@ -256,7 +305,7 @@ describe('State Bleed Between Practice and Daily Modes', () => {
     expect(practiceNodeCount).toBe(3); // generator, challenge, and new node
 
     // Switch to daily mode
-    store.dispatch(setGameMode('daily'));
+    store.dispatch(switchGameMode('daily'));
     store.dispatch(
       resetToChallenge('03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6')
     );
@@ -304,10 +353,32 @@ describe('State Bleed Between Practice and Daily Modes', () => {
         eccCalculator: eccCalculatorReducer,
         practiceCalculator: practiceCalculatorReducer,
       },
+      middleware: getDefaultMiddleware =>
+        getDefaultMiddleware({
+          serializableCheck: {
+            // Ignore BigInt values in ECC points for testing
+            ignoredActions: [
+              'eccCalculator/addOperationToGraph',
+              'practiceCalculator/addOperationToGraph',
+              'eccCalculator/clearGraph',
+              'practiceCalculator/clearGraph',
+              'eccCalculator/saveState',
+              'practiceCalculator/saveState',
+              'eccCalculator/loadState',
+              'practiceCalculator/loadState',
+            ],
+            ignoredPaths: [
+              'eccCalculator.selectedPoint',
+              'eccCalculator.graph',
+              'practiceCalculator.selectedPoint',
+              'practiceCalculator.graph',
+            ],
+          },
+        }),
     });
 
     // Create winning state in practice mode
-    store.dispatch(setGameMode('practice'));
+    store.dispatch(switchGameMode('practice'));
     store.dispatch(
       practiceResetToChallenge({
         publicKey: '03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6',
@@ -352,7 +423,7 @@ describe('State Bleed Between Practice and Daily Modes', () => {
     expect(practiceChallengeNodeAfterWin?.connectedToG).toBe(true);
 
     // Switch to daily mode and create new challenge
-    store.dispatch(setGameMode('daily'));
+    store.dispatch(switchGameMode('daily'));
     store.dispatch(
       resetToChallenge('03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6')
     );

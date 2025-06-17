@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
-import gameReducer, { switchGameMode } from '../store/slices/gameSlice';
+import { describe, it, expect, beforeEach } from 'vitest';
 import eccCalculatorReducer from '../store/slices/eccCalculatorSlice';
+import gameReducer, { switchGameMode } from '../store/slices/gameSlice';
 import practiceCalculatorReducer from '../store/slices/practiceCalculatorSlice';
 import practiceModeReducer from '../store/slices/practiceModeSlice';
 import themeReducer from '../store/slices/themeSlice';
@@ -42,7 +42,7 @@ describe('State Bleeding Integration Tests - Store Level', () => {
     });
   });
 
-  it('should prevent state bleed when switching from practice to daily mode', () => {
+  it('should preserve practice state while keeping daily mode clean', () => {
     // Start in practice mode
     store.dispatch(switchGameMode('practice'));
 
@@ -78,25 +78,22 @@ describe('State Bleeding Integration Tests - Store Level', () => {
     const practiceNodeCount = Object.keys(state.practiceCalculator.graph.nodes).length;
     expect(practiceNodeCount).toBeGreaterThan(2);
 
-    // Switch to daily mode using the fixed switchGameMode
+    // Switch to daily mode using the new switchGameMode
     store.dispatch(switchGameMode('daily'));
 
-    // Verify that both modes have clean states after switch
+    // Verify that daily mode starts clean (no saved state yet)
     state = store.getState();
     const dailyNodeCount = Object.keys(state.dailyCalculator.graph.nodes).length;
+    expect(dailyNodeCount).toBe(1); // Only generator node
+
+    // Switch back to practice and verify state was preserved
+    store.dispatch(switchGameMode('practice'));
+    state = store.getState();
     const practiceNodeCountAfter = Object.keys(state.practiceCalculator.graph.nodes).length;
 
-    // Both should only have generator node (clean state)
-    expect(dailyNodeCount).toBe(1);
-    expect(practiceNodeCountAfter).toBe(1);
-
-    // Neither mode should have won status
-    expect(state.dailyCalculator.hasWon).toBe(false);
-    expect(state.practiceCalculator.hasWon).toBe(false);
-
-    // No challenge nodes should exist
-    expect(state.dailyCalculator.challengeNodeId).toBeNull();
-    expect(state.practiceCalculator.challengeNodeId).toBeNull();
+    // Practice state should be preserved
+    expect(practiceNodeCountAfter).toBe(practiceNodeCount); // Same as before
+    expect(state.practiceCalculator.challengeNodeId).toBeTruthy();
   });
 
   it('should prevent cross-mode victory exploitation', () => {

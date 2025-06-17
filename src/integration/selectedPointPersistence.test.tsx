@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { configureStore } from '@reduxjs/toolkit';
-import gameReducer, { switchGameMode } from '../store/slices/gameSlice';
+import { describe, it, expect, beforeEach } from 'vitest';
 import eccCalculatorReducer from '../store/slices/eccCalculatorSlice';
+import gameReducer, { switchGameMode } from '../store/slices/gameSlice';
 import practiceCalculatorReducer from '../store/slices/practiceCalculatorSlice';
 import practiceModeReducer from '../store/slices/practiceModeSlice';
 import themeReducer from '../store/slices/themeSlice';
