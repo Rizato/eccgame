@@ -298,7 +298,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
       id: 'generator',
       x: generatorX,
       y: generatorY,
-      label: 'G',
+      label: 'Start (G)',
       color: '#3b82f6', // blue
       description: 'Generator point',
       point: generatorPoint,
