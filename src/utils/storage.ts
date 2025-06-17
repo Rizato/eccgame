@@ -42,7 +42,7 @@ export function saveDailyState(state: DailyCalculatorState): void {
   try {
     // Deep clone to avoid reference issues
     const clonedState = JSON.parse(
-      JSON.stringify(state, (key, value) => {
+      JSON.stringify(state, (_key, value) => {
         // Handle BigInt serialization
         if (typeof value === 'bigint') {
           return '0x' + value.toString(16);
@@ -52,7 +52,7 @@ export function saveDailyState(state: DailyCalculatorState): void {
     );
 
     // Parse BigInt values back
-    const parsedState = JSON.parse(JSON.stringify(clonedState), (key, value) => {
+    const parsedState = JSON.parse(JSON.stringify(clonedState), (_key, value) => {
       if (typeof value === 'string' && value.startsWith('0x') && /^0x[0-9a-fA-F]+$/.test(value)) {
         try {
           return BigInt(value);
@@ -82,7 +82,7 @@ export function savePracticeState(state: PracticeCalculatorState): void {
   try {
     // Deep clone to avoid reference issues
     const clonedState = JSON.parse(
-      JSON.stringify(state, (key, value) => {
+      JSON.stringify(state, (_key, value) => {
         // Handle BigInt serialization
         if (typeof value === 'bigint') {
           return '0x' + value.toString(16);
@@ -92,7 +92,7 @@ export function savePracticeState(state: PracticeCalculatorState): void {
     );
 
     // Parse BigInt values back
-    const parsedState = JSON.parse(JSON.stringify(clonedState), (key, value) => {
+    const parsedState = JSON.parse(JSON.stringify(clonedState), (_key, value) => {
       if (typeof value === 'string' && value.startsWith('0x') && /^0x[0-9a-fA-F]+$/.test(value)) {
         try {
           return BigInt(value);

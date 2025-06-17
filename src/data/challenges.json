@@ -791,50 +791,6 @@
     {
       "public_key": "020b91eef9fcaea65e13c2821ae70f1aa428e0c9f2406f371f862309247f8a842a",
       "tags": ["mined-block:198"]
-    },
-    {
-      "public_key": "034ab32bf7291275b7e615a79c9a22a63631a131bb926db5c1fc6c4986ad02800b",
-      "tags": ["mined-block:199"]
-    },
-    {
-      "public_key": "035e071dedd1ed03721c6e9bba28fc276795421a378637fb41090192bb9f208630",
-      "tags": ["mined-block:200"]
-    },
-    {
-      "public_key": "02caa6b189180c0135f5ffc43a41b5bec593d7baf94240a3076ffce63679e550df",
-      "tags": ["mined-block:201"]
-    },
-    {
-      "public_key": "03bc2a9a9b73e3bc77c70a4dee07899eb65923e7535cd615e962ce7691f7d22733",
-      "tags": ["mined-block:202"]
-    },
-    {
-      "public_key": "036a48e797022dbf0a9222fe72fee2e19e99af1c5023a9e773df3703450aae5a45",
-      "tags": ["mined-block:203"]
-    },
-    {
-      "public_key": "032d4d1210d911e3195282c10c0904dd17ae8f88d28ad77b5be9483b24af3419b8",
-      "tags": ["mined-block:204"]
-    },
-    {
-      "public_key": "02bb234bf92a7711339336aa62019853f170a4550286143cba21692a6794094f1d",
-      "tags": ["mined-block:205"]
-    },
-    {
-      "public_key": "02bc184a82d824a8ff59576e8b6843767407e4f35edb5ad725460764a30ddf9147",
-      "tags": ["mined-block:206"]
-    },
-    {
-      "public_key": "039fe85ac14399698da9f37468d6d4a3adb3a9e3f9422ff8e76854e72ca952da88",
-      "tags": ["mined-block:207"]
-    },
-    {
-      "public_key": "03369afb5ed5869f1ba368edf61759668bf454abbc1e2ea3494e99e3c68dd7263f",
-      "tags": ["mined-block:208"]
-    },
-    {
-      "public_key": "0355e9025039b22972e660e10558ec81449ae4ff659a7f09c82ce5595bc804f72b",
-      "tags": ["mined-block:209"]
     }
   ]
 }

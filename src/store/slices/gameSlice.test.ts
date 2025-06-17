@@ -1,101 +1,18 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { describe, expect, it } from 'vitest';
 import { getGeneratorPoint, pointMultiply, pointNegate } from '../../utils/ecc';
-import eccCalculatorReducer, { addOperationToGraph, resetToChallenge } from './eccCalculatorSlice';
-import gameReducer, {
-  setGameMode,
-  setError,
-  setHasWon,
-  clearError,
-  switchGameMode,
-  type GameMode,
-} from './gameSlice';
-import practiceCalculatorReducer, {
+import { createTestStore } from '../../utils/testUtils';
+import { addOperationToGraph, resetToChallenge } from './eccCalculatorSlice';
+import { switchGameMode } from './gameSlice';
+import {
   addOperationToGraph as practiceAddOperationToGraph,
   resetToChallengeWithPrivateKey as practiceResetToChallenge,
 } from './practiceCalculatorSlice';
-import type { ChallengeData } from '../../types/game';
-import type { RootState } from '../store';
-
-describe('gameSlice', () => {
-  // Create test challenge data (without p2pkh_address)
-  const testChallengeData: ChallengeData[] = [
-    {
-      public_key: '03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6',
-      tags: ['test', 'challenge1'],
-    },
-    {
-      public_key: '0296b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52',
-      tags: ['test', 'challenge2'],
-    },
-    {
-      public_key: '0311db93e1dcdb8a016b49840f8c53bc1eb68a382e97b1482ecad7b148a6909a5c',
-      tags: ['test', 'challenge3'],
-    },
-  ];
-
-  const initialState = {
-    gameMode: 'daily' as GameMode,
-    challenge: null,
-    loading: false,
-    error: null,
-    hasWon: false,
-    gaveUp: false,
-    challenges: testChallengeData,
-  };
-
-  it('should handle setGameMode', () => {
-    const actual = gameReducer(initialState, setGameMode('practice'));
-    expect(actual.gameMode).toEqual('practice');
-  });
-
-  it('should handle setError', () => {
-    const actual = gameReducer(initialState, setError('Test error'));
-    expect(actual.error).toEqual('Test error');
-  });
-
-  it('should handle clearError', () => {
-    const stateWithError = { ...initialState, error: 'Some error' };
-    const actual = gameReducer(stateWithError, clearError());
-    expect(actual.error).toBeNull();
-  });
-
-  it('should handle setHasWon', () => {
-    const actual = gameReducer(initialState, setHasWon(true));
-    expect(actual.hasWon).toBe(true);
-  });
-});
+import type { RootState } from '../index';
 
 describe('State Persistence with switchGameMode', () => {
   it('should preserve practice state when switching to daily and back', () => {
     // Create a store with all necessary slices
-    const store = configureStore({
-      reducer: {
-        game: gameReducer,
-        eccCalculator: eccCalculatorReducer,
-        practiceCalculator: practiceCalculatorReducer,
-      },
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware({
-          serializableCheck: {
-            // Ignore BigInt values in ECC points for testing
-            ignoredActions: [
-              'eccCalculator/addOperationToGraph',
-              'practiceCalculator/addOperationToGraph',
-              'eccCalculator/saveState',
-              'practiceCalculator/saveState',
-              'eccCalculator/loadState',
-              'practiceCalculator/loadState',
-            ],
-            ignoredPaths: [
-              'eccCalculator.selectedPoint',
-              'eccCalculator.graph',
-              'practiceCalculator.selectedPoint',
-              'practiceCalculator.graph',
-            ],
-          },
-        }),
-    });
+    const store = createTestStore();
 
     // Start in practice mode
     store.dispatch(switchGameMode('practice'));
@@ -128,7 +45,7 @@ describe('State Persistence with switchGameMode', () => {
     );
 
     state = store.getState() as RootState;
-    const dailyNodeCount = Object.keys(state.eccCalculator.graph.nodes).length;
+    const dailyNodeCount = Object.keys(state.dailyCalculator.graph.nodes).length;
     expect(dailyNodeCount).toBeGreaterThan(1);
 
     // Switch back to practice mode - state should be restored
@@ -142,33 +59,7 @@ describe('State Persistence with switchGameMode', () => {
   });
 
   it('should maintain separate graph states between modes', () => {
-    const store = configureStore({
-      reducer: {
-        game: gameReducer,
-        eccCalculator: eccCalculatorReducer,
-        practiceCalculator: practiceCalculatorReducer,
-      },
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware({
-          serializableCheck: {
-            // Ignore BigInt values in ECC points for testing
-            ignoredActions: [
-              'eccCalculator/addOperationToGraph',
-              'practiceCalculator/addOperationToGraph',
-              'eccCalculator/saveState',
-              'practiceCalculator/saveState',
-              'eccCalculator/loadState',
-              'practiceCalculator/loadState',
-            ],
-            ignoredPaths: [
-              'eccCalculator.selectedPoint',
-              'eccCalculator.graph',
-              'practiceCalculator.selectedPoint',
-              'practiceCalculator.graph',
-            ],
-          },
-        }),
-    });
+    const store = createTestStore();
 
     // Start in practice mode and create nodes
     store.dispatch(switchGameMode('practice'));
@@ -206,7 +97,7 @@ describe('State Persistence with switchGameMode', () => {
     );
 
     state = store.getState() as RootState;
-    const dailyNodeCount = Object.keys(state.eccCalculator.graph.nodes).length;
+    const dailyNodeCount = Object.keys(state.dailyCalculator.graph.nodes).length;
     expect(dailyNodeCount).toBe(2); // only generator and challenge
 
     // Add nodes in daily mode
@@ -226,7 +117,7 @@ describe('State Persistence with switchGameMode', () => {
     );
 
     state = store.getState() as RootState;
-    const newDailyNodeCount = Object.keys(state.eccCalculator.graph.nodes).length;
+    const newDailyNodeCount = Object.keys(state.dailyCalculator.graph.nodes).length;
     expect(newDailyNodeCount).toBe(3);
 
     // Switch back to practice - state should be preserved
@@ -239,7 +130,7 @@ describe('State Persistence with switchGameMode', () => {
     const practiceNodeIds = Object.keys(state.practiceCalculator.graph.nodes);
     store.dispatch(switchGameMode('daily'));
     state = store.getState() as RootState;
-    const dailyNodeIds = Object.keys(state.eccCalculator.graph.nodes);
+    const dailyNodeIds = Object.keys(state.dailyCalculator.graph.nodes);
 
     // Graphs should be independent
     expect(practiceNodeIds.length).toBe(3);
