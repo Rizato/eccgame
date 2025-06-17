@@ -4,7 +4,7 @@ import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
 import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
-import { mapToScreenCoordinate, getDisplayRange, isPointVisible } from '../utils/coordinateMapping';
+import { mapToScreenCoordinate, isPointVisible } from '../utils/coordinateMapping';
 import { getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
 import type { ECPoint } from '../types/ecc';
 import './ECCGraph.css';
@@ -50,35 +50,12 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Zoom and pan state
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [panX, setPanX] = useState(0);
-  const [panY, setPanY] = useState(0);
   const graphRef = useRef<HTMLDivElement>(null);
   const fullscreenGraphRef = useRef<HTMLDivElement>(null);
-  const isGesturingRef = useRef(false);
-  const previousDistanceRef = useRef<number | null>(null);
-  const isDraggingRef = useRef(false);
-  const lastMousePositionRef = useRef<{ x: number; y: number } | null>(null);
-
-  // Reset pan when zoom level is 1 or below
-  useEffect(() => {
-    if (zoomLevel <= 1) {
-      setPanX(0);
-      setPanY(0);
-    }
-  }, [zoomLevel]);
 
   // Always show give up button in daily mode, but enable only after 3 operations and when not won/given up
   const showGiveUpButton = !isPracticeMode;
   const enableGiveUpButton = !isPracticeMode && operationCount >= 3 && !hasWon && !gaveUp;
-
-  // Helper function to apply pan limits based on zoom level
-  const limitPan = useCallback((panValue: number, currentZoom: number) => {
-    if (currentZoom <= 1) return 0; // No panning at zoom level 1 or below
-    const maxPan = (currentZoom - 1) * 50; // 50% per zoom level above 1
-    return Math.max(-maxPan, Math.min(maxPan, panValue));
-  }, []);
 
   const handleGiveUp = () => {
     // Update game state
@@ -86,163 +63,6 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
     dispatch(setHasWon(true)); // Show victory modal
     dispatch(setShowVictoryModal(true));
   };
-
-  // Touch-only zoom (no desktop wheel zoom)
-  const handleWheel = useCallback((e: WheelEvent) => {
-    // Disable wheel zoom for now
-    e.preventDefault();
-  }, []);
-
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (e.touches.length === 2) {
-      isGesturingRef.current = true;
-      e.preventDefault();
-    }
-  }, []);
-
-  const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
-      if (!isGesturingRef.current || e.touches.length !== 2) return;
-
-      e.preventDefault();
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-
-      // Calculate distance between touches
-      const distance = Math.sqrt(
-        Math.pow(touch2.clientX - touch1.clientX, 2) + Math.pow(touch2.clientY - touch1.clientY, 2)
-      );
-
-      // Store previous distance for comparison
-      if (previousDistanceRef.current === null) {
-        previousDistanceRef.current = distance;
-        return;
-      }
-
-      const zoomFactor = distance / previousDistanceRef.current;
-      setZoomLevel(prev => Math.max(1, Math.min(10, prev * zoomFactor)));
-
-      // Calculate center point between touches for pan
-      const centerX = (touch1.clientX + touch2.clientX) / 2;
-      const centerY = (touch1.clientY + touch2.clientY) / 2;
-
-      const targetElement = e.currentTarget as HTMLDivElement;
-      if (targetElement) {
-        const rect = targetElement.getBoundingClientRect();
-        const relativeX = (centerX - rect.left) / rect.width;
-        const relativeY = (centerY - rect.top) / rect.height;
-
-        const panAdjustmentX = (relativeX - 0.5) * (zoomFactor - 1) * 10;
-        const panAdjustmentY = (relativeY - 0.5) * (zoomFactor - 1) * 10;
-        const newZoomLevel = Math.max(1, Math.min(10, zoomLevel * zoomFactor));
-        setPanX(prev => limitPan(prev + panAdjustmentX, newZoomLevel));
-        setPanY(prev => limitPan(prev + panAdjustmentY, newZoomLevel));
-      }
-
-      previousDistanceRef.current = distance;
-    },
-    [limitPan, zoomLevel]
-  );
-
-  const handleTouchEnd = useCallback(() => {
-    isGesturingRef.current = false;
-    previousDistanceRef.current = null;
-  }, []);
-
-  // Mouse drag handlers for panning
-  const handleMouseDown = useCallback((e: MouseEvent) => {
-    // Only handle left mouse button and ignore if touch is active
-    if (e.button !== 0 || isGesturingRef.current) return;
-
-    isDraggingRef.current = true;
-    lastMousePositionRef.current = { x: e.clientX, y: e.clientY };
-    e.preventDefault();
-  }, []);
-
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isDraggingRef.current || !lastMousePositionRef.current) return;
-
-      e.preventDefault();
-      const currentPos = { x: e.clientX, y: e.clientY };
-      const deltaX = currentPos.x - lastMousePositionRef.current.x;
-      const deltaY = currentPos.y - lastMousePositionRef.current.y;
-
-      // Convert pixel movement to percentage of graph size
-      const targetElement = e.currentTarget as HTMLDivElement;
-      if (targetElement) {
-        const rect = targetElement.getBoundingClientRect();
-        const panDeltaX = (deltaX / rect.width) * 100;
-        const panDeltaY = (deltaY / rect.height) * 100;
-
-        // Apply pan limits based on zoom level
-        setPanX(prev => limitPan(prev + panDeltaX, zoomLevel));
-        setPanY(prev => limitPan(prev + panDeltaY, zoomLevel));
-      }
-
-      lastMousePositionRef.current = currentPos;
-    },
-    [limitPan, zoomLevel]
-  );
-
-  const handleMouseUp = useCallback(() => {
-    isDraggingRef.current = false;
-    lastMousePositionRef.current = null;
-  }, []);
-
-  // Attach event listeners to both graphs
-  useEffect(() => {
-    const graphElement = graphRef.current;
-    const fullscreenGraphElement = fullscreenGraphRef.current;
-
-    const attachListeners = (element: HTMLDivElement) => {
-      element.addEventListener('wheel', handleWheel, { passive: false });
-      element.addEventListener('touchstart', handleTouchStart, { passive: false });
-      element.addEventListener('touchmove', handleTouchMove, { passive: false });
-      element.addEventListener('touchend', handleTouchEnd);
-      element.addEventListener('mousedown', handleMouseDown, { passive: false });
-      element.addEventListener('mousemove', handleMouseMove, { passive: false });
-      element.addEventListener('mouseup', handleMouseUp);
-      element.addEventListener('mouseleave', handleMouseUp); // End drag when mouse leaves
-    };
-
-    const removeListeners = (element: HTMLDivElement) => {
-      element.removeEventListener('wheel', handleWheel);
-      element.removeEventListener('touchstart', handleTouchStart);
-      element.removeEventListener('touchmove', handleTouchMove);
-      element.removeEventListener('touchend', handleTouchEnd);
-      element.removeEventListener('mousedown', handleMouseDown);
-      element.removeEventListener('mousemove', handleMouseMove);
-      element.removeEventListener('mouseup', handleMouseUp);
-      element.removeEventListener('mouseleave', handleMouseUp);
-    };
-
-    if (graphElement) {
-      attachListeners(graphElement);
-    }
-
-    if (fullscreenGraphElement) {
-      attachListeners(fullscreenGraphElement);
-    }
-
-    return () => {
-      if (graphElement) {
-        removeListeners(graphElement);
-      }
-      if (fullscreenGraphElement) {
-        removeListeners(fullscreenGraphElement);
-      }
-    };
-  }, [
-    handleWheel,
-    handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
-    isFullscreen,
-  ]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -262,13 +82,10 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
 
   const generatorPoint = getGeneratorPoint();
 
-  // Create a memoized version of mapToScreenCoordinate with current zoom/pan state
-  const mapCoordinate = useCallback(
-    (coord: bigint, isY = false) => {
-      return mapToScreenCoordinate(coord, isY, zoomLevel, panX, panY);
-    },
-    [zoomLevel, panX, panY]
-  );
+  // Create a memoized version of mapToScreenCoordinate with default zoom/pan state
+  const mapCoordinate = useCallback((coord: bigint, isY = false) => {
+    return mapToScreenCoordinate(coord, isY, 1, 0, 0);
+  }, []);
 
   // Calculate generator point screen coordinates
   const generatorX = generatorPoint.isInfinity ? 50 : mapCoordinate(generatorPoint.x, false);
@@ -398,7 +215,6 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
   ]);
 
   const graphPoints = getVisiblePoints();
-  const displayRange = getDisplayRange(zoomLevel);
 
   // Render the graph content that will be used in both normal and fullscreen modes
   const renderGraphContent = (className = 'ecc-graph') => (
@@ -454,14 +270,10 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
           );
         })}
 
-      {/* Graph range indicators with zoom-adjusted values */}
+      {/* Graph range indicators */}
       <div className="range-indicator bottom-left">0</div>
-      <div className="range-indicator bottom-right">
-        {zoomLevel === 1 ? 'p' : `${displayRange.max.toString(16).slice(0, 8)}...`}
-      </div>
-      <div className="range-indicator top-left">
-        {zoomLevel === 1 ? 'p' : `${displayRange.max.toString(16).slice(0, 8)}...`}
-      </div>
+      <div className="range-indicator bottom-right">p</div>
+      <div className="range-indicator top-left">p</div>
 
       {/* Fullscreen button - only show in normal mode */}
       {className === 'ecc-graph' && (

@@ -96,7 +96,7 @@ describe('VictoryModal', () => {
 
     expect(screen.getByText('Practice Complete!')).toBeInTheDocument();
     expect(
-      screen.getByText('Great work! You successfully solved the practice goal.')
+      screen.getByText('Great work! You successfully solved the practice private key.')
     ).toBeInTheDocument();
     expect(screen.getByText('Wallet Address')).toBeInTheDocument();
     expect(screen.getByText('Share Result')).toBeInTheDocument();

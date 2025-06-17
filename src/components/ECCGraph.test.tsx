@@ -147,7 +147,7 @@ describe('ECCGraph', () => {
     expect(container.querySelector('.formula')).not.toBeInTheDocument();
   });
 
-  describe('Zoom Functionality', () => {
+  describe('Basic Functionality', () => {
     let store: ReturnType<typeof createTestStore>;
     let mockOnPointClick: ReturnType<typeof vi.fn>;
 
@@ -167,7 +167,7 @@ describe('ECCGraph', () => {
       });
     });
 
-    it('should render with default zoom level of 1', () => {
+    it('should render with static range indicators', () => {
       const { container } = render(
         <Provider store={store}>
           <ECCGraph
@@ -181,14 +181,14 @@ describe('ECCGraph', () => {
       const graph = container.querySelector('.ecc-graph');
       expect(graph).toBeInTheDocument();
 
-      // Check that range indicators show default values
+      // Check that range indicators show static values
       const bottomRight = container.querySelector('.range-indicator.bottom-right');
       const topLeft = container.querySelector('.range-indicator.top-left');
       expect(bottomRight).toHaveTextContent('p');
       expect(topLeft).toHaveTextContent('p');
     });
 
-    it('should handle mouse wheel zoom events', async () => {
+    it('should render all points correctly', () => {
       const { container } = render(
         <Provider store={store}>
           <ECCGraph
@@ -199,138 +199,12 @@ describe('ECCGraph', () => {
         </Provider>
       );
 
-      const graph = container.querySelector('.ecc-graph') as HTMLElement;
-      expect(graph).toBeInTheDocument();
+      const points = container.querySelectorAll('.ecc-point');
+      expect(points.length).toBeGreaterThanOrEqual(1);
 
-      // Mock getBoundingClientRect for the graph element
-      Object.defineProperty(graph, 'getBoundingClientRect', {
-        value: vi.fn(() => ({
-          left: 0,
-          top: 0,
-          width: 400,
-          height: 400,
-          right: 400,
-          bottom: 400,
-        })),
-      });
-
-      // Simulate zoom in with wheel event
-      await act(async () => {
-        fireEvent.wheel(graph, {
-          deltaY: -100, // Negative deltaY means zoom in
-          clientX: 200, // Center of the graph
-          clientY: 200,
-        });
-      });
-
-      // After zooming, range indicators should show abbreviated values instead of 'p'
-      const bottomRight = container.querySelector('.range-indicator.bottom-right');
-      const topLeft = container.querySelector('.range-indicator.top-left');
-
-      // Should not show 'p' anymore since we're zoomed in
-      expect(bottomRight?.textContent).not.toBe('p');
-      expect(topLeft?.textContent).not.toBe('p');
-    });
-
-    it('should handle touch events for pinch-to-zoom', async () => {
-      const { container } = render(
-        <Provider store={store}>
-          <ECCGraph
-            challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
-            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
-            onPointClick={mockOnPointClick}
-          />
-        </Provider>
-      );
-
-      const graph = container.querySelector('.ecc-graph') as HTMLElement;
-      expect(graph).toBeInTheDocument();
-
-      // Mock getBoundingClientRect for the graph element
-      Object.defineProperty(graph, 'getBoundingClientRect', {
-        value: vi.fn(() => ({
-          left: 0,
-          top: 0,
-          width: 400,
-          height: 400,
-          right: 400,
-          bottom: 400,
-        })),
-      });
-
-      // Start pinch gesture
-      await act(async () => {
-        fireEvent.touchStart(graph, {
-          touches: [
-            { clientX: 150, clientY: 200 },
-            { clientX: 250, clientY: 200 },
-          ],
-        });
-      });
-
-      // Move touches further apart (pinch out / zoom in)
-      await act(async () => {
-        fireEvent.touchMove(graph, {
-          touches: [
-            { clientX: 100, clientY: 200 },
-            { clientX: 300, clientY: 200 },
-          ],
-        });
-      });
-
-      // End touch
-      await act(async () => {
-        fireEvent.touchEnd(graph, {
-          touches: [],
-        });
-      });
-
-      // Verify the component still renders correctly after touch events
-      expect(graph).toBeInTheDocument();
-    });
-
-    it('should filter out points outside visible area with zoom', async () => {
-      const { container } = render(
-        <Provider store={store}>
-          <ECCGraph
-            challengePublicKey="0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
-            challengeAddress="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
-            onPointClick={mockOnPointClick}
-          />
-        </Provider>
-      );
-
-      const graph = container.querySelector('.ecc-graph') as HTMLElement;
-      const initialPoints = container.querySelectorAll('.ecc-point');
-      const initialPointCount = initialPoints.length;
-
-      // Mock getBoundingClientRect
-      Object.defineProperty(graph, 'getBoundingClientRect', {
-        value: vi.fn(() => ({
-          left: 0,
-          top: 0,
-          width: 400,
-          height: 400,
-          right: 400,
-          bottom: 400,
-        })),
-      });
-
-      // Zoom in significantly to potentially filter some points
-      await act(async () => {
-        for (let i = 0; i < 5; i++) {
-          fireEvent.wheel(graph, {
-            deltaY: -100, // Zoom in
-            clientX: 200,
-            clientY: 200,
-          });
-        }
-      });
-
-      // Points should still be rendered (or filtered out if they're off-screen)
-      const zoomedPoints = container.querySelectorAll('.ecc-point');
-      expect(zoomedPoints.length).toBeGreaterThanOrEqual(0);
-      expect(zoomedPoints.length).toBeLessThanOrEqual(initialPointCount);
+      // Should have generator point
+      const generatorPoint = container.querySelector('.ecc-point.generator');
+      expect(generatorPoint).toBeInTheDocument();
     });
 
     it('should render fullscreen button and open fullscreen modal', async () => {
@@ -369,7 +243,7 @@ describe('ECCGraph', () => {
       expect(document.querySelector('.ecc-graph-fullscreen')).not.toBeInTheDocument();
     });
 
-    it('should maintain zoom state between inline and fullscreen views', async () => {
+    it('should maintain consistent state between inline and fullscreen views', async () => {
       const { container } = render(
         <Provider store={store}>
           <ECCGraph
@@ -380,32 +254,9 @@ describe('ECCGraph', () => {
         </Provider>
       );
 
-      const graph = container.querySelector('.ecc-graph') as HTMLElement;
-
-      // Mock getBoundingClientRect
-      Object.defineProperty(graph, 'getBoundingClientRect', {
-        value: vi.fn(() => ({
-          left: 0,
-          top: 0,
-          width: 400,
-          height: 400,
-          right: 400,
-          bottom: 400,
-        })),
-      });
-
-      // Zoom in first
-      await act(async () => {
-        fireEvent.wheel(graph, {
-          deltaY: -100,
-          clientX: 200,
-          clientY: 200,
-        });
-      });
-
-      // Check that we're zoomed (range indicators changed)
-      const bottomRightBeforeFullscreen = container.querySelector('.range-indicator.bottom-right');
-      expect(bottomRightBeforeFullscreen?.textContent).not.toBe('p');
+      // Check initial state
+      const bottomRightBefore = container.querySelector('.range-indicator.bottom-right');
+      expect(bottomRightBefore?.textContent).toBe('p');
 
       // Open fullscreen
       const fullscreenButton = container.querySelector('.fullscreen-button');
@@ -413,12 +264,11 @@ describe('ECCGraph', () => {
         fireEvent.click(fullscreenButton!);
       });
 
-      // Check that fullscreen graph also shows zoomed state
+      // Check that fullscreen graph shows same state
       const fullscreenBottomRight = document.querySelector(
         '.ecc-graph-fullscreen .range-indicator.bottom-right'
       );
-      expect(fullscreenBottomRight?.textContent).not.toBe('p');
-      expect(fullscreenBottomRight?.textContent).toBe(bottomRightBeforeFullscreen?.textContent);
+      expect(fullscreenBottomRight?.textContent).toBe('p');
     });
   });
 });
