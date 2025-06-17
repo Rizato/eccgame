@@ -53,7 +53,7 @@ const FAQPage: React.FC = () => {
             <h2>Is this ethical?</h2>
             <p>
               Yes. The game uses real, unspent Bitcoin addresses to make the stakes tangible, but
-              the challenge is computationally infeasible to solve through random guessing. The game
+              the goal is computationally infeasible to solve through random guessing. The game
               presents an easy-to-understand ECC point calculator. However, you cannot glean
               anything useful from unknown ECC points. No matter what operations you perform, the
               relationships remain ambiguous. No data returned by the game can assist in recovering

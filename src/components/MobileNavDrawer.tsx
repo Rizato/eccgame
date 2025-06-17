@@ -31,7 +31,7 @@ const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClose }) =>
               className={location.pathname === '/' ? 'mobile-nav-link active' : 'mobile-nav-link'}
               onClick={onClose}
             >
-              ECC Game
+              Daily
             </Link>
             <Link
               to="/practice"

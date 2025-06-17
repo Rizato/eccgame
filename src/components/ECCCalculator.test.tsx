@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
@@ -8,7 +8,7 @@ import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
 import practiceModeSlice from '../store/slices/practiceModeSlice';
 import themeSlice from '../store/slices/themeSlice';
 import uiSlice from '../store/slices/uiSlice';
-import { getGeneratorPoint } from '../utils/ecc';
+import { getGeneratorPoint, CURVE_N } from '../utils/ecc';
 import ECCCalculator from './ECCCalculator';
 
 // Mock the crypto module to avoid async issues in tests
@@ -218,6 +218,81 @@ describe('ECCCalculator', () => {
       });
 
       expect(screen.getByText('Private Key:')).toBeInTheDocument();
+    });
+  });
+
+  describe('Rand Button', () => {
+    it('should render rand button', async () => {
+      await act(async () => {
+        renderWithStore(<ECCCalculator {...createDefaultProps()} />);
+      });
+
+      expect(screen.getByText('rand')).toBeInTheDocument();
+    });
+
+    it('should be enabled when calculator display is empty', async () => {
+      await act(async () => {
+        renderWithStore(<ECCCalculator {...createDefaultProps()} />);
+      });
+
+      const randButton = screen.getByText('rand');
+      expect(randButton).not.toBeDisabled();
+    });
+
+    it('should be disabled when calculator display has content', async () => {
+      await act(async () => {
+        renderWithStore(<ECCCalculator {...createDefaultProps()} />);
+      });
+
+      // Add some content to the calculator display - find the button specifically
+      const numberButtons = screen.getAllByText('1');
+      const buttonElement = numberButtons.find(element => element.tagName === 'BUTTON');
+      expect(buttonElement).toBeDefined();
+
+      fireEvent.click(buttonElement!);
+
+      const randButton = screen.getByText('rand');
+      expect(randButton).toBeDisabled();
+    });
+
+    it('should generate random number when clicked', async () => {
+      await act(async () => {
+        renderWithStore(<ECCCalculator {...createDefaultProps()} />);
+      });
+
+      const randButton = screen.getByText('rand');
+
+      await act(async () => {
+        fireEvent.click(randButton);
+      });
+
+      // Check that display now has a hex value
+      const displayElement = screen.getByDisplayValue(/^0x[0-9A-F]+$/i);
+      expect(displayElement).toBeInTheDocument();
+
+      // Verify the value is within the expected range (2 to CURVE_N)
+      const displayValue = displayElement.getAttribute('value');
+      if (displayValue) {
+        const numericValue = BigInt(displayValue);
+        expect(numericValue).toBeGreaterThanOrEqual(BigInt(2));
+        expect(numericValue).toBeLessThan(CURVE_N);
+      }
+    });
+
+    it('should set hex mode when generating random number', async () => {
+      await act(async () => {
+        renderWithStore(<ECCCalculator {...createDefaultProps()} />);
+      });
+
+      const randButton = screen.getByText('rand');
+
+      await act(async () => {
+        fireEvent.click(randButton);
+      });
+
+      // Check that the 0x button is active (hex mode enabled)
+      const hexModeButton = screen.getByText('0x');
+      expect(hexModeButton).toHaveClass('active');
     });
   });
 });

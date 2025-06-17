@@ -244,7 +244,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           if (challenge) {
             const challengePoint = publicKeyToPoint(challenge.public_key);
             if (modalPoint.x === challengePoint.x && modalPoint.y === challengePoint.y) {
-              return 'Challenge Point Information';
+              return 'Goal Point Information';
             }
           }
 
