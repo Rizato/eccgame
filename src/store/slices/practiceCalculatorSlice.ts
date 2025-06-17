@@ -34,7 +34,7 @@ const generatorPoint = getGeneratorPoint();
 const initializeGraph = (): { graph: PointGraph; generatorNodeId: string } => {
   const graph = createEmptyGraph();
   const generatorNode = addNode(graph, generatorPoint, {
-    id: 'generator',
+    id: 'practice_generator',
     label: 'Generator (G)',
     privateKey: 1n,
     isGenerator: true,
@@ -121,7 +121,7 @@ const practiceCalculatorSlice = createSlice({
         isChallenge: boolean;
         privateKey?: bigint;
       } = {
-        id: 'challenge',
+        id: 'practice_challenge',
         label: 'Challenge Point',
         isChallenge: true,
       };
@@ -190,7 +190,7 @@ const practiceCalculatorSlice = createSlice({
         isChallenge: boolean;
         privateKey?: bigint;
       } = {
-        id: 'challenge',
+        id: 'practice_challenge',
         label: 'Challenge Point',
         isChallenge: true,
       };

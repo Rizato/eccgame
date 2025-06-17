@@ -34,7 +34,7 @@ const generatorPoint = getGeneratorPoint();
 const initializeGraph = (): { graph: PointGraph; generatorNodeId: string } => {
   const graph = createEmptyGraph();
   const generatorNode = addNode(graph, generatorPoint, {
-    id: 'generator',
+    id: 'daily_generator',
     label: 'Generator (G)',
     privateKey: 1n,
     isGenerator: true,
@@ -110,7 +110,7 @@ const dailyCalculatorSlice = createSlice({
 
       // Add challenge node to graph
       const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
+        id: 'daily_challenge',
         label: 'Challenge Point',
         isChallenge: true,
       });
@@ -127,7 +127,7 @@ const dailyCalculatorSlice = createSlice({
 
       // Add challenge node to graph with known private key
       const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
+        id: 'daily_challenge',
         label: 'Challenge Point',
         privateKey: BigInt('0x' + privateKey),
         isChallenge: true,
@@ -178,7 +178,7 @@ const dailyCalculatorSlice = createSlice({
 
       // Ensure challenge node exists in graph (don't clear the graph, just ensure the node exists)
       const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
+        id: 'daily_challenge',
         label: 'Challenge Point',
         isChallenge: true,
       });
@@ -204,7 +204,7 @@ const dailyCalculatorSlice = createSlice({
 
       // Ensure challenge node exists in graph with known private key
       const challengeNode = addNode(state.graph, challengePoint, {
-        id: 'challenge',
+        id: 'daily_challenge',
         label: 'Challenge Point',
         privateKey: BigInt('0x' + privateKey),
         isChallenge: true,
