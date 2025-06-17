@@ -1,33 +1,14 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { act, render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
-import gameSlice from '../store/slices/gameSlice';
-import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
-import practiceModeSlice from '../store/slices/practiceModeSlice';
-import themeSlice from '../store/slices/themeSlice';
-import uiSlice from '../store/slices/uiSlice';
 import { getGeneratorPoint, CURVE_N } from '../utils/ecc';
+import { createTestStore } from '../utils/testUtils';
 import ECCCalculator from './ECCCalculator';
 
 // Mock the crypto module to avoid async issues in tests
 vi.mock('../utils/crypto', () => ({
   getP2PKHAddress: vi.fn().mockResolvedValue('mock-address'),
 }));
-
-// Create a test store
-const createTestStore = () =>
-  configureStore({
-    reducer: {
-      game: gameSlice,
-      dailyCalculator: eccCalculatorSlice,
-      practiceCalculator: practiceCalculatorSlice,
-      practiceMode: practiceModeSlice,
-      theme: themeSlice,
-      ui: uiSlice,
-    },
-  });
 
 const renderWithStore = (component: React.ReactElement) => {
   const store = createTestStore();

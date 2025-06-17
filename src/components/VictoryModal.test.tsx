@@ -1,40 +1,18 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { describe, expect, it, vi } from 'vitest';
-import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
-import gameSlice from '../store/slices/gameSlice';
-import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
-import practiceModeSlice from '../store/slices/practiceModeSlice';
-import themeSlice from '../store/slices/themeSlice';
-import uiSlice from '../store/slices/uiSlice';
+import { createTestStore } from '../utils/testUtils';
 import { VictoryModal } from './VictoryModal';
 import type { ReactNode } from 'react';
-
-// Create a test store
-const createTestStore = () => {
-  return configureStore({
-    reducer: {
-      game: gameSlice,
-      ui: uiSlice,
-      practiceCalculator: practiceCalculatorSlice,
-      dailyCalculator: eccCalculatorSlice,
-      practiceMode: practiceModeSlice,
-      theme: themeSlice,
-    },
-    preloadedState: {
-      ui: {
-        hasSeenHowToPlay: false,
-        showHowToPlay: false,
-        privateKeyDisplayMode: 'decimal' as const,
-      },
-    },
-  });
-};
 
 // Helper function to render with provider
 const renderWithProvider = (ui: ReactNode) => {
   const store = createTestStore();
+  // Set initial UI state that the original test expected
+  store.dispatch({
+    type: 'ui/setPrivateKeyDisplayMode',
+    payload: 'decimal',
+  });
   return render(<Provider store={store}>{ui}</Provider>);
 };
 

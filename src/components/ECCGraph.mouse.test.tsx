@@ -1,13 +1,7 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { render, fireEvent, act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import eccCalculatorSlice from '../store/slices/eccCalculatorSlice';
-import gameSlice from '../store/slices/gameSlice';
-import practiceCalculatorSlice from '../store/slices/practiceCalculatorSlice';
-import practiceModeSlice from '../store/slices/practiceModeSlice';
-import themeSlice from '../store/slices/themeSlice';
-import uiSlice from '../store/slices/uiSlice';
+import { createTestStore } from '../utils/testUtils';
 import ECCGraph from './ECCGraph';
 
 // Mock the crypto module
@@ -35,36 +29,6 @@ vi.mock('secp256k1', () => ({
 }));
 
 describe('ECCGraph Mouse Interaction', () => {
-  function createTestStore() {
-    return configureStore({
-      reducer: {
-        dailyCalculator: eccCalculatorSlice,
-        game: gameSlice,
-        practiceCalculator: practiceCalculatorSlice,
-        practiceMode: practiceModeSlice,
-        theme: themeSlice,
-        ui: uiSlice,
-      },
-      middleware: getDefaultMiddleware =>
-        getDefaultMiddleware({
-          serializableCheck: {
-            ignoredActions: [
-              'dailyCalculator/setCurrentPoint',
-              'dailyCalculator/addGraphNode',
-              'practiceCalculator/setCurrentPoint',
-              'practiceCalculator/addGraphNode',
-            ],
-            ignoredPaths: [
-              'dailyCalculator.selectedPoint',
-              'dailyCalculator.graph.nodes',
-              'practiceCalculator.selectedPoint',
-              'practiceCalculator.graph.nodes',
-            ],
-          },
-        }),
-    });
-  }
-
   let store: ReturnType<typeof createTestStore>;
   let mockOnPointClick: ReturnType<typeof vi.fn>;
 
