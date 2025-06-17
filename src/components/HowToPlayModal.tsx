@@ -209,7 +209,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                   <strong>Save interesting points</strong> to create your own landmarks.
                 </li>
                 <li>
-                  <strong>Try the Daily Challenge</strong> and accept inevitable defeat.
+                  <strong>Try the Daily Goal</strong> and accept inevitable defeat.
                 </li>
                 <li>
                   <strong>Share your attempts</strong> and spread the mathematical madness!
@@ -223,8 +223,8 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
               <div className="mode-item clickable" onClick={() => handleModeClick('daily')}>
                 <h3>Daily Mode</h3>
                 <p>
-                  Challenge yourself with real Bitcoin wallets. These are basically impossible to
-                  solve - that's what makes Bitcoin secure!
+                  Test yourself with real Bitcoin wallets. These are basically impossible to solve -
+                  that's what makes Bitcoin secure!
                 </p>
                 <span className="mode-action">Play Daily Mode →</span>
               </div>

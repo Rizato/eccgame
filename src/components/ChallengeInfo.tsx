@@ -56,7 +56,7 @@ const ChallengeInfo: React.FC = () => {
               <div className="info-section">
                 <div className="address-row">
                   <code className="address-code loading-placeholder">
-                    {isPracticeMode ? 'Generating new wallet...' : 'Loading challenge...'}
+                    {isPracticeMode ? 'Generating new wallet...' : 'Loading goal...'}
                   </code>
                   {!isPracticeMode && (
                     <div className="explorer-link loading-placeholder">View Explorer</div>

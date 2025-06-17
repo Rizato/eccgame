@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
@@ -44,6 +45,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
 
   const isPracticeMode = gameMode === 'practice';
   const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Always show give up button in daily mode, but enable only after 3 operations and when not won/given up
@@ -219,132 +221,171 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
 
   const graphPoints = getVisiblePoints();
 
+  // Render the graph content that will be used in both normal and fullscreen modes
+  const renderGraphContent = (className = 'ecc-graph') => (
+    <div className={className}>
+      {/* Graph border */}
+      <div className="graph-border"></div>
+
+      {/* Coordinate system */}
+      <div className="graph-axes">
+        <div className="axis-label x-label">x</div>
+        <div className="axis-label y-label">y</div>
+      </div>
+
+      {/* Vertical dashed line at G */}
+      <div className="generator-line" style={{ left: `${generatorX}%` }}></div>
+
+      {/* Curve visualization */}
+      <div className="curve-line"></div>
+
+      {/* Plot points */}
+      {graphPoints.map(point => {
+        return (
+          <div
+            key={point.id}
+            className={`ecc-point ${point.id}${point.isOverlapping ? ' overlapping' : ''}`}
+            style={
+              {
+                left: `${point.x}%`,
+                top: `${point.y}%`,
+                '--point-color': point.isOverlapping ? 'transparent' : point.color,
+              } as React.CSSProperties
+            }
+            title={point.description}
+            onClick={() => onPointClick(point.point)}
+          >
+            <div
+              className="point-dot"
+              style={
+                point.isOverlapping
+                  ? {
+                      background: point.color,
+                      border: '2px solid var(--card-background)',
+                    }
+                  : {}
+              }
+            ></div>
+            <div className="point-label">{point.label}</div>
+          </div>
+        );
+      })}
+
+      {/* Graph range indicators */}
+      <div className="range-indicator bottom-left">0</div>
+      <div className="range-indicator bottom-right">p</div>
+      <div className="range-indicator top-left">p</div>
+
+      {/* Fullscreen button - only show in normal mode */}
+      {className === 'ecc-graph' && (
+        <button
+          className="fullscreen-button"
+          onClick={() => setIsFullscreen(true)}
+          title="View in fullscreen"
+        >
+          ⛶
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <div className="graph-section graph-display">
-      <div className="graph-content">
-        <div className="graph-header">
-          <div className="formula">y² = x³ + 7 (mod p)</div>
-          <div className="graph-actions">
-            {isPracticeMode && (
-              <div className="combined-control" ref={dropdownRef}>
+    <>
+      <div className="graph-section graph-display">
+        <div className="graph-content">
+          <div className="graph-header">
+            <div className="formula">y² = x³ + 7 (mod p)</div>
+            <div className="graph-actions">
+              {isPracticeMode && (
+                <div className="combined-control" ref={dropdownRef}>
+                  <button
+                    onClick={() =>
+                      !isGenerating && setShowDifficultyDropdown(!showDifficultyDropdown)
+                    }
+                    className={`graph-action-button practice-button ${isGenerating ? 'disabled' : ''}`}
+                    disabled={isGenerating}
+                    title={isGenerating ? 'Generating new wallet...' : 'Create new wallet'}
+                  >
+                    {isGenerating ? 'Generating...' : 'New Goal ▼'}
+                  </button>
+                  {showDifficultyDropdown && !isGenerating && (
+                    <div className="difficulty-dropdown">
+                      <button
+                        onClick={() => {
+                          setDifficulty('easy');
+                          generatePracticeChallenge();
+                          setShowDifficultyDropdown(false);
+                        }}
+                        className="difficulty-option"
+                      >
+                        Easy
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDifficulty('medium');
+                          generatePracticeChallenge();
+                          setShowDifficultyDropdown(false);
+                        }}
+                        className="difficulty-option"
+                      >
+                        Medium
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDifficulty('hard');
+                          generatePracticeChallenge();
+                          setShowDifficultyDropdown(false);
+                        }}
+                        className="difficulty-option"
+                      >
+                        Hard
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {showGiveUpButton && (
                 <button
-                  onClick={() =>
-                    !isGenerating && setShowDifficultyDropdown(!showDifficultyDropdown)
+                  onClick={handleGiveUp}
+                  className={`graph-action-button give-up-button ${!enableGiveUpButton ? 'disabled' : ''}`}
+                  disabled={!enableGiveUpButton}
+                  title={
+                    !enableGiveUpButton
+                      ? 'Available after 3 operations'
+                      : 'Give up and reveal solution'
                   }
-                  className={`graph-action-button practice-button ${isGenerating ? 'disabled' : ''}`}
-                  disabled={isGenerating}
-                  title={isGenerating ? 'Generating new wallet...' : 'Create new wallet'}
                 >
-                  {isGenerating ? 'Generating...' : 'New Wallet ▼'}
+                  Give Up
                 </button>
-                {showDifficultyDropdown && !isGenerating && (
-                  <div className="difficulty-dropdown">
-                    <button
-                      onClick={() => {
-                        setDifficulty('easy');
-                        generatePracticeChallenge();
-                        setShowDifficultyDropdown(false);
-                      }}
-                      className="difficulty-option"
-                    >
-                      Easy
-                    </button>
-                    <button
-                      onClick={() => {
-                        setDifficulty('medium');
-                        generatePracticeChallenge();
-                        setShowDifficultyDropdown(false);
-                      }}
-                      className="difficulty-option"
-                    >
-                      Medium
-                    </button>
-                    <button
-                      onClick={() => {
-                        setDifficulty('hard');
-                        generatePracticeChallenge();
-                        setShowDifficultyDropdown(false);
-                      }}
-                      className="difficulty-option"
-                    >
-                      Hard
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-            {showGiveUpButton && (
-              <button
-                onClick={handleGiveUp}
-                className={`graph-action-button give-up-button ${!enableGiveUpButton ? 'disabled' : ''}`}
-                disabled={!enableGiveUpButton}
-                title={
-                  !enableGiveUpButton
-                    ? 'Available after 3 operations'
-                    : 'Give up and reveal solution'
-                }
-              >
-                Give Up
-              </button>
-            )}
+              )}
+            </div>
           </div>
         </div>
+
+        {renderGraphContent()}
       </div>
 
-      <div className="ecc-graph">
-        {/* Graph border */}
-        <div className="graph-border"></div>
-
-        {/* Coordinate system */}
-        <div className="graph-axes">
-          <div className="axis-label x-label">x</div>
-          <div className="axis-label y-label">y</div>
-        </div>
-
-        {/* Vertical dashed line at G */}
-        <div className="generator-line" style={{ left: `${generatorX}%` }}></div>
-
-        {/* Curve visualization */}
-        <div className="curve-line"></div>
-
-        {/* Plot points */}
-        {graphPoints.map(point => {
-          return (
-            <div
-              key={point.id}
-              className={`ecc-point ${point.id}${point.isOverlapping ? ' overlapping' : ''}`}
-              style={
-                {
-                  left: `${point.x}%`,
-                  top: `${point.y}%`,
-                  '--point-color': point.isOverlapping ? 'transparent' : point.color,
-                } as React.CSSProperties
-              }
-              title={point.description}
-              onClick={() => onPointClick(point.point)}
-            >
-              <div
-                className="point-dot"
-                style={
-                  point.isOverlapping
-                    ? {
-                        background: point.color,
-                        border: '2px solid var(--card-background)',
-                      }
-                    : {}
-                }
-              ></div>
-              <div className="point-label">{point.label}</div>
+      {/* Fullscreen Modal */}
+      {isFullscreen &&
+        createPortal(
+          <div className="modal-overlay" onClick={() => setIsFullscreen(false)}>
+            <div className="fullscreen-graph-modal" onClick={e => e.stopPropagation()}>
+              <div className="fullscreen-header">
+                <div className="formula">y² = x³ + 7 (mod p)</div>
+                <button
+                  className="modal-close"
+                  onClick={() => setIsFullscreen(false)}
+                  title="Exit fullscreen"
+                >
+                  ×
+                </button>
+              </div>
+              {renderGraphContent('ecc-graph-fullscreen')}
             </div>
-          );
-        })}
-
-        {/* Graph range indicators */}
-        <div className="range-indicator bottom-left">0</div>
-        <div className="range-indicator bottom-right">p</div>
-        <div className="range-indicator top-left">p</div>
-      </div>
-    </div>
+          </div>,
+          document.body
+        )}
+    </>
   );
 };
 
