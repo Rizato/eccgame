@@ -306,6 +306,22 @@ const dailyCalculatorSlice = createSlice({
         }
       }
     },
+    clearGraph: state => {
+      // Reset graph to initial state with only generator
+      const { graph: newGraph, generatorNodeId: newGeneratorNodeId } = initializeGraph();
+      state.graph = newGraph;
+      state.generatorNodeId = newGeneratorNodeId;
+      state.challengeNodeId = null;
+      state.selectedPoint = generatorPoint;
+      state.hasWon = false;
+      state.showVictoryModal = false;
+      state.savedPoints = [];
+      state.challengePublicKey = '';
+      state.error = null;
+      state.calculatorDisplay = '';
+      state.pendingOperation = null;
+      state.lastOperationValue = null;
+    },
     addOperationToGraph: (
       state,
       action: PayloadAction<{
@@ -347,6 +363,7 @@ export const {
   savePoint,
   loadSavedPoint,
   checkWinCondition,
+  clearGraph,
   addOperationToGraph,
 } = dailyCalculatorSlice.actions;
 

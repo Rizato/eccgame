@@ -3,6 +3,8 @@ import { challenges } from '../../data/challenges.json';
 import { getP2PKHAddress } from '../../utils/crypto';
 import type { Challenge, ChallengeData } from '../../types/game';
 import type { AppThunk } from '../index.ts';
+import { clearGraph as clearDailyGraph } from './eccCalculatorSlice';
+import { clearGraph as clearPracticeGraph } from './practiceCalculatorSlice';
 
 export type GameMode = 'daily' | 'practice';
 
@@ -24,6 +26,17 @@ const initialState: GameState = {
   hasWon: false,
   gaveUp: false,
   challenges: challenges,
+};
+
+export const switchGameMode = (mode: GameMode): AppThunk => {
+  return dispatch => {
+    // Clear both calculator states when switching modes to prevent state bleed
+    dispatch(clearDailyGraph());
+    dispatch(clearPracticeGraph());
+
+    // Set the new game mode
+    dispatch(setGameMode(mode));
+  };
 };
 
 export const loadDailyChallenge = (): AppThunk => {
@@ -104,6 +117,13 @@ const gameSlice = createSlice({
     clearError: state => {
       state.error = null;
     },
+    resetGame: state => {
+      state.challenge = null;
+      state.hasWon = false;
+      state.gaveUp = false;
+      state.loading = false;
+      state.error = null;
+    },
   },
 });
 
@@ -116,5 +136,7 @@ export const {
   setHasWon,
   setGaveUp,
   clearError,
+  resetGame,
 } = gameSlice.actions;
+
 export default gameSlice.reducer;
