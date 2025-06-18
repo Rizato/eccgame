@@ -370,6 +370,8 @@
   flex-direction: column;
   position: relative;
   margin: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .fullscreen-header {
@@ -423,5 +425,11 @@
 
   .fullscreen-header {
     padding: 0.75rem;
+  }
+
+  /* Ensure proper modal positioning on mobile */
+  .fullscreen-graph-modal {
+    max-height: 90vh;
+    margin: 2vh auto;
   }
 }

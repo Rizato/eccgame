@@ -13,7 +13,6 @@
   padding: 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  /* Ensure proper scrolling on iOS */
   overscroll-behavior: contain;
 }
 

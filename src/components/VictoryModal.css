@@ -7,12 +7,13 @@
   background: rgba(0, 0, 0, 0.8);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   z-index: 20000;
   backdrop-filter: blur(4px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 2vh 2vw;
+  overscroll-behavior: contain;
+  padding: 4vh 2vw;
 }
 
 .victory-modal {
@@ -27,6 +28,7 @@
   width: 90vw;
   max-height: 90vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
   position: relative;
   z-index: 20001;
   animation: victoryAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -263,6 +265,10 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
+  .victory-modal-overlay {
+    padding: 2vh 1vw 4vh 1vw;
+  }
+
   .victory-modal {
     width: 95vw;
     margin: 16px;

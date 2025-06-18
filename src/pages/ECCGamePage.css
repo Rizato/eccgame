@@ -1,5 +1,6 @@
 .ecc-game-page-wrapper {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -7,8 +8,8 @@
 /* Mobile: ensure proper scrolling context for sticky header */
 @media (max-width: 768px) {
   .ecc-game-page-wrapper {
-    height: 100vh;
-    overflow-y: auto;
+    height: 100dvh;
+    overflow: auto;
     -webkit-overflow-scrolling: touch;
   }
 }
@@ -52,17 +53,17 @@
     will-change: transform;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
+    /* Ensure header stays above content during scroll */
+    z-index: 500;
   }
 }
 
-/* iOS Safari specific sticky header fix */
+/* iOS Safari specific sticky header fix - removed fixed positioning */
 @supports (-webkit-touch-callout: none) {
   @media (max-width: 768px) {
     .game-header {
-      position: fixed !important;
+      position: sticky;
       top: 0;
-      left: 0;
-      right: 0;
       z-index: 1000;
       background: var(--surface);
       /* Ensure proper stacking context */
@@ -71,10 +72,9 @@
     }
 
     .game-main {
-      margin-top: 60px; /* Account for fixed header height */
       overflow: visible;
       height: auto;
-      min-height: calc(100vh - 60px);
+      min-height: calc(var(--vh, 1vh) * 100 - 60px);
     }
   }
 }
@@ -488,32 +488,30 @@
   }
 
   .ecc-game-page-wrapper {
-    min-height: 100vh;
-    overflow-x: hidden;
-    overflow-y: auto;
+    min-height: 100dvh;
+    overflow: auto;
     /* iOS smooth scrolling */
     -webkit-overflow-scrolling: touch;
-    /* Prevent scroll bounce/snap */
-    overscroll-behavior: none;
   }
 
   .ecc-game-page {
-    min-height: 100vh;
+    min-height: 100dvh;
     overflow: visible;
   }
 
   .game-main {
     flex: 1;
-    min-height: calc(100vh - 60px);
+    min-height: calc(100dvh - 60px);
     overflow: visible;
   }
 
   /* iOS-specific fixes */
   @supports (-webkit-touch-callout: none) {
     .ecc-game-page-wrapper {
-      /* Prevent iOS elastic scrolling */
+      /* Allow natural scrolling on iOS */
       position: relative;
-      height: 100%;
+      height: 100dvh;
+      overflow: auto;
     }
   }
 }
