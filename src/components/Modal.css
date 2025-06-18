@@ -86,7 +86,7 @@
 
 .modal-subtitle {
   text-align: start;
-  padding: 16px 24px;
+  padding: 12px 24px;
   margin-bottom: var(--spacing);
   background: linear-gradient(
     135deg,
@@ -97,7 +97,7 @@
   font-size: 1rem;
   color: var(--text-dim);
   line-height: 1.5;
-  font-weight: 500;
+  font-weight: 600;
   flex-shrink: 0;
 }
 
@@ -179,7 +179,7 @@
   }
 
   .modal-subtitle {
-    padding: 12px var(--spacing);
+    padding: 10px var(--spacing);
     margin-bottom: var(--spacing);
     font-size: 0.9rem;
   }
