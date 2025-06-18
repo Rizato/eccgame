@@ -5,11 +5,10 @@
 }
 
 .App {
-  min-height: 100vh; /* Fallback */
-  min-height: 100dvh; /* Dynamic viewport */
-  min-height: calc(var(--vh, 1vh) * 100); /* Custom property fallback */
+  min-height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
-  overflow: visible;
+  overflow: auto;
   display: flex;
   flex-direction: column;
 }
@@ -17,10 +16,8 @@
 /* Mobile-specific adjustments for iOS */
 @media (max-width: 768px) {
   .App {
-    height: auto;
-    min-height: 100vh;
-    min-height: calc(var(--vh, 1vh) * 100);
-    overflow: visible;
+    height: 100dvh;
+    overflow: auto;
     -webkit-overflow-scrolling: touch;
   }
 }

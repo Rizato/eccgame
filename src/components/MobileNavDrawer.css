@@ -33,6 +33,7 @@
   animation: drawerSlideIn 0.3s ease-out;
   display: flex;
   flex-direction: column;
+  overflow: auto;
 }
 
 @keyframes drawerSlideIn {

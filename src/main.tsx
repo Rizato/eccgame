@@ -5,13 +5,9 @@ import App from './App.tsx';
 import './index.css';
 import { store } from './store';
 import { themeUtils } from './utils/theme';
-import { initViewportFix } from './utils/viewport';
 
 // Apply theme immediately before React renders to prevent flash
 themeUtils.applyTheme('system');
-
-// Initialize iOS viewport height fix
-initViewportFix();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

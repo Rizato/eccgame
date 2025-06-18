@@ -13,6 +13,7 @@
   padding: 2vh 2vw;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .modal {
@@ -71,6 +72,7 @@
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+  overscroll-behavior: contain;
 }
 
 .modal-item {
