@@ -368,7 +368,7 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
       <Modal
         isOpen={isFullscreen}
         onClose={() => setIsFullscreen(false)}
-        title={challengeAddress || 'Loading...'}
+        title="Graph"
         className="fullscreen-graph-modal"
         backdrop="dark"
         zIndex={30000}
