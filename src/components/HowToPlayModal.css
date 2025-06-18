@@ -1,7 +1,7 @@
 /* How to Play modal specific styles - extends base Modal */
 .how-to-play-modal {
   max-width: 800px; /* Override base modal max-width */
-  max-height: 75vh; /* Add margin from bottom */
+  /* Let base modal handle max-height */
 }
 
 /* Removed - now using base modal header styles */
@@ -423,12 +423,8 @@ strong {
   }
 
   .how-to-play-modal {
-    width: calc(100vw - 20px);
-    max-height: calc(
-      100vh - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom))
-    );
-    margin: 10px;
-    margin-top: max(10px, env(safe-area-inset-top));
+    /* Remove conflicting max-height - let base modal handle it */
+    max-height: none;
   }
 
   .how-to-play-header {
