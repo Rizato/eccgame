@@ -1,121 +1,23 @@
-.how-to-play-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* Changed from center to flex-start */
-  z-index: 30000;
-  backdrop-filter: blur(4px);
-  padding: 20px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
+/* How to Play modal specific styles - extends base Modal */
 .how-to-play-modal {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  border: 2px solid var(--primary);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  max-width: 800px;
-  width: 90vw;
-  max-height: calc(100vh - 40px); /* Account for overlay padding */
-  position: relative;
-  z-index: 30001;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  margin: 20px auto; /* Add margin to ensure spacing from top */
-  /* iOS-specific fixes */
-  -webkit-overflow-scrolling: touch;
-  transform: translateZ(0); /* Force hardware acceleration */
+  max-width: 800px; /* Override base modal max-width */
+  max-height: 75vh; /* Add margin from bottom */
 }
 
-@keyframes howToPlayAppear {
-  0% {
-    opacity: 0;
-    transform: scale(0.8) translateY(-20px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.how-to-play-header {
-  text-align: center;
-  padding: 32px 24px 24px;
-  background: linear-gradient(
-    135deg,
-    rgba(var(--accent-color-rgb, 59, 130, 246), 0.1) 0%,
-    rgba(var(--accent-color-rgb, 59, 130, 246), 0.05) 100%
-  );
-  border-bottom: 1px solid var(--border);
-  position: relative;
-  flex-shrink: 0;
-}
-
-.how-to-play-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--success) 0%, var(--primary) 50%, var(--accent) 100%);
-}
-
-.how-to-play-close-x {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--text-dim);
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--radius);
-  transition: all 0.2s ease;
-  line-height: 1;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.how-to-play-close-x:hover {
-  background: var(--surface-variant);
-  color: var(--text);
-}
-
-.how-to-play-title {
-  margin: 0 0 12px 0;
-  color: var(--text);
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-}
+/* Removed - now using base modal header styles */
 
 .how-to-play-subtitle {
-  margin: 0;
+  margin: 0 auto var(--spacing-lg) auto;
+  padding: 0 var(--spacing);
   color: var(--text-dim);
   font-size: 1.1rem;
   line-height: 1.5;
+  text-align: center;
 }
 
 .how-to-play-content {
-  padding: 24px;
   flex: 1;
+  padding: 0 var(--spacing) var(--spacing) var(--spacing);
 }
 
 .how-to-play-section {

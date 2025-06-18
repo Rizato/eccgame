@@ -1,18 +1,13 @@
+/* Save Point modal specific styles - extends base Modal */
 .save-point-modal {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
   min-width: 400px;
-  max-width: 500px;
-  box-shadow: var(--shadow-lg);
-  position: relative;
-  border: 1px solid var(--border);
 }
 
 .save-point-form {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+  padding: var(--spacing);
 }
 
 .form-field {

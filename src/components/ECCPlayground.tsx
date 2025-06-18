@@ -12,7 +12,7 @@ import {
 } from '../utils/graphOperations';
 import ECCCalculator from './ECCCalculator';
 import ECCGraph from './ECCGraph';
-import { Modal } from './Modal';
+import { Modal } from './PointModal';
 import { VictoryModal } from './VictoryModal';
 import type { ECPoint } from '../types/ecc';
 import type { Challenge } from '../types/game';
