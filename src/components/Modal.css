@@ -8,9 +8,9 @@
   background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   z-index: 10000;
-  padding: 2vh 2vw;
+  padding: 4vh 2vw;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -343,7 +343,7 @@
   }
 
   .modal-overlay {
-    padding: 2vh 1vw;
+    padding: 2vh 1vw 4vh 1vw;
   }
 
   .modal-content {
