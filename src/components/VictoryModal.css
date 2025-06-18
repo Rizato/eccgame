@@ -74,31 +74,7 @@
   -webkit-user-select: text;
 }
 
-/* Import modal value container and copy button styles from Modal.css */
-.victory-modal .modal-value-container {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-}
-
-.victory-modal .copy-button {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  padding: var(--spacing-sm);
-  cursor: pointer;
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  white-space: nowrap;
-  min-width: 60px;
-}
-
-.victory-modal .copy-button:hover {
-  background: var(--surface-variant);
-  color: var(--text);
-}
+/* Use shared modal styles from PointModal.css */
 
 .victory-modal .stat-value.clickable {
   cursor: text;
@@ -151,19 +127,6 @@
     /* Inherits mobile styles from base Modal */
   }
 
-  .victory-header {
-    padding: 24px 16px 16px;
-  }
-
-  .victory-icon {
-    font-size: 2.5rem;
-    margin-bottom: 12px;
-  }
-
-  .victory-title {
-    font-size: 1.25rem;
-  }
-
   .victory-message {
     font-size: 0.9rem;
   }
@@ -189,35 +152,8 @@
   .victory-share-button {
     min-width: unset;
     width: 100%;
-  }
-
-  .victory-modal .copy-button {
-    min-width: 50px;
-    font-size: var(--mobile-font-size);
-    min-height: var(--mobile-button-height);
-  }
-
-  .victory-close-x {
-    width: var(--mobile-touch-min);
-    height: var(--mobile-touch-min);
-  }
-
-  .victory-share-button {
     font-size: var(--mobile-font-size);
     min-height: var(--mobile-button-height);
     padding: 0 var(--spacing);
-  }
-
-  .victory-modal {
-    width: 98vw;
-    max-height: 96vh;
-  }
-
-  .victory-modal-overlay {
-    padding: 2vh 1vw;
-  }
-
-  .victory-header {
-    padding: var(--spacing);
   }
 }

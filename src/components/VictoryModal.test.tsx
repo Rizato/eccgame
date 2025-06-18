@@ -37,7 +37,7 @@ describe('VictoryModal', () => {
   it('should render victory modal when open', () => {
     renderWithProvider(<VictoryModal {...createDefaultProps()} />);
 
-    expect(screen.getByText('Private Key Found!')).toBeInTheDocument();
+    expect(screen.getByText('🏆 Private Key Found!')).toBeInTheDocument();
     expect(
       screen.getByText('Incredible! You successfully found the private key from the public key.')
     ).toBeInTheDocument();
@@ -72,7 +72,7 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), isPracticeMode: true };
     renderWithProvider(<VictoryModal {...props} />);
 
-    expect(screen.getByText('Practice Complete!')).toBeInTheDocument();
+    expect(screen.getByText('🏆 Practice Complete!')).toBeInTheDocument();
     expect(
       screen.getByText('Great work! You successfully solved the practice private key.')
     ).toBeInTheDocument();
@@ -83,7 +83,7 @@ describe('VictoryModal', () => {
   it('should show challenge mode content when isPracticeMode is false', () => {
     renderWithProvider(<VictoryModal {...createDefaultProps()} />);
 
-    expect(screen.getByText('Private Key Found!')).toBeInTheDocument();
+    expect(screen.getByText('🏆 Private Key Found!')).toBeInTheDocument();
     expect(
       screen.getByText('Incredible! You successfully found the private key from the public key.')
     ).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), onClose: onCloseMock };
     renderWithProvider(<VictoryModal {...props} />);
 
-    const closeButton = screen.getByLabelText('Close');
+    const closeButton = screen.getByLabelText('Close modal');
     closeButton.click();
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);
@@ -107,7 +107,7 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), onClose: onCloseMock };
     renderWithProvider(<VictoryModal {...props} />);
 
-    const overlay = document.querySelector('.victory-modal-overlay') as HTMLElement;
+    const overlay = document.querySelector('.modal-overlay') as HTMLElement;
     overlay?.click();
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);
@@ -136,7 +136,7 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), gaveUp: true };
     renderWithProvider(<VictoryModal {...props} />);
 
-    expect(screen.getByText('Gave Up.')).toBeInTheDocument();
+    expect(screen.getByText('🤷 Gave Up.')).toBeInTheDocument();
     expect(screen.getByText("Don't feel bad, this is literally impossible.")).toBeInTheDocument();
     expect(screen.queryByText('Private Key')).not.toBeInTheDocument();
   });
@@ -145,7 +145,7 @@ describe('VictoryModal', () => {
     const props = { ...createDefaultProps(), gaveUp: false };
     renderWithProvider(<VictoryModal {...props} />);
 
-    expect(screen.getByText('Private Key Found!')).toBeInTheDocument();
+    expect(screen.getByText('🏆 Private Key Found!')).toBeInTheDocument();
     expect(screen.getByText('Private Key')).toBeInTheDocument();
   });
 });

@@ -105,12 +105,6 @@
   text-align: start;
 }
 
-.modal-value-container {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-}
-
 .modal-value-input {
   color: var(--text);
   background: var(--surface-variant);
@@ -174,53 +168,7 @@
   transform: translateY(-1px);
 }
 
-.copy-button {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  padding: var(--spacing-sm);
-  cursor: pointer;
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  white-space: nowrap;
-  min-width: 60px;
-}
-
-.copy-button:hover {
-  background: var(--surface-variant);
-  color: var(--text);
-}
-
-/* Specific modal variants */
-.challenge-modal {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
-  max-width: 500px;
-  width: 95vw;
-  max-height: 96vh;
-  position: relative;
-  z-index: 10001;
-  display: flex;
-  flex-direction: column;
-}
-
-.point-modal {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
-  max-width: 500px;
-  width: 95vw;
-  max-height: 96vh;
-  position: relative;
-  z-index: 10001;
-  display: flex;
-  flex-direction: column;
-}
+/* These styles are inherited from base Modal.css */
 
 /* Modal Actions */
 .modal-actions {
@@ -314,13 +262,6 @@
     justify-content: start;
   }
 
-  .copy-button {
-    font-size: var(--mobile-font-size);
-    min-height: var(--mobile-button-height);
-    padding: 0 var(--spacing);
-    min-width: 80px;
-  }
-
   .action-button {
     font-size: var(--mobile-font-size);
     min-height: var(--mobile-button-height);
@@ -378,11 +319,6 @@
 
     .modal-label {
       font-size: 1rem;
-    }
-
-    .copy-button {
-      font-size: 1rem;
-      min-height: 48px;
     }
 
     .action-button {

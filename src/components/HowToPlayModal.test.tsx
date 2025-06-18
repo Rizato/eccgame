@@ -32,7 +32,7 @@ describe('HowToPlayModal', () => {
     const onCloseMock = vi.fn();
     renderWithStore(<HowToPlayModal isOpen={true} onClose={onCloseMock} />);
 
-    const closeButton = screen.getByLabelText('Close');
+    const closeButton = screen.getByLabelText('Close modal');
     closeButton.click();
 
     expect(onCloseMock).toHaveBeenCalledTimes(1);

@@ -73,10 +73,10 @@ export const Modal: React.FC<ModalProps> = ({
   if (children) {
     return createPortal(
       <div className="modal-overlay" onClick={onClose}>
-        <div className={className} onClick={e => e.stopPropagation()}>
+        <div className={`modal ${className}`} onClick={e => e.stopPropagation()}>
           <div className="modal-header">
             <h3>{title}</h3>
-            <button onClick={onClose} className="modal-close">
+            <button onClick={onClose} className="modal-close" aria-label="Close modal">
               ×
             </button>
           </div>
@@ -90,10 +90,10 @@ export const Modal: React.FC<ModalProps> = ({
   // New self-contained modal
   return createPortal(
     <div className="modal-overlay" onClick={onClose}>
-      <div className={className} onClick={e => e.stopPropagation()}>
+      <div className={`modal ${className}`} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{title}</h3>
-          <button onClick={onClose} className="modal-close">
+          <button onClick={onClose} className="modal-close" aria-label="Close modal">
             ×
           </button>
         </div>

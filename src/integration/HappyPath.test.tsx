@@ -92,7 +92,7 @@ describe('Complete User Journey - Interface Testing', () => {
     console.log('✅ Welcome modal displays with instructions');
 
     // User closes the welcome modal
-    const closeButton = screen.getByLabelText('Close');
+    const closeButton = screen.getByLabelText('Close modal');
     await user.click(closeButton);
     expect(mockCloseWelcome).toHaveBeenCalled();
     console.log('✅ User can close welcome modal to start playing');
@@ -268,7 +268,7 @@ describe('Complete User Journey - Interface Testing', () => {
     );
 
     // Verify victory content
-    expect(screen.getByText('Private Key Found!')).toBeInTheDocument();
+    expect(screen.getByText('🏆 Private Key Found!')).toBeInTheDocument();
     expect(screen.getByText(/successfully found the private key/i)).toBeInTheDocument();
     expect(screen.getByText('Point Operations')).toBeInTheDocument();
     // More specific test for operation count

@@ -115,6 +115,32 @@
   min-height: 0;
 }
 
+/* Shared modal component styles */
+.modal-value-container {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.copy-button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.copy-button:hover {
+  background: var(--surface-variant);
+  color: var(--text);
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .modal-overlay {
@@ -146,6 +172,13 @@
   .modal-content {
     padding: 0;
   }
+
+  .copy-button {
+    font-size: var(--mobile-font-size);
+    min-height: var(--mobile-button-height);
+    padding: 0 var(--spacing);
+    min-width: 80px;
+  }
 }
 
 /* iOS-specific improvements */
@@ -159,6 +192,11 @@
       width: 32px;
       height: 32px;
       font-size: 1.5rem;
+    }
+
+    .copy-button {
+      font-size: 1rem;
+      min-height: 48px;
     }
   }
 }
