@@ -59,12 +59,15 @@ maxconnections=8
    - In VirtualBox, set network adapter to "Bridged Adapter" or "NAT"
    - Test connectivity: `ping <host_ip_address>`
 
-3. **Update script configuration** in `collect_bitcoin_addresses.py`:
-   ```python
-   RPC_URL = "http://<HOST_IP_ADDRESS>:8332"  # Replace with your Windows IP
-   RPC_USER = "bitcoinrpc"                     # From bitcoin.conf
-   RPC_PASSWORD = "your_secure_random_password_here"  # From bitcoin.conf
-   ```
+3. **Configure the script** using either:
+   - Command line options (see Usage section)
+   - Environment variables:
+     ```bash
+     export BITCOIN_RPC_URL="http://<HOST_IP_ADDRESS>:8332"
+     export BITCOIN_RPC_USER="bitcoinrpc"
+     export BITCOIN_RPC_PASSWORD="your_secure_random_password_here"
+     ```
+   - Or let the script auto-detect your host IP (enabled by default)
 
 ### 3. Test Bitcoin RPC Connection
 
@@ -88,12 +91,50 @@ The response should show current blockchain info without errors.
 
 ## Usage
 
+### Command Line Interface
+
+The script now uses Click for a modern CLI interface with environment variable support.
+
 1. **Ensure Bitcoin Core is fully synced** (this can take days initially)
 2. **Run the collection script** from your Linux VM:
-   ```bash
-   cd /home/vboxuser/PycharmProjects/CryptoGuesser/scripts/bitcoin
-   python3 collect_bitcoin_addresses.py
-   ```
+
+```bash
+cd /home/vboxuser/PycharmProjects/CryptoGuesser/scripts/bitcoin
+
+# Show help and all options
+python3 collect_bitcoin_addresses.py --help
+
+# Basic usage (will prompt for password)
+python3 collect_bitcoin_addresses.py
+
+# With all options specified
+python3 collect_bitcoin_addresses.py \
+    --rpc-url http://192.168.1.100:8332 \
+    --rpc-user bitcoinrpc \
+    --rpc-password your_password \
+    --max-blocks 1000 \
+    --output-file bitcoin_addresses.json \
+    --log-level INFO
+
+# Using environment variables
+export BITCOIN_RPC_URL="http://192.168.1.100:8332"
+export BITCOIN_RPC_USER="bitcoinrpc"
+export BITCOIN_RPC_PASSWORD="your_password"
+export MAX_BLOCKS=1000
+python3 collect_bitcoin_addresses.py
+```
+
+### CLI Options
+
+| Option | Environment Variable | Default | Description |
+|--------|---------------------|---------|-------------|
+| `--rpc-url` | `BITCOIN_RPC_URL` | `http://192.168.56.1:8332` | Bitcoin RPC endpoint URL |
+| `--rpc-user` | `BITCOIN_RPC_USER` | `bitcoinrpc` | RPC username from bitcoin.conf |
+| `--rpc-password` | `BITCOIN_RPC_PASSWORD` | (prompted) | RPC password from bitcoin.conf |
+| `--max-blocks` | `MAX_BLOCKS` | `388` | Maximum block height to process |
+| `--output-file` | `OUTPUT_FILE` | `bitcoin_addresses.json` | Output JSON file path |
+| `--auto-detect-ip/--no-auto-detect-ip` | - | `True` | Auto-detect host IP address |
+| `--log-level` | - | `WARNING` | Logging level (DEBUG, INFO, WARNING, ERROR) |
 
 The script will:
 1. Connect to your Bitcoin node on the Windows host
@@ -142,9 +183,10 @@ The script will:
 ## Performance Notes
 
 - Processing 250k blocks takes several hours
-- The script includes delays to avoid overwhelming your node
+- The script includes retry logic with exponential backoff
 - Progress is logged every 1000 blocks
 - Can be interrupted with Ctrl+C (saves partial results)
+- Use `--log-level DEBUG` for detailed output
 
 ## Security Notes
 
@@ -180,8 +222,8 @@ The script will:
 
 ### "Timeout errors"
 - **Your node may be slow** or under heavy load
-- **Increase timeout values** in the script (line 76)
-- **Reduce BATCH_SIZE** for slower nodes (line 35)
+- **Increase timeout values** in the script
+- **Try processing fewer blocks**: `--max-blocks 100`
 
 ### VirtualBox Network Issues
 - **Use "Bridged Adapter"** for simplest setup
@@ -191,25 +233,4 @@ The script will:
 
 ## Integration with ECC Game
 
-The output JSON can be processed to create challenge files for the game:
-
-```python
-# Example: Convert to challenge format
-import json
-
-with open('bitcoin_addresses.json', 'r') as f:
-    data = json.load(f)
-
-challenges = []
-for addr_data in data['addresses']:
-    if addr_data['balance_btc'] > 1.0:  # Only high-value addresses
-        challenge = {
-            "public_key": addr_data['address'],  # P2PKH address
-            "metadata": {
-                "tags": addr_data['tags'],
-                "balance": addr_data['balance_btc'],
-                "block": addr_data['first_seen_block']
-            }
-        }
-        challenges.append(challenge)
-```
+Copy the challenges array into `src/data/challenges.json`

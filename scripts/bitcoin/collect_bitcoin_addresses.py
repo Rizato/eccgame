@@ -3,21 +3,21 @@
 Bitcoin Address Collector for ECC Game
 
 This script queries a local Bitcoin node to collect addresses from early Bitcoin history
-that have never spent their funds. It targets miners and recipients from the first 250k blocks
+that have never spent their funds. It targets miners from the first n (200 by default) blocks
 plus Satoshi's known addresses.
 
 Requirements:
 - Local Bitcoin Core node running with RPC enabled
-- Python packages: requests, bitcoin (install with: pip install requests python-bitcoinlib)
+- Python packages: pip install -r requirements.txt
 
 Configuration:
-- Update RPC_URL, RPC_USER, RPC_PASSWORD for your Bitcoin node
 - Ensure your bitcoin.conf has: rpcuser, rpcpassword, rpcallowip settings
 """
 
 import json
 
 import backoff
+import click
 import requests
 import time
 import logging
@@ -26,22 +26,14 @@ from dataclasses import dataclass
 import hashlib
 import base58
 
-logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
-# Bitcoin RPC Configuration
-# Update these values for your setup:
-# - RPC_URL: Use your Windows host machine's IP address
-# - RPC_USER/PASSWORD: From your bitcoin.conf file
-RPC_URL = "http://192.168.56.1:8332"  # CHANGE THIS to your Windows host IP
-RPC_USER = "bitcoinrpc"                 # From bitcoin.conf
-RPC_PASSWORD = "H0WDY_SOLDA"  # From bitcoin.conf
-
-# Constants
-MAX_BLOCKS = 388  # First 2k blocks
-SATOSHI_BLOCKS = [1, 9]  # Block 1 miner (Satoshi)
-FIRST_TX_BLOCK = 170  # Block with first P2PKH transaction
-OUTPUT_FILE = "bitcoin_addresses.json"
+# Default constants
+DEFAULT_RPC_URL = "http://192.168.56.1:8332"
+DEFAULT_RPC_USER = "bitcoinrpc"
+DEFAULT_MAX_BLOCKS = 200  # First 200 blocks
+DEFAULT_OUTPUT_FILE = "bitcoin_addresses.json"
+SATOSHI_BLOCKS = [9]  # Block 1 miner (Satoshi)
 
 @dataclass
 class BitcoinAddress:
@@ -334,10 +326,11 @@ class AddressCollector:
 
     def collect_addresses(self) -> Dict[str, BitcoinAddress]:
         """Main collection process"""
-        logger.info(f"Starting collection of Bitcoin addresses from blocks 1-{MAX_BLOCKS}")
+        max_blocks = getattr(self, 'max_blocks', DEFAULT_MAX_BLOCKS)
+        logger.info(f"Starting collection of Bitcoin addresses from blocks 1-{max_blocks}")
 
         # Process blocks in batches
-        for block in range(0, MAX_BLOCKS + 1):
+        for block in range(1, max_blocks + 1):
             logger.info(f"Processing block {block}")
             self.process_block(block)
 
@@ -363,7 +356,7 @@ class AddressCollector:
             json.dump({
                 "collected_at": time.time(),
                 "total_addresses": len(output_data),
-                "max_block_processed": MAX_BLOCKS,
+                "max_block_processed": getattr(self, 'max_blocks', DEFAULT_MAX_BLOCKS),
                 "challenges": output_data
             }, f, indent=2)
 
@@ -401,77 +394,121 @@ def detect_host_ip():
 
     return None
 
-def main():
-    """Main execution function"""
-    logger.info("Bitcoin Address Collector for ECC Game")
-    logger.info("=" * 50)
+@click.command()
+@click.option('--rpc-url',
+              envvar='BITCOIN_RPC_URL',
+              default=DEFAULT_RPC_URL,
+              help='Bitcoin RPC URL (e.g., http://192.168.56.1:8332)')
+@click.option('--rpc-user',
+              envvar='BITCOIN_RPC_USER',
+              default=DEFAULT_RPC_USER,
+              help='Bitcoin RPC username')
+@click.option('--rpc-password',
+              envvar='BITCOIN_RPC_PASSWORD',
+              prompt=True,
+              hide_input=True,
+              help='Bitcoin RPC password')
+@click.option('--max-blocks',
+              envvar='MAX_BLOCKS',
+              default=DEFAULT_MAX_BLOCKS,
+              type=int,
+              help='Maximum number of blocks to process')
+@click.option('--output-file',
+              envvar='OUTPUT_FILE',
+              default=DEFAULT_OUTPUT_FILE,
+              help='Output JSON file path')
+@click.option('--auto-detect-ip/--no-auto-detect-ip',
+              default=True,
+              help='Attempt to auto-detect host IP')
+@click.option('--log-level',
+              type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR']),
+              default='WARNING',
+              help='Set logging level')
+def main(rpc_url, rpc_user, rpc_password, max_blocks, output_file, auto_detect_ip, log_level):
+    """Bitcoin Address Collector for ECC Game
 
-    # Try to auto-detect host IP if using default
-    global RPC_URL
-    if "192.168.1.100" in RPC_URL:  # If still using example IP
-        logger.info("Attempting to auto-detect Windows host IP...")
+    Collects Bitcoin addresses from early blocks that have never spent their funds.
+    Requires a local Bitcoin Core node with RPC enabled.
+
+    Environment variables:
+    - BITCOIN_RPC_URL: RPC endpoint URL
+    - BITCOIN_RPC_USER: RPC username
+    - BITCOIN_RPC_PASSWORD: RPC password
+    - MAX_BLOCKS: Maximum block height to process
+    - OUTPUT_FILE: Output file path
+    """
+    # Configure logging
+    logging.basicConfig(level=getattr(logging, log_level))
+
+    click.echo("Bitcoin Address Collector for ECC Game")
+    click.echo("=" * 50)
+
+    # Try to auto-detect host IP if requested and using default
+    if auto_detect_ip and rpc_url == DEFAULT_RPC_URL:
+        click.echo("Attempting to auto-detect Windows host IP...")
         detected_url = detect_host_ip()
         if detected_url:
-            RPC_URL = detected_url
-            logger.info(f"Using detected RPC URL: {RPC_URL}")
+            rpc_url = detected_url
+            click.echo(f"Using detected RPC URL: {rpc_url}")
         else:
-            logger.info("Could not auto-detect host IP. Please update RPC_URL in the script.")
-            logger.info("Common VirtualBox host IPs to try:")
-            logger.info("- 10.0.2.2 (NAT mode)")
-            logger.info("- 192.168.56.1 (Host-only adapter)")
-            logger.info("- Your actual Windows IP (Bridged adapter)")
-            return
+            click.echo("Could not auto-detect host IP.")
+            click.echo("Common VirtualBox host IPs to try:")
+            click.echo("- 10.0.2.2 (NAT mode)")
+            click.echo("- 192.168.56.1 (Host-only adapter)")
+            click.echo("- Your actual Windows IP (Bridged adapter)")
+            if not click.confirm("Continue with default URL?"):
+                return
 
     # Initialize RPC client
     try:
-        rpc = BitcoinRPC(RPC_URL, RPC_USER, RPC_PASSWORD)
+        rpc = BitcoinRPC(rpc_url, rpc_user, rpc_password)
 
         # Test connection
         block_count = rpc.call('getblockcount')
-        logger.info(f"Connected to Bitcoin node. Current block height: {block_count}")
+        click.echo(f"Connected to Bitcoin node. Current block height: {block_count}")
 
-        if block_count < MAX_BLOCKS:
-            logger.warning(f"Warning: Node only has {block_count} blocks, but we need {MAX_BLOCKS}")
-            response = input("Continue anyway? (y/N): ")
-            if response.lower() != 'y':
+        if block_count < max_blocks:
+            click.echo(f"Warning: Node only has {block_count} blocks, but we need {max_blocks}")
+            if not click.confirm("Continue anyway?"):
                 return
 
     except Exception as e:
-        print(f"Failed to connect to Bitcoin node: {e}")
-        print("\nMake sure:")
-        print("1. Bitcoin Core is running")
-        print("2. RPC is enabled in bitcoin.conf")
-        print("3. RPC credentials are correct")
+        click.echo(f"Failed to connect to Bitcoin node: {e}", err=True)
+        click.echo("\nMake sure:", err=True)
+        click.echo("1. Bitcoin Core is running", err=True)
+        click.echo("2. RPC is enabled in bitcoin.conf", err=True)
+        click.echo("3. RPC credentials are correct", err=True)
         return
 
-    # Initialize collector
+    # Initialize collector with max_blocks parameter
     collector = AddressCollector(rpc)
+    collector.max_blocks = max_blocks
 
     try:
         # Collect addresses
         addresses = collector.collect_addresses()
 
         # Save results
-        collector.save_to_file(OUTPUT_FILE)
+        collector.save_to_file(output_file)
 
         # Print summary
-        print("\nCollection Summary:")
-        print(f"Total unspent addresses found: {len(addresses)}")
+        click.echo("\nCollection Summary:")
+        click.echo(f"Total unspent addresses found: {len(addresses)}")
 
         # Count by type
         miners = sum(1 for addr in addresses.values() if addr.is_miner)
         satoshi_addrs = sum(1 for addr in addresses.values() if "satoshi" in addr.tags)
 
-        print(f"Miner addresses: {miners}")
-        print(f"Satoshi addresses: {satoshi_addrs}")
+        click.echo(f"Miner addresses: {miners}")
+        click.echo(f"Satoshi addresses: {satoshi_addrs}")
 
         # Total balance
         total_balance = sum(addr.balance for addr in addresses.values())
-        print(f"Total balance: {total_balance / 100000000:.8f} BTC")
+        click.echo(f"Total balance: {total_balance / 100000000:.8f} BTC")
 
     except KeyboardInterrupt:
-        print("\nCollection interrupted by user")
-        collector.save_to_file(f"partial_{OUTPUT_FILE}")
+        click.echo("\nCollection interrupted by user")
+        collector.save_to_file(f"partial_{output_file}")
     except Exception as e:
         logger.exception("Error during collection", e)
 
