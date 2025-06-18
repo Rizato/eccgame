@@ -28,8 +28,8 @@ const FAQPage: React.FC = () => {
           <section className="faq-section">
             <h2>Can I actually win Bitcoin from playing?</h2>
             <p>
-              No. The targets are real Bitcoin addresses with unspent funds, but the private keys
-              are unknown and, for all practical purposes, unrecoverable.
+              No. The goal points are real Bitcoin addresses with unspent funds, but the private
+              keys are unknown and, for all practical purposes, unrecoverable.
             </p>
             <p>
               The only way to win is to already possess the private key or to have solved the

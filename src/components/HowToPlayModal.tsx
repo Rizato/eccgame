@@ -92,7 +92,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
               <p>
                 The calculator operates on the <strong>current point</strong> shown on the graph.
                 You perform point operations to move from it to another point to reveal the private
-                key for the wallet. Starting from G or the Wallet, make repeated operations until
+                key for the goal wallet. Starting from G or the Goal, make repeated operations until
                 you reveal the private key by creating a sequence of operations that connects the
                 two points.
               </p>
@@ -162,11 +162,11 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                     <strong>Current Point:</strong> Your current position
                   </li>
                   <li>
-                    <strong>Generator Point (G):</strong> The starting point for all Bitcoin
-                    addresses
+                    <strong>Start (G):</strong> The starting point for all Bitcoin addresses, also
+                    known as the generator
                   </li>
                   <li>
-                    <strong>Wallet Point:</strong> The target you're trying to reach
+                    <strong>Goal Point:</strong> The point you're trying to reach
                   </li>
                   <li>
                     <strong>Saved Points:</strong> Points you've bookmarked for reference
