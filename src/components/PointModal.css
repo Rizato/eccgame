@@ -253,13 +253,13 @@
   @media (max-width: 768px) {
     .modal-value-input,
     .modal-value-display {
-      font-size: 1rem;
-      min-height: 48px;
+      font-size: 0.8rem;
+      min-height: 44px;
       padding: 0 var(--spacing);
     }
 
     .modal-label {
-      font-size: 1rem;
+      font-size: 0.875rem;
     }
 
     .action-button {
