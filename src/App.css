@@ -6,6 +6,7 @@
 
 .App {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
   overflow: visible;
   display: flex;
@@ -17,6 +18,7 @@
   .App {
     height: auto;
     min-height: 100vh;
+    min-height: 100dvh;
     overflow: visible;
     -webkit-overflow-scrolling: touch;
   }
