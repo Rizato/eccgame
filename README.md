@@ -37,10 +37,10 @@ The best known classical algorithm can solve it in about 2^128 steps.
 
 Perform elliptic curve operations:
 
-- **Multiply**: Scale points by any number (×2, ×1000, ×2^256)
-- **Divide**: Reverse multiplication (÷2, ÷7, ÷1000000)
-- **Add**: Combine two points on the curve
-- **Subtract**: Find the difference between points
+- **Multiply**: Multiply the current point by the input scalar
+- **Divide**: Divide the current point by the input scalar
+- **Add**: Add the current point to the public key of the input scalar
+- **Subtract**: Subtract the current point to the public key of the input scalar
 - **Save Points**: Bookmark interesting locations for later
 
 ### Security & Privacy
@@ -60,9 +60,36 @@ Perform elliptic curve operations:
 
 ### Play Online
 
-Visit **[eccgame.com](https://eccgame.com)** and start playing immediately!
+Visit **[https://eccgame.com](https://eccgame.com)** and start playing immediately!
 
-### Local Development
+## Technology Stack
+
+### Agentic Coding
+
+This project was built in part to learn how to use Claude Code.
+
+I chose a tech stack where my knowledge was out of date intentionally, to see how quickly I could create a frontend with stale skills.
+I'd say it worked out, as I was familiar enough to handle most of the issues that arose.
+
+### Frontend (React + TypeScript)
+- **⚛React 19**: Modern React with hooks and concurrent features
+- **TypeScript**: Type-safe development
+- **Vite**: Lightning-fast build tool and dev server
+- **Vitest**: Fast unit testing with coverage
+- **CSS Modules**: Scoped styling
+- **Responsive Design**: Mobile-friendly approach
+
+### Cryptography
+- **secp256k1**: The same elliptic curve used by Bitcoin
+- **BigInt**: JavaScript's native arbitrary-precision integers
+- **Client-Side Only**: Zero server-side cryptographic operations
+
+### State Management
+- **Redux Toolkit**: Predictable state container
+- **Real-time Updates**: Reactive UI updates
+
+
+## Local Development
 
 ```bash
 # Clone the repository
@@ -88,52 +115,30 @@ cp .env.example .env.local
 
 # Edit with your preferred settings
 VITE_APP_URL=http://localhost:5173
-VITE_EXPLORER_BASE_URL=https://blockstream.info/testnet/address/
+VITE_EXPLORER_BASE_URL=https://www.blockchain.com/explorer/addresses/BTC/
 ```
 
-## Technology Stack
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `VITE_APP_URL` | Your domain URL for sharing | `https://eccgame.com` |
+| `VITE_EXPLORER_BASE_URL` | Bitcoin explorer URL | `https://www.blockchain.com/explorer/addresses/BTC/` |
+| `VITE_DAILY_CHALLENGE_START_DATE` | The date of the first challenge | 2025-06-12 |
 
-### Frontend (React + TypeScript)
-- **⚛React 18**: Modern React with hooks and concurrent features
-- **TypeScript**: Type-safe development
-- **Vite**: Lightning-fast build tool and dev server
-- **Vitest**: Fast unit testing with coverage
-- **CSS Modules**: Scoped styling
-- **Responsive Design**: Mobile-friendly approach
 
-### Cryptography
-- **secp256k1**: The same elliptic curve used by Bitcoin
-- **BigInt**: JavaScript's native arbitrary-precision integers
-- **Client-Side Only**: Zero server-side cryptographic operations
+## Testing
 
-### State Management
-- **Redux Toolkit**: Predictable state container
-- **Real-time Updates**: Reactive UI updates
+```bash
+# Run all tests
+npm test
 
-## Project Structure
+# Run tests with coverage
+npm run test:coverage
 
-```
+# Run tests in watch mode
+npm run test:watch
 
-src/
-├── components/          # React components
-│   ├── ECCCalculator.tsx    # Main calculator interface
-│   ├── ECCGraph.tsx         # Point visualization
-│   ├── VictoryModal.tsx     # Win celebration
-│   └── ...
-├── pages/              # Page-level components
-│   ├── ECCGamePage.tsx     # Main game page
-│   ├── FAQPage.tsx         # Frequently asked questions
-│   └── PrivacyPage.tsx     # Privacy policy
-├── store/              # Redux state management
-│   ├── slices/             # State slices
-│   └── index.ts            # Store configuration
-├── utils/              # Utility functions
-│   ├── crypto.ts           # Cryptographic utilities
-│   ├── ecc.ts             # Elliptic curve math
-│   └── gameUtils.ts        # Game-specific helpers
-├── types/              # TypeScript type definitions
-public/                 # Static assets
-dist/                  # Production build output
+# Run specific test file
+npm test ECCCalculator.test.tsx
 ```
 
 ## Deployment
@@ -154,75 +159,15 @@ npm run build:prod
 npm run preview
 ```
 
-### Deploy to Hosting
-
-
-#### Static Hosting (GitHub Pages, S3, etc.)
-```bash
-# Build and upload the dist/ folder
-npm run build:prod
-# Upload dist/ contents to your hosting provider
-```
-
-### Environment Variables
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_APP_URL` | Your domain URL for sharing | `https://eccgame.com` |
-| `VITE_EXPLORER_BASE_URL` | Bitcoin explorer URL | `https://blockstream.info/address/` |
-
-## Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run specific test file
-npm test ECCCalculator.test.tsx
-```
-
-### Coverage Goals
-- **Target**: >90% test coverage
-- **Current**: ~60% (and growing!)
-- **Focus Areas**: Components, utilities, and user interactions
-
-### Further Reading
+## Further Reading
 
 - [Elliptic Curve Cryptography](https://en.wikipedia.org/wiki/Elliptic-curve_cryptography)
 - [Bitcoin's Use of ECC](https://bitcoin.org/bitcoin.pdf)
 - [secp256k1 Specification](https://www.secg.org/sec2-v2.pdf)
 - [Discrete Logarithm Problem](https://en.wikipedia.org/wiki/Discrete_logarithm)
 
-## Security
-
-### Security Principles
-
-- **Client-Side Only**: All cryptographic operations happen in your browser
-- **No Data Transmission**: Private keys never leave your device
-- **Open Source**: All code is auditable and transparent
-- **No Dependencies on External APIs**: Works completely offline after initial load
-
-### Third-Party Licenses
-
-- **React**: MIT License
-- **TypeScript**: Apache-2.0 License
-- **Vite**: MIT License
-- **All other dependencies**: See package.json for individual licenses
-
 ---
-
-<div align="center">
 
 **Ready to try the impossible?**
 
 [Play Now](https://eccgame.com)
-
-*Made with ❤️ for education and security awareness*
-
-</div>
