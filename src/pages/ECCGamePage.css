@@ -1,6 +1,6 @@
 .ecc-game-page-wrapper {
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: calc(var(--vh, 1vh) * 100);
   display: flex;
   flex-direction: column;
 }
@@ -8,8 +8,7 @@
 /* Mobile: ensure proper scrolling context for sticky header */
 @media (max-width: 768px) {
   .ecc-game-page-wrapper {
-    height: 100vh;
-    height: 100dvh;
+    height: calc(var(--vh, 1vh) * 100);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -75,8 +74,7 @@
     .game-main {
       overflow: visible;
       height: auto;
-      min-height: calc(100vh - 60px);
-      min-height: calc(100dvh - 60px);
+      min-height: calc(var(--vh, 1vh) * 100 - 60px);
     }
   }
 }
@@ -490,8 +488,7 @@
   }
 
   .ecc-game-page-wrapper {
-    min-height: 100vh;
-    min-height: 100dvh;
+    min-height: calc(var(--vh, 1vh) * 100);
     overflow-x: hidden;
     overflow-y: auto;
     /* iOS smooth scrolling */
@@ -501,16 +498,15 @@
   }
 
   .ecc-game-page {
-    min-height: 100vh;
-    min-height: 100dvh;
+    min-height: calc(var(--vh, 1vh) * 100);
     overflow: visible;
   }
 
   .game-main {
     flex: 1;
-    min-height: calc(100vh - 60px);
-    min-height: calc(100dvh - 60px);
+    min-height: calc(var(--vh, 1vh) * 100 - 60px);
     overflow: visible;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* iOS-specific fixes */
@@ -518,9 +514,12 @@
     .ecc-game-page-wrapper {
       /* Allow natural scrolling on iOS */
       position: relative;
-      min-height: 100vh;
-      min-height: 100dvh;
+      min-height: calc(var(--vh, 1vh) * 100);
       height: auto;
+    }
+
+    .game-main {
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
     }
   }
 }

@@ -5,8 +5,9 @@
 }
 
 .App {
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100vh; /* Fallback */
+  min-height: 100dvh; /* Dynamic viewport */
+  min-height: calc(var(--vh, 1vh) * 100); /* Custom property fallback */
   width: 100vw;
   overflow: visible;
   display: flex;
@@ -18,7 +19,7 @@
   .App {
     height: auto;
     min-height: 100vh;
-    min-height: 100dvh;
+    min-height: calc(var(--vh, 1vh) * 100);
     overflow: visible;
     -webkit-overflow-scrolling: touch;
   }
