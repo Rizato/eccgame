@@ -25,7 +25,6 @@ The elliptic curve discrete logarithm problem (ECDLP) is the mathematical founda
 **For perspective**:
 - **Age of Universe**: ~4.3 × 10¹⁷ seconds
 - **Atoms in Observable Universe**: ~10⁸⁰
-- **Operations Needed**: ~10³⁸
 
 *You'd need to check more combinations than there are atoms in the universe, multiple times over.*
 
