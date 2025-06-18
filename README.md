@@ -1,28 +1,31 @@
 # ECC Game
 
-> **An interactive game demonstrating the computational impossibility of breaking Elliptic Curve Cryptography through Elliptic Curve Operations.**
+> **An interactive game demonstrating the computational impossibility of breaking Elliptic Curve Cryptography through elliptic curve operations.**
 
-ECC Game is a browser-based game that challenges you to find private keys for real Bitcoin addresses using an ECC calculator. It's basically impossible - and that's exactly the point.
+ECC Game is a browser-based game that challenges you to find private keys for real Bitcoin addresses using an ECC calculator. It's computationally impossible - and that's exactly the point.
 
 ## What Is This?
 
-This is a gamified elliptic curve cryptography calculator.
-It lets you play with elliptic curve points and operations to ostensibly try to find an algorithm to go from a public key to private key.
+ECC Game is a gamified elliptic curve cryptography calculator that lets you experiment with elliptic curve points and operations. The game challenges you to find an algorithm to derive a private key from a public key - a task that's computationally infeasible.
 
-It uses real Bitcoin wallets to be attractive to try to play, knowing full well they are totally safe.
+The game uses real Bitcoin addresses to make it engaging, while demonstrating why these wallets remain secure.
 
 ### The Reality Check
 
-The elliptic curve discrete logarithm problem is the hard problem behind Bitcoin.
+The elliptic curve discrete logarithm problem (ECDLP) is the mathematical foundation securing Bitcoin.
 
-With a private key you can compute the public key in just log(n) steps, where n is the size of the key, which is ~2^256.
-Without the private key, it would take a maximum of 2^256 steps to brute force a solution.
+**Forward computation** (private → public key):
+- Takes only ~256 point operations (log₂(n) where n ≈ 2²⁵⁶)
+- Computationally trivial
 
-The best known classical algorithm can solve it in about 2^128 steps.
+**Reverse computation** (public → private key):
+- Brute force: ~2²⁵⁶ operations
+- Best known algorithm (Pollard's rho): ~2¹²⁸ operations
 
-- **Age of Universe**: ~13.8 billion years (~13.8 ^ * 10^9)
-- **Atoms in Observable Universe**: ~10^80
-- **Operations Needed**: ~10^38
+**For perspective**:
+- **Age of Universe**: ~4.3 × 10¹⁷ seconds
+- **Atoms in Observable Universe**: ~10⁸⁰
+- **Operations Needed**: ~10³⁸
 
 *You'd need to check more combinations than there are atoms in the universe, multiple times over.*
 
@@ -30,8 +33,8 @@ The best known classical algorithm can solve it in about 2^128 steps.
 
 ### Game Modes
 
-- **Daily Challenge**: A new impossible challenge every day
-- **Practice Mode**: Learn with private keys provided (cheating enabled!)
+- **Daily Challenge**: A new impossible challenge every day - try to find the private key!
+- **Practice Mode**: Learn with private keys provided (educational mode)
 
 ### ECC Calculator
 
@@ -39,22 +42,24 @@ Perform elliptic curve operations:
 
 - **Multiply**: Multiply the current point by the input scalar
 - **Divide**: Divide the current point by the input scalar
-- **Add**: Add the current point to the public key of the input scalar
-- **Subtract**: Subtract the current point to the public key of the input scalar
+- **Add**: Add the public key of the input scalar to the current point
+- **Subtract**: Subtract the public key of the input scalar from the current point
+- **Negate**: Negate the current point (flip over the x-axis)
 - **Save Points**: Bookmark interesting locations for later
 
 ### Security & Privacy
 
-- **100% Client-Side**: No data ever leaves your browser
-- **Private Keys Stay Private**: All cryptographic operations in your browser
+- **100% Client-Side**: All operations run in your browser
+- **Zero Server Communication**: No data ever leaves your device
 - **No Registration**: Play immediately, no accounts needed
-- **No Tracking**: No analytics, no cookies, no surveillance
+- **Privacy First**: No analytics, no cookies, no tracking
 
 ### User Experience
 
-- **Dark/Light Themes**: Easy on the eyes, day or night
-- **Mobile Responsive**: Works perfectly on phones and tablets
-- **Fast Loading**: Optimized for quick startup
+- **Dark/Light Themes**: Comfortable viewing in any lighting
+- **Mobile Responsive**: Optimized for all screen sizes
+- **Fast & Lightweight**: Minimal dependencies, quick load times
+- **Offline Capable**: Play without an internet connection
 
 ## Quick Start
 
@@ -64,29 +69,29 @@ Visit **[https://eccgame.com](https://eccgame.com)** and start playing immediate
 
 ## Technology Stack
 
-### Agentic Coding
+### Development Approach
 
-This project was built in part to learn how to use Claude Code.
+This project was built using Claude Code (claude.ai/code) to explore AI-assisted development.
+The tech stack was intentionally chosen in areas where my knowledge was outdated, demonstrating how AI tools can bridge skill gaps while maintaining code quality.
 
-I chose a tech stack where my knowledge was out of date intentionally, to see how quickly I could create a frontend with stale skills.
-I'd say it worked out, as I was familiar enough to handle most of the issues that arose.
+While AI assistance was invaluable, having foundational familiarity with the technologies proved essential for handling the inevitable edge cases, debugging issues, and making architectural decisions that AI tools struggle with in isolation.
 
-### Frontend (React + TypeScript)
-- **⚛React 19**: Modern React with hooks and concurrent features
-- **TypeScript**: Type-safe development
+### Frontend
+- **React 19 + TypeScript**: Modern React with hooks and type safety
 - **Vite**: Lightning-fast build tool and dev server
 - **Vitest**: Fast unit testing with coverage
-- **CSS Modules**: Scoped styling
-- **Responsive Design**: Mobile-friendly approach
+- **CSS Modules**: Scoped styling with modular CSS
+- **Responsive Design**: Mobile-first approach
 
 ### Cryptography
 - **secp256k1**: The same elliptic curve used by Bitcoin
 - **BigInt**: JavaScript's native arbitrary-precision integers
 - **Client-Side Only**: Zero server-side cryptographic operations
 
-### State Management
-- **Redux Toolkit**: Predictable state container
-- **Real-time Updates**: Reactive UI updates
+### Architecture
+- **State Management**: React Context API for global state
+- **Real-time Updates**: Reactive UI with React hooks
+- **Code Organization**: Modular component structure
 
 
 ## Local Development
@@ -118,11 +123,11 @@ VITE_APP_URL=http://localhost:5173
 VITE_EXPLORER_BASE_URL=https://www.blockchain.com/explorer/addresses/BTC/
 ```
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_APP_URL` | Your domain URL for sharing | `https://eccgame.com` |
-| `VITE_EXPLORER_BASE_URL` | Bitcoin explorer URL | `https://www.blockchain.com/explorer/addresses/BTC/` |
-| `VITE_DAILY_CHALLENGE_START_DATE` | The date of the first challenge | 2025-06-12 |
+| Variable                           | Description                      | Example                                                |
+|------------------------------------|----------------------------------|--------------------------------------------------------|
+| `VITE_APP_URL`                     | Your domain URL for sharing      | `https://eccgame.com`                                  |
+| `VITE_EXPLORER_BASE_URL`           | Bitcoin explorer URL             | `https://www.blockchain.com/explorer/addresses/BTC/`   |
+| `VITE_DAILY_CHALLENGE_START_DATE`  | The date of the first challenge  | `2025-01-01`                                           |
 
 
 ## Testing
@@ -134,16 +139,14 @@ npm test
 # Run tests with coverage
 npm run test:coverage
 
-# Run tests in watch mode
-npm run test:watch
+# Run tests in watch mode during development
+npm test
 
 # Run specific test file
-npm test ECCCalculator.test.tsx
+npm test -- src/components/ECCCalculator.test.tsx
 ```
 
-## Deployment
-
-### Build for Production
+## Production Build
 
 ```bash
 # Install dependencies
