@@ -339,7 +339,7 @@
 .fullscreen-button {
   position: absolute;
   bottom: 8px;
-  right: 8px;
+  right: 32px;
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
@@ -420,9 +420,9 @@
   /* Removed - using base modal styles */
 
   .modal.fullscreen-graph-modal {
-    max-width: min(80vh, 95vw) !important;
-    max-height: 80vh;
-    width: min(80vh, 95vw) !important;
+    max-width: min(90vh, 95vw) !important;
+    /* max-height inherited from base modal (90vh) */
+    width: min(90vh, 95vw) !important;
     height: auto;
   }
 }

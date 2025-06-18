@@ -16,68 +16,9 @@
   overscroll-behavior: contain;
 }
 
-.modal {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-lg);
-  max-width: 500px;
-  width: 95vw;
-  max-height: 80vh;
-  position: relative;
-  z-index: 10001;
-  display: flex;
-  flex-direction: column;
-  margin: 2vh auto;
-}
+/* Modal styles moved to base Modal.css */
 
-.modal-header {
-  padding: var(--spacing) var(--spacing-lg) var(--spacing-sm);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-}
-
-.modal-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--success) 0%, var(--primary) 50%, var(--accent) 100%);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-}
-
-.modal-header h3 {
-  margin: 0;
-  color: var(--text);
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  color: var(--text-dim);
-  cursor: pointer;
-  padding: 0;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s ease;
-}
-
-.modal-close:hover {
-  background: var(--surface-variant);
-  color: var(--text);
-}
+/* PointModal uses base modal styles */
 
 .modal-content {
   padding: 0;
