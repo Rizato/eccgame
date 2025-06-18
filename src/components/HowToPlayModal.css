@@ -6,15 +6,6 @@
 
 /* Removed - now using base modal header styles */
 
-.how-to-play-subtitle {
-  margin: 0 auto var(--spacing-lg) auto;
-  padding: 0 var(--spacing);
-  color: var(--text-dim);
-  font-size: 1.1rem;
-  line-height: 1.5;
-  text-align: center;
-}
-
 .how-to-play-content {
   flex: 1;
   padding: 0 var(--spacing) var(--spacing) var(--spacing);
@@ -446,10 +437,6 @@ strong {
 
   .how-to-play-title {
     font-size: 1.5rem;
-  }
-
-  .how-to-play-subtitle {
-    font-size: 1rem;
   }
 
   .how-to-play-content {

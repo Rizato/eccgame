@@ -6,6 +6,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
+  subtitle?: string;
   children: ReactNode;
   className?: string;
   showCloseButton?: boolean;
@@ -17,6 +18,7 @@ export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   title,
+  subtitle,
   children,
   className = '',
   showCloseButton = true,
@@ -42,7 +44,10 @@ export const Modal: React.FC<ModalProps> = ({
             )}
           </div>
         )}
-        <div className="modal-content">{children}</div>
+        <div className="modal-content">
+          {subtitle && <div className="modal-subtitle">{subtitle}</div>}
+          {children}
+        </div>
       </div>
     </div>,
     document.body

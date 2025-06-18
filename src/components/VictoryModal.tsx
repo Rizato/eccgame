@@ -99,9 +99,9 @@ export const VictoryModal: React.FC<VictoryModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={`${gaveUp ? '🤷' : '🏆'} ${getVictoryTitle()}`}
+      subtitle={getVictoryMessage()}
       className="victory-modal"
     >
-      <p className="victory-message">{getVictoryMessage()}</p>
       <div className="victory-stats">
         <div className="stat-item">
           <div className="stat-label">Wallet Address</div>

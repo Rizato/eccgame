@@ -83,6 +83,23 @@
   letter-spacing: -0.025em;
 }
 
+.modal-subtitle {
+  text-align: center;
+  padding: 16px 24px;
+  margin-bottom: var(--spacing);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--accent-color-rgb, 59, 130, 246), 0.15) 0%,
+    rgba(var(--accent-color-rgb, 59, 130, 246), 0.08) 100%
+  );
+  border-bottom: 1px solid var(--border);
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
 .modal-close {
   position: absolute;
   top: 16px;
@@ -163,6 +180,12 @@
     font-size: 1.125rem;
   }
 
+  .modal-subtitle {
+    padding: 12px var(--spacing);
+    margin-bottom: var(--spacing);
+    font-size: 0.9rem;
+  }
+
   .modal-close {
     width: 28px;
     height: 28px;
@@ -186,6 +209,10 @@
   @media (max-width: 768px) {
     .modal-title {
       font-size: 1.25rem;
+    }
+
+    .modal-subtitle {
+      font-size: 1rem;
     }
 
     .modal-close {

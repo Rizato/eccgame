@@ -23,8 +23,13 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="How to Play?" className="how-to-play-modal">
-      <div className="how-to-play-subtitle">Try your luck at solving the impossible!</div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="How to Play?"
+      subtitle="Try your luck at solving the impossible!"
+      className="how-to-play-modal"
+    >
       <div className="how-to-play-content">
         <section className="how-to-play-section">
           <h3>What is ECC Game?</h3>

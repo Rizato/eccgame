@@ -3,17 +3,7 @@
   /* Inherits all modal styles from Modal.css */
 }
 
-/* Removed - now using base modal header styles */
-
-.victory-message {
-  margin: 0 auto var(--spacing-lg) auto;
-  padding: 0 var(--spacing);
-  color: var(--text-dim);
-  font-size: 1rem;
-  line-height: 1.5;
-  max-width: 400px;
-  text-align: center;
-}
+/* Removed - now using base modal header and subtitle styles */
 
 .victory-stats {
   padding: 0 var(--spacing);
@@ -125,10 +115,6 @@
 @media (max-width: 768px) {
   .victory-modal {
     /* Inherits mobile styles from base Modal */
-  }
-
-  .victory-message {
-    font-size: 0.9rem;
   }
 
   .victory-stats {
