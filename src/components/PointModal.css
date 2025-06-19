@@ -253,9 +253,10 @@
   @media (max-width: 768px) {
     .modal-value-input,
     .modal-value-display {
-      font-size: 0.8rem;
+      font-size: var(--mobile-font-size);
       min-height: 44px;
       padding: 0 var(--spacing);
+      -webkit-text-size-adjust: 100%;
     }
 
     .modal-label {
