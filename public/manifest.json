@@ -2,7 +2,7 @@
   "name": "ECC Game",
   "short_name": "ECC Game",
   "description": "Understand elliptic curve cryptography through interactive challenges",
-  "theme_color": "#818cf8",
+  "theme_color": "#1e293b",
   "background_color": "#0f172a",
   "display": "standalone",
   "orientation": "portrait-primary",

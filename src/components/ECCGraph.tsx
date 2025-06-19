@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { usePracticeModeRedux } from '../hooks/usePracticeModeRedux';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { setShowVictoryModal } from '../store/slices/eccCalculatorSlice';
 import { setGaveUp, setHasWon } from '../store/slices/gameSlice';
 import { mapToScreenCoordinate, isPointVisible } from '../utils/coordinateMapping';
 import { getGeneratorPoint, publicKeyToPoint } from '../utils/ecc';
+import Modal from './Modal';
 import type { ECPoint } from '../types/ecc';
 import './ECCGraph.css';
 
@@ -365,25 +365,16 @@ const ECCGraph: React.FC<ECCGraphProps> = ({
       </div>
 
       {/* Fullscreen Modal */}
-      {isFullscreen &&
-        createPortal(
-          <div className="modal-overlay" onClick={() => setIsFullscreen(false)}>
-            <div className="fullscreen-graph-modal" onClick={e => e.stopPropagation()}>
-              <div className="fullscreen-header">
-                <div className="goal-address">{challengeAddress || 'Loading...'}</div>
-                <button
-                  className="modal-close"
-                  onClick={() => setIsFullscreen(false)}
-                  title="Exit fullscreen"
-                >
-                  ×
-                </button>
-              </div>
-              {renderGraphContent('ecc-graph-fullscreen')}
-            </div>
-          </div>,
-          document.body
-        )}
+      <Modal
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        title="Graph"
+        className="fullscreen-graph-modal"
+        backdrop="dark"
+        zIndex={30000}
+      >
+        {renderGraphContent('ecc-graph-fullscreen')}
+      </Modal>
     </>
   );
 };

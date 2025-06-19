@@ -8,7 +8,7 @@
 /* Mobile: ensure proper scrolling context for sticky header */
 @media (max-width: 768px) {
   .ecc-game-page-wrapper {
-    height: 100dvh;
+    min-height: 100dvh;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
   }

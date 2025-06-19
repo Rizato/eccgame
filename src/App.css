@@ -16,7 +16,7 @@
 /* Mobile-specific adjustments for iOS */
 @media (max-width: 768px) {
   .App {
-    height: 100dvh;
+    min-height: 100dvh;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
   }

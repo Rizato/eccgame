@@ -1,141 +1,12 @@
-.victory-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  z-index: 20000;
-  backdrop-filter: blur(4px);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding: 4vh 2vw;
-}
-
+/* Victory modal specific styles - extends base Modal */
 .victory-modal {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  border: 2px solid var(--primary);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  max-width: 500px;
-  width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  position: relative;
-  z-index: 20001;
-  animation: victoryAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  display: flex;
-  flex-direction: column;
+  /* Inherits all modal styles from Modal.css */
 }
 
-@keyframes victoryAppear {
-  0% {
-    opacity: 0;
-    transform: scale(0.8) translateY(-20px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.victory-header {
-  text-align: center;
-  padding: 32px 24px 24px;
-  background: linear-gradient(
-    135deg,
-    rgba(var(--accent-color-rgb, 59, 130, 246), 0.1) 0%,
-    rgba(var(--accent-color-rgb, 59, 130, 246), 0.05) 100%
-  );
-  border-bottom: 1px solid var(--border);
-  position: relative;
-}
-
-.victory-close-x {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: var(--text-dim);
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--radius);
-  transition: all 0.2s ease;
-  line-height: 1;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.victory-close-x:hover {
-  background: var(--surface-variant);
-  color: var(--text);
-}
-
-.victory-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--success) 0%, var(--primary) 50%, var(--accent) 100%);
-}
-
-.victory-icon {
-  font-size: 3rem;
-  margin-bottom: 16px;
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
-}
-
-.victory-title {
-  margin: 0 0 12px 0;
-  color: var(--text);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-}
-
-.victory-message {
-  margin: 0;
-  color: var(--text-dim);
-  font-size: 1rem;
-  line-height: 1.5;
-  max-width: 400px;
-  margin: 0 auto;
-}
+/* Removed - now using base modal header and subtitle styles */
 
 .victory-stats {
-  padding: 24px;
+  padding: 0 var(--spacing);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -193,31 +64,7 @@
   -webkit-user-select: text;
 }
 
-/* Import modal value container and copy button styles from Modal.css */
-.victory-modal .modal-value-container {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-}
-
-.victory-modal .copy-button {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  padding: var(--spacing-sm);
-  cursor: pointer;
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  white-space: nowrap;
-  min-width: 60px;
-}
-
-.victory-modal .copy-button:hover {
-  background: var(--surface-variant);
-  color: var(--text);
-}
+/* Use shared modal styles from PointModal.css */
 
 .victory-modal .stat-value.clickable {
   cursor: text;
@@ -234,10 +81,11 @@
 }
 
 .victory-actions {
-  padding: 24px;
+  padding: var(--spacing);
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: center;
+  margin-top: var(--spacing);
 }
 
 .victory-share-button {
@@ -265,30 +113,8 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-  .victory-modal-overlay {
-    padding: 2vh 1vw 4vh 1vw;
-  }
-
   .victory-modal {
-    width: 95vw;
-    margin: 16px;
-  }
-
-  .victory-header {
-    padding: 24px 16px 16px;
-  }
-
-  .victory-icon {
-    font-size: 2.5rem;
-    margin-bottom: 12px;
-  }
-
-  .victory-title {
-    font-size: 1.25rem;
-  }
-
-  .victory-message {
-    font-size: 0.9rem;
+    /* Inherits mobile styles from base Modal */
   }
 
   .victory-stats {
@@ -312,35 +138,8 @@
   .victory-share-button {
     min-width: unset;
     width: 100%;
-  }
-
-  .victory-modal .copy-button {
-    min-width: 50px;
-    font-size: var(--mobile-font-size);
-    min-height: var(--mobile-button-height);
-  }
-
-  .victory-close-x {
-    width: var(--mobile-touch-min);
-    height: var(--mobile-touch-min);
-  }
-
-  .victory-share-button {
     font-size: var(--mobile-font-size);
     min-height: var(--mobile-button-height);
     padding: 0 var(--spacing);
-  }
-
-  .victory-modal {
-    width: 98vw;
-    max-height: 96vh;
-  }
-
-  .victory-modal-overlay {
-    padding: 2vh 1vw;
-  }
-
-  .victory-header {
-    padding: var(--spacing);
   }
 }

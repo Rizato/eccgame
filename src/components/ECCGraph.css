@@ -339,7 +339,7 @@
 .fullscreen-button {
   position: absolute;
   bottom: 8px;
-  right: 8px;
+  right: 32px;
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
@@ -360,39 +360,34 @@
   border-color: var(--primary);
 }
 
-/* Fullscreen modal */
-.fullscreen-graph-modal {
-  background: var(--surface);
-  border-radius: 8px;
-  max-width: 95vw;
-  max-height: 95vh;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  margin: auto;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+/* Fullscreen graph modal specific styles - extends base Modal */
+.modal.fullscreen-graph-modal {
+  max-width: min(90vh, 90vw) !important;
+  max-height: 90vh;
+  width: min(90vh, 90vw) !important;
+  height: auto;
 }
 
-.fullscreen-header {
+.fullscreen-graph-modal .modal-content {
+  padding: var(--spacing);
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid var(--border);
 }
+
+/* Removed - now using base modal header styles */
 
 .ecc-graph-fullscreen {
   position: relative;
   background: var(--graph-bg);
   border: 2px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
   overflow: hidden;
-  margin: 1rem;
-  /* Make it square based on available viewport space */
-  width: min(85vh, 85vw);
-  height: min(85vh, 85vw);
+  /* Responsive like mobile but bigger */
+  width: min(80vh, 80vw);
+  height: min(80vh, 80vw);
   aspect-ratio: 1;
+  flex-shrink: 0;
 }
 
 /* Mobile responsive */
@@ -414,22 +409,20 @@
     height: 28px;
     font-size: 14px;
     bottom: 6px;
-    right: 6px;
+    right: 32px;
   }
 
   .ecc-graph-fullscreen {
-    width: min(80vh, 90vw);
-    height: min(80vh, 90vw);
-    margin: 0.5rem;
+    width: min(70vh, 85vw);
+    height: min(70vh, 85vw);
   }
 
-  .fullscreen-header {
-    padding: 0.75rem;
-  }
+  /* Removed - using base modal styles */
 
-  /* Ensure proper modal positioning on mobile */
-  .fullscreen-graph-modal {
-    max-height: 90vh;
-    margin: 2vh auto;
+  .modal.fullscreen-graph-modal {
+    max-width: min(90vh, 95vw) !important;
+    /* max-height inherited from base modal (90vh) */
+    width: min(90vh, 95vw) !important;
+    height: auto;
   }
 }
