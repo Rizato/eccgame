@@ -337,7 +337,9 @@ function propagateIfNeeded(
   }
 
   // Single unified propagation pass
-  unifiedPropagation(graph, queue);
+  if (operation.userCreated && queue.length > 0) {
+    unifiedPropagation(graph, queue);
+  }
 }
 
 /**
@@ -394,5 +396,23 @@ function unifiedPropagation(graph: PointGraph, initialQueue: string[]): void {
         queue.push(connectedNodeId);
       }
     }
+  }
+
+  // I'm not concerned about the speed of this statement, as it is used only to identify where ther slowdown in graph occurs
+  // Log graph size for performance monitoring (only if propagation actually happened)
+  if (visited.size > 0) {
+    // Use cached values for performance with large graphs
+    const nodeIds = Object.keys(graph.nodes);
+    const totalNodes = nodeIds.length;
+
+    // More efficient edge counting using for...in loop
+    let totalEdges = 0;
+    for (const nodeId in graph.edges) {
+      totalEdges += graph.edges[nodeId].length;
+    }
+
+    console.log(
+      `[Graph Stats] Nodes: ${totalNodes}, Edges: ${totalEdges}, Propagated: ${visited.size} nodes`
+    );
   }
 }
