@@ -160,15 +160,8 @@ export function pointDivideWithIntermediates(
   // Calculate modular inverse
   const inverse = modInverse(scalar, CURVE_N);
 
-  // Calculate the private key for division if we have the starting private key
-  let divisionPrivateKey: bigint | undefined;
-  if (startingPrivateKey !== undefined) {
-    const scalarInverse = modInverse(scalar, CURVE_N);
-    divisionPrivateKey = (startingPrivateKey * scalarInverse) % CURVE_N;
-  }
-
   // Use pointMultiply with the inverse
-  return pointMultiplyWithIntermediates(inverse, point, divisionPrivateKey);
+  return pointMultiplyWithIntermediates(inverse, point, startingPrivateKey);
 }
 
 /**
