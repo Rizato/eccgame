@@ -32,7 +32,7 @@ export interface GraphNode {
 
 export interface PointGraph {
   nodes: Record<string, GraphNode>;
-  edges: Record<string, GraphEdge>;
+  edges: Record<string, GraphEdge[]>; // nodeId -> array of edges FROM this node
   pointToNodeId: Record<string, string>; // point hash -> node id for quick lookup
 }
 

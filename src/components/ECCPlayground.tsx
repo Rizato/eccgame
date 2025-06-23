@@ -99,13 +99,18 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
 
   // Calculate total number of user-created operations (excluding system-generated intermediates)
   const totalOperationCount = useMemo(() => {
-    return Object.values(graph.edges).reduce((total, edge) => {
-      // Only count operations that were created by the user
-      if (edge.operation.userCreated) {
-        return total + 1;
+    let total = 0;
+    // Iterate through all nodes' edge lists
+    for (const edgeList of Object.values(graph.edges)) {
+      for (const edge of edgeList) {
+        // Only count operations that were created by the user
+        // Count each edge only once (forward edges only)
+        if (edge.operation.userCreated && edge.fromNodeId < edge.toNodeId) {
+          total += 1;
+        }
       }
-      return total;
-    }, 0);
+    }
+    return total;
   }, [graph]);
 
   // Note: Removed automatic reset to generator when challenge changes

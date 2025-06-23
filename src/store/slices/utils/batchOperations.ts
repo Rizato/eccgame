@@ -3,9 +3,10 @@ import {
   type PointGraph,
   type SingleOperationPayload,
   type Operation,
+  type GraphEdge,
 } from '../../../types/ecc';
 import { pointNegate } from '../../../utils/ecc';
-import { findNodeByPoint, addNode } from '../../../utils/graphOperations';
+import { findNodeByPoint, addNode, reverseOperation } from '../../../utils/graphOperations';
 
 /**
  * Process batch operations with optimized BFS calls
@@ -33,15 +34,35 @@ export function processBatchOperations(
       toNode = addNode(graph, toPoint, { label, connectedToG });
     }
 
-    // Add the edge
+    // Initialize edge arrays if they don't exist
+    if (!graph.edges[fromNode.id]) {
+      graph.edges[fromNode.id] = [];
+    }
+    if (!graph.edges[toNode.id]) {
+      graph.edges[toNode.id] = [];
+    }
+
+    // Add forward edge
     const edgeId = `${fromNode.id}_to_${toNode.id}_by_operation_${operation.type}_${operation.value}`;
-    if (!graph.edges[edgeId]) {
-      graph.edges[edgeId] = {
+    if (!graph.edges[fromNode.id].find(e => e.id === edgeId)) {
+      const forwardEdge: GraphEdge = {
         id: edgeId,
         fromNodeId: fromNode.id,
         toNodeId: toNode.id,
         operation,
       };
+      graph.edges[fromNode.id].push(forwardEdge);
+
+      // Add reverse edge
+      const reversedOp = reverseOperation(operation);
+      const reverseEdgeId = `${toNode.id}_to_${fromNode.id}_by_operation_${reversedOp.type}_${reversedOp.value}`;
+      const reverseEdge: GraphEdge = {
+        id: reverseEdgeId,
+        fromNodeId: toNode.id,
+        toNodeId: fromNode.id,
+        operation: reversedOp,
+      };
+      graph.edges[toNode.id].push(reverseEdge);
     }
 
     // Add negation without propagation
@@ -49,6 +70,11 @@ export function processBatchOperations(
     let negatedNode = findNodeByPoint(graph, negatedPoint);
     if (!negatedNode) {
       negatedNode = addNode(graph, negatedPoint, { label: 'Negated', connectedToG });
+    }
+
+    // Initialize edge array for negated node
+    if (!graph.edges[negatedNode.id]) {
+      graph.edges[negatedNode.id] = [];
     }
 
     // Add negation edge
@@ -59,13 +85,24 @@ export function processBatchOperations(
       userCreated: false,
     };
     const negateEdgeId = `${toNode.id}_to_${negatedNode.id}_by_operation_${negateOp.type}_${negateOp.value}`;
-    if (!graph.edges[negateEdgeId]) {
-      graph.edges[negateEdgeId] = {
+    if (!graph.edges[toNode.id].find(e => e.id === negateEdgeId)) {
+      const negateEdge: GraphEdge = {
         id: negateEdgeId,
         fromNodeId: toNode.id,
         toNodeId: negatedNode.id,
         operation: negateOp,
       };
+      graph.edges[toNode.id].push(negateEdge);
+
+      // Add reverse negation edge (negate is its own inverse)
+      const reverseNegateEdgeId = `${negatedNode.id}_to_${toNode.id}_by_operation_${negateOp.type}_${negateOp.value}`;
+      const reverseNegateEdge: GraphEdge = {
+        id: reverseNegateEdgeId,
+        fromNodeId: negatedNode.id,
+        toNodeId: toNode.id,
+        operation: negateOp,
+      };
+      graph.edges[negatedNode.id].push(reverseNegateEdge);
     }
   }
 }

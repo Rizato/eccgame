@@ -102,13 +102,16 @@ export function addNode(
   };
 
   graph.nodes[nodeId] = node;
+  if (!graph.edges[nodeId]) {
+    graph.edges[nodeId] = [];
+  }
   graph.pointToNodeId[pointHash] = nodeId;
 
   return node;
 }
 
 /**
- * Add an edge to the graph
+ * Add an edge to the graph (creates both forward and reverse edges)
  */
 export function addEdge(
   graph: PointGraph,
@@ -117,23 +120,48 @@ export function addEdge(
   operation: Operation
 ): GraphEdge {
   const edgeId = `${fromNodeId}_to_${toNodeId}_by_operation_${operation.type}_${operation.value}`;
-  // Check if edge already exists - if so, update userCreated flag and return existing edge
-  if (graph.edges[edgeId]) {
-    const existing = graph.edges[edgeId];
-    // Use |= to make userCreated sticky (once true, stays true)
-    existing.operation.userCreated = existing.operation.userCreated || operation.userCreated;
-    return existing;
+
+  // Initialize edge arrays if they don't exist
+  if (!graph.edges[fromNodeId]) {
+    graph.edges[fromNodeId] = [];
+  }
+  if (!graph.edges[toNodeId]) {
+    graph.edges[toNodeId] = [];
   }
 
-  const edge: GraphEdge = {
+  // Check if forward edge already exists
+  let forwardEdge = graph.edges[fromNodeId].find(e => e.id === edgeId);
+  if (forwardEdge) {
+    // Update userCreated flag to be sticky
+    forwardEdge.operation.userCreated = forwardEdge.operation.userCreated || operation.userCreated;
+    return forwardEdge;
+  }
+
+  // Create forward edge
+  forwardEdge = {
     id: edgeId,
     fromNodeId,
     toNodeId,
     operation,
   };
+  graph.edges[fromNodeId].push(forwardEdge);
 
-  graph.edges[edgeId] = edge;
-  return edge;
+  // Create reverse edge with inverted operation
+  const reversedOp = reverseOperation(operation);
+  const reverseEdgeId = `${toNodeId}_to_${fromNodeId}_by_operation_${reversedOp.type}_${reversedOp.value}`;
+  const reverseEdge: GraphEdge = {
+    id: reverseEdgeId,
+    fromNodeId: toNodeId,
+    toNodeId: fromNodeId,
+    operation: reversedOp,
+  };
+
+  // Only add reverse edge if it doesn't already exist
+  if (!graph.edges[toNodeId].find(e => e.id === reverseEdgeId)) {
+    graph.edges[toNodeId].push(reverseEdge);
+  }
+
+  return forwardEdge;
 }
 
 /**
@@ -154,10 +182,15 @@ export function getAllConnectedEdges(
 ): Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }> {
   const connections: Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }> = [];
 
-  for (const edge of Object.values(graph.edges)) {
+  // Get all edges from this node (includes both forward and reverse edges)
+  const nodeEdges = graph.edges[nodeId] || [];
+
+  for (const edge of nodeEdges) {
+    // Since we store bidirectional edges, all edges from this node are "outgoing"
+    // The direction is determined by whether this node is the fromNode
     if (edge.fromNodeId === nodeId) {
       connections.push({ edge, direction: 'outgoing' });
-    } else if (edge.toNodeId === nodeId) {
+    } else {
       connections.push({ edge, direction: 'incoming' });
     }
   }
@@ -304,7 +337,7 @@ function propagateIfNeeded(
   }
 
   // Single unified propagation pass
-  unifiedPropagation(graph, [fromNode.id, toNode.id]);
+  unifiedPropagation(graph, queue);
 }
 
 /**
@@ -330,13 +363,10 @@ function unifiedPropagation(graph: PointGraph, initialQueue: string[]): void {
     if (!currentNode) continue;
 
     // Get all connected nodes
-    // TODO This is probably the source of slowdown, finding the bidirectional edges...
-    // TODO What if we create bi-directional edges whenever we add an edge, so that we can just grab the outgoing edges
-    // TODO Yea, edges should be an adjacency list, not a big list of everything...
-    const connections = getAllConnectedEdges(graph, currentNodeId);
+    const connections = graph.edges[currentNodeId];
 
-    for (const { edge, direction } of connections) {
-      const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
+    for (const edge of connections) {
+      const connectedNodeId = edge.toNodeId;
       const connectedNode = graph.nodes[connectedNodeId];
       if (!connectedNode || visited.has(connectedNodeId)) continue;
       let needsQueueing = false;
@@ -350,12 +380,7 @@ function unifiedPropagation(graph: PointGraph, initialQueue: string[]): void {
         let calculatedKey: bigint;
         // If we have a key and they do not
         if (currentNode.privateKey !== undefined && connectedNode.privateKey === undefined) {
-          if (direction === 'outgoing') {
-            calculatedKey = calculateKeyFromOperations([edge.operation], currentNode.privateKey);
-          } else {
-            const reverseOp = reverseOperation(edge.operation);
-            calculatedKey = calculateKeyFromOperations([reverseOp], currentNode.privateKey);
-          }
+          calculatedKey = calculateKeyFromOperations([edge.operation], currentNode.privateKey);
           if (verifyPrivateKeyForPoint(calculatedKey, connectedNode.point)) {
             connectedNode.privateKey = calculatedKey;
             needsQueueing = true;
