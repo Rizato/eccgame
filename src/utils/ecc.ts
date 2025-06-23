@@ -113,7 +113,9 @@ export function pointSubtract(p1: ECPoint, p2: ECPoint): ECPoint {
  * Returns just the result point
  */
 export function pointMultiply(scalar: bigint, point: ECPoint): ECPoint {
-  return doubleAndAdd(scalar, point);
+  const ec = pointToElliptic(point);
+  const result = ec.mul(scalar);
+  return ellipticToPoint(result);
 }
 
 /**
