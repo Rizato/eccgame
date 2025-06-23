@@ -316,7 +316,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     if (isLocked) return;
     try {
       onError(null);
-      const newPoint = pointMultiply(2n, currentPoint);
+      const newPoint = pointAdd(currentPoint, currentPoint);
       if (!isPointOnCurve(newPoint)) {
         onError('Result is not on the curve');
         return;
