@@ -82,9 +82,7 @@ describe('ECCPlayground Private Key Calculations', () => {
     });
 
     it('should calculate private key 10 for challenge * 2', () => {
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2' },
-      ];
+      const operations: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
 
       const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(10n);
@@ -229,8 +227,8 @@ describe('ECCPlayground Private Key Calculations', () => {
 
     it('should calculate scalar operations only when no point operations exist', () => {
       const scalarOnlyOps: Operation[] = [
-        { id: '1', type: 'multiply', description: '×3', value: '3' },
-        { id: '2', type: 'divide', description: '÷2', value: '2' },
+        { type: 'multiply', description: '×3', value: '3' },
+        { type: 'divide', description: '÷2', value: '2' },
       ];
 
       const hasOnlyScalarOps = scalarOnlyOps.every(

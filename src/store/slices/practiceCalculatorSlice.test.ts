@@ -4,13 +4,11 @@ import { getGeneratorPoint, pointMultiply, pointNegate } from '../../utils/ecc';
 import practiceCalculatorReducer, {
   addOperationToGraph,
   clearPracticeState,
-  type PracticeCalculatorState,
 } from './practiceCalculatorSlice';
-import type { Operation } from '../../types/ecc';
+import type { Operation, GraphNode, GraphEdge } from '../../types/ecc';
 
 describe('PracticeCalculatorSlice Force Multiplication', () => {
   let store: ReturnType<typeof configureStore>;
-  let _initialState: PracticeCalculatorState;
 
   beforeEach(() => {
     store = configureStore({
@@ -21,7 +19,6 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
     // Clear state and get initial state
     store.dispatch(clearPracticeState());
-    _initialState = store.getState().practiceCalculator;
   });
 
   describe('Automatic Negation', () => {
@@ -44,10 +41,10 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
         })
       );
 
-      const state = store.getState().practiceCalculator;
+      const state = (store.getState() as any).practiceCalculator;
 
       // Should have nodes for fromPoint, toPoint, and negated toPoint
-      const nodes = Object.values(state.graph.nodes);
+      const nodes = Object.values(state.graph.nodes) as GraphNode[];
       expect(nodes).toHaveLength(3); // G, 2G, -2G
 
       // Check that negated point exists
@@ -58,7 +55,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
       expect(negatedNode).toBeDefined();
 
       // Should have edges: G -> 2G (multiply) and 2G -> -2G (negate)
-      const edges = Object.values(state.graph.edges);
+      const edges = Object.values(state.graph.edges) as GraphEdge[];
       expect(edges).toHaveLength(2);
 
       const negateEdge = edges.find(edge => edge.operation.type === 'negate');
@@ -84,8 +81,8 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
         })
       );
 
-      const state = store.getState().practiceCalculator;
-      const nodes = Object.values(state.graph.nodes);
+      const state = (store.getState() as any).practiceCalculator;
+      const nodes = Object.values(state.graph.nodes) as GraphNode[];
 
       // Should have infinity, G, and -G
       expect(nodes).toHaveLength(3);
@@ -132,8 +129,8 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
         })
       );
 
-      const state = store.getState().practiceCalculator;
-      const nodes = Object.values(state.graph.nodes);
+      const state = (store.getState() as any).practiceCalculator;
+      const nodes = Object.values(state.graph.nodes) as GraphNode[];
 
       // Should have: G, 2G, -2G, 3G, -3G
       expect(nodes).toHaveLength(5);
@@ -153,7 +150,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
       expect(negatedThreeGNode).toBeDefined();
 
       // Should have 4 edges total: G->2G, 2G->-2G, 2G->3G, 3G->-3G
-      const edges = Object.values(state.graph.edges);
+      const edges = Object.values(state.graph.edges) as GraphEdge[];
       expect(edges).toHaveLength(4);
 
       const negateEdges = edges.filter(edge => edge.operation.type === 'negate');
@@ -188,8 +185,8 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
         })
       );
 
-      const state = store.getState().practiceCalculator;
-      const nodes = Object.values(state.graph.nodes);
+      const state = (store.getState() as any).practiceCalculator;
+      const nodes = Object.values(state.graph.nodes) as GraphNode[];
 
       // Should still only have 3 nodes: G, 2G, -2G
       expect(nodes).toHaveLength(3);
@@ -227,8 +224,8 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
         })
       );
 
-      const state = store.getState().practiceCalculator;
-      const edges = Object.values(state.graph.edges);
+      const state = (store.getState() as any).practiceCalculator;
+      const edges = Object.values(state.graph.edges) as GraphEdge[];
 
       // Find the original operation edge and negation edge
       const multiplyEdge = edges.find(edge => edge.operation.type === 'multiply');

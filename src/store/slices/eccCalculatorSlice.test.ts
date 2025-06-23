@@ -5,13 +5,11 @@ import dailyCalculatorReducer, {
   addOperationToGraph,
   resetToGenerator,
   setChallengePublicKey,
-  type DailyCalculatorState,
 } from './eccCalculatorSlice';
-import type { Operation } from '../../types/ecc';
+import type { Operation, GraphNode, GraphEdge } from '../../types/ecc';
 
 describe('DailyCalculatorSlice Force Multiplication', () => {
   let store: ReturnType<typeof configureStore>;
-  let _initialState: DailyCalculatorState;
 
   beforeEach(() => {
     store = configureStore({
@@ -22,7 +20,6 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
 
     // Reset to generator to get clean initial state
     store.dispatch(resetToGenerator());
-    _initialState = store.getState().dailyCalculator;
   });
 
   describe('Automatic Negation', () => {
@@ -44,10 +41,10 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
         })
       );
 
-      const state = store.getState().dailyCalculator;
+      const state = (store.getState() as any).dailyCalculator;
 
       // Should have nodes for fromPoint, toPoint, and negated toPoint
-      const nodes = Object.values(state.graph.nodes);
+      const nodes = Object.values(state.graph.nodes) as GraphNode[];
       expect(nodes).toHaveLength(3); // G, 3G, -3G
 
       // Check that negated point exists
@@ -58,7 +55,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
       expect(negatedNode).toBeDefined();
 
       // Should have edges: G -> 3G (multiply) and 3G -> -3G (negate)
-      const edges = Object.values(state.graph.edges);
+      const edges = Object.values(state.graph.edges) as GraphEdge[];
       expect(edges).toHaveLength(2);
 
       const negateEdge = edges.find(edge => edge.operation.type === 'negate');
@@ -89,8 +86,8 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
         })
       );
 
-      const state = store.getState().dailyCalculator;
-      const nodes = Object.values(state.graph.nodes);
+      const state = (store.getState() as any).dailyCalculator;
+      const nodes = Object.values(state.graph.nodes) as GraphNode[];
 
       // Should have: G, challenge, result, -result (negated challenge point should be added by the operation)
       expect(nodes).toHaveLength(4);
@@ -138,8 +135,8 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
         })
       );
 
-      const state = store.getState().dailyCalculator;
-      const nodes = Object.values(state.graph.nodes);
+      const state = (store.getState() as any).dailyCalculator;
+      const nodes = Object.values(state.graph.nodes) as GraphNode[];
 
       // Should have: G, 5G, -5G, 3G, -3G (and potentially 2G if it was added)
       expect(nodes.length).toBeGreaterThanOrEqual(5);
@@ -183,9 +180,9 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
         );
       }
 
-      const state = store.getState().dailyCalculator;
-      const nodes = Object.values(state.graph.nodes);
-      const edges = Object.values(state.graph.edges);
+      const state = (store.getState() as any).dailyCalculator;
+      const nodes = Object.values(state.graph.nodes) as GraphNode[];
+      const edges = Object.values(state.graph.edges) as GraphEdge[];
 
       // Should have G + 3 points + 3 negated points = 7 nodes
       expect(nodes).toHaveLength(7);
@@ -244,8 +241,8 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
         })
       );
 
-      const state = store.getState().dailyCalculator;
-      const nodes = Object.values(state.graph.nodes);
+      const state = (store.getState() as any).dailyCalculator;
+      const nodes = Object.values(state.graph.nodes) as GraphNode[];
 
       // Should have: G, 2G, -2G, and -G from the second operation's force multiplication
       expect(nodes).toHaveLength(4);

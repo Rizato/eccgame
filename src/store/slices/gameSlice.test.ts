@@ -78,7 +78,6 @@ describe('State Persistence with switchGameMode', () => {
         fromPoint: generatorPoint,
         toPoint: doubledPoint,
         operation: {
-          id: 'test',
           type: 'multiply',
           description: 'double edge',
           value: '2',
@@ -88,7 +87,7 @@ describe('State Persistence with switchGameMode', () => {
 
     let state = store.getState() as RootState;
     const practiceNodeCount = Object.keys(state.practiceCalculator.graph.nodes).length;
-    expect(practiceNodeCount).toBe(3); // generator, challenge, and new node
+    expect(practiceNodeCount).toBe(4); // generator, challenge, doubled node, and negated doubled node
 
     // Switch to daily mode
     store.dispatch(switchGameMode('daily'));
@@ -108,7 +107,6 @@ describe('State Persistence with switchGameMode', () => {
         fromPoint: dailyGeneratorPoint,
         toPoint: negatedPoint,
         operation: {
-          id: 'test',
           type: 'negate',
           description: 'negate point',
           value: '1',
@@ -133,7 +131,7 @@ describe('State Persistence with switchGameMode', () => {
     const dailyNodeIds = Object.keys(state.dailyCalculator.graph.nodes);
 
     // Graphs should be independent
-    expect(practiceNodeIds.length).toBe(3);
+    expect(practiceNodeIds.length).toBe(4);
     expect(dailyNodeIds.length).toBe(3);
   });
 });
