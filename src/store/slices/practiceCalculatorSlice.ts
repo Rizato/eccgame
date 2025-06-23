@@ -1,21 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import {
-  OperationType,
-  type ECPoint,
-  type Operation,
-  type SavedPoint,
-  type SingleOperationPayload,
-} from '../../types/ecc';
+import { type ECPoint, type SavedPoint, type SingleOperationPayload } from '../../types/ecc';
 import { getP2PKHAddress } from '../../utils/crypto';
-import {
-  getGeneratorPoint,
-  pointNegate,
-  pointToPublicKey,
-  publicKeyToPoint,
-} from '../../utils/ecc';
-import { calculatePrivateKeyFromGraph } from '../../utils/graphOperations';
-import { savePracticeState, loadPracticeState } from '../../utils/storage';
-import { processBatchOperations } from './utils/batchOperations';
+import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
 import {
   addCachedNode,
   addCachedOperation,
@@ -24,6 +10,9 @@ import {
   findCachedNodeByPoint,
   exportCachedGraphForRedux,
 } from '../../utils/graphCache';
+import { calculatePrivateKeyFromGraph } from '../../utils/graphOperations';
+import { savePracticeState, loadPracticeState } from '../../utils/storage';
+import { processBatchOperations } from './utils/batchOperations';
 
 export interface PracticeCalculatorState {
   selectedPoint: ECPoint;
@@ -343,17 +332,6 @@ const practiceCalculatorSlice = createSlice({
     addOperationToGraph: (state, action: PayloadAction<SingleOperationPayload>) => {
       const { fromPoint, toPoint, operation } = action.payload;
       addCachedOperation('practice', fromPoint, toPoint, operation);
-
-      // Add the negation to the graph as well
-      const negatedPoint = pointNegate(toPoint);
-      const negateOp: Operation = {
-        type: OperationType.NEGATE,
-        description: '±',
-        value: '',
-        userCreated: false,
-      };
-      addCachedOperation('practice', toPoint, negatedPoint, negateOp);
-
       // Update selected point to the result
       state.selectedPoint = toPoint;
       state.graphStats = exportCachedGraphForRedux('practice');

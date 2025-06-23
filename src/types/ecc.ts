@@ -34,6 +34,8 @@ export interface PointGraph {
   nodes: Record<string, GraphNode>;
   edges: Record<string, GraphEdge[]>; // nodeId -> array of edges FROM this node
   pointToNodeId: Record<string, string>; // point hash -> node id for quick lookup
+  // X-coordinates for negated point detection
+  xCoordinates: Set<string>; // x coordinate strings for O(1) negation lookup
 }
 
 export interface SavedPoint {

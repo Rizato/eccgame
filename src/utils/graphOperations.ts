@@ -6,7 +6,7 @@ import {
   type PointGraph,
   type Operation,
 } from '../types/ecc';
-import { pointMultiply, getGeneratorPoint, publicKeyToPoint } from './ecc';
+import { pointMultiply, getGeneratorPoint, publicKeyToPoint, pointNegate } from './ecc';
 import { calculateKeyFromOperations } from './privateKeyCalculation';
 import type { Challenge } from '../types/game';
 
@@ -20,22 +20,33 @@ export function pointToHash(point: ECPoint): string {
   return `${point.x.toString(16)}_${point.y.toString(16)}`;
 }
 
+/**
+ * Create x-coordinate key for bucket lookup
+ */
+export function pointToXKey(point: ECPoint): string {
+  if (point.isInfinity) {
+    return 'INFINITY';
+  }
+  return point.x.toString(16);
+}
+
 // Global counter to ensure unique node IDs even after cleanup
 let globalNodeCounter = 0;
 
 /**
- * Create an empty graph
+ * Create an empty graph with x-coordinate tracking
  */
 export function createEmptyGraph(): PointGraph {
   return {
     nodes: {},
     edges: {},
     pointToNodeId: {},
+    xCoordinates: new Set(),
   };
 }
 
 /**
- * Add a node to the graph
+ * Add a node to the graph with x-coordinate bucket optimization
  */
 export function addNode(
   graph: PointGraph,
@@ -107,6 +118,13 @@ export function addNode(
   }
   graph.pointToNodeId[pointHash] = nodeId;
 
+  // Check if the negation of this node already exists and create edge if so
+  // This enables automatic detection of negation relationships (like reaching -G)
+  checkAndCreateNegationEdge(graph, node);
+
+  // Add x-coordinate to tracking set for future negation detection
+  addXCoordinate(graph, node.point);
+
   return node;
 }
 
@@ -165,12 +183,82 @@ export function addEdge(
 }
 
 /**
- * Find a node by its point
+ * Add x-coordinate to tracking set
+ */
+function addXCoordinate(graph: PointGraph, point: ECPoint): void {
+  const xKey = pointToXKey(point);
+  graph.xCoordinates.add(xKey);
+}
+
+/**
+ * Check if the negated version of this point already exists in the graph
+ */
+export function findNegatedPoint(graph: PointGraph, point: ECPoint): GraphNode | undefined {
+  if (point.isInfinity) {
+    return undefined;
+  }
+
+  // Calculate what the negated point would be
+  const negatedPoint = pointNegate(point);
+  const negatedHash = pointToHash(negatedPoint);
+
+  // Check if the negated point exists in the graph
+  const negatedNodeId = graph.pointToNodeId[negatedHash];
+  if (negatedNodeId) {
+    return graph.nodes[negatedNodeId];
+  }
+
+  return undefined;
+}
+
+/**
+ * Check if negation exists and create edge if it does
+ * This allows automatic detection of negation relationships
+ */
+function checkAndCreateNegationEdge(graph: PointGraph, node: GraphNode): void {
+  // Only check if this x-coordinate already exists
+  if (!hasXCoordinate(graph, node.point)) {
+    return;
+  }
+
+  const negatedNode = findNegatedPoint(graph, node.point);
+
+  if (negatedNode) {
+    // Found the negated point! Create negation edges between them
+    const negateOp: Operation = {
+      type: OperationType.NEGATE,
+      description: '±',
+      value: '',
+      userCreated: false, // Auto-detected, not user created
+    };
+
+    // Add bidirectional negation edges
+    addEdge(graph, node.id, negatedNode.id, negateOp);
+
+    // Trigger propagation between the negated pair
+    propagateIfNeeded(graph, node, negatedNode, negateOp);
+  }
+}
+
+/**
+ * Find a node by its point, with bucket optimization for negated points
  */
 export function findNodeByPoint(graph: PointGraph, point: ECPoint): GraphNode | undefined {
   const pointHash = pointToHash(point);
   const nodeId = graph.pointToNodeId[pointHash];
   return nodeId ? graph.nodes[nodeId] : undefined;
+}
+
+/**
+ * Check if this x-coordinate already exists in the graph
+ */
+export function hasXCoordinate(graph: PointGraph, point: ECPoint): boolean {
+  if (point.isInfinity) {
+    return false;
+  }
+
+  const xKey = pointToXKey(point);
+  return graph.xCoordinates.has(xKey);
 }
 
 /**
@@ -379,10 +467,12 @@ function unifiedPropagation(graph: PointGraph, initialQueue: string[]): void {
       }
 
       try {
-        let calculatedKey: bigint;
         // If we have a key and they do not
         if (currentNode.privateKey !== undefined && connectedNode.privateKey === undefined) {
-          calculatedKey = calculateKeyFromOperations([edge.operation], currentNode.privateKey);
+          const calculatedKey = calculateKeyFromOperations(
+            [edge.operation],
+            currentNode.privateKey
+          );
           if (verifyPrivateKeyForPoint(calculatedKey, connectedNode.point)) {
             connectedNode.privateKey = calculatedKey;
             needsQueueing = true;

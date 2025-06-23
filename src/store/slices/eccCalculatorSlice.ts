@@ -1,21 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import {
-  OperationType,
-  type ECPoint,
-  type Operation,
-  type SavedPoint,
-  type SingleOperationPayload,
-} from '../../types/ecc';
+import { type ECPoint, type SavedPoint, type SingleOperationPayload } from '../../types/ecc';
 import { getP2PKHAddress } from '../../utils/crypto';
-import {
-  getGeneratorPoint,
-  pointNegate,
-  pointToPublicKey,
-  publicKeyToPoint,
-} from '../../utils/ecc';
-import { calculatePrivateKeyFromGraph } from '../../utils/graphOperations';
-import { saveDailyState, loadDailyState } from '../../utils/storage';
-import { processBatchOperations } from './utils/batchOperations';
+import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
 import {
   addCachedNode,
   addCachedOperation,
@@ -24,6 +10,9 @@ import {
   findCachedNodeByPoint,
   exportCachedGraphForRedux,
 } from '../../utils/graphCache';
+import { calculatePrivateKeyFromGraph } from '../../utils/graphOperations';
+import { saveDailyState, loadDailyState } from '../../utils/storage';
+import { processBatchOperations } from './utils/batchOperations';
 
 export interface DailyCalculatorState {
   selectedPoint: ECPoint;
@@ -328,17 +317,6 @@ const dailyCalculatorSlice = createSlice({
       // Single operation: use cached graph processing
       const { fromPoint, toPoint, operation } = action.payload;
       addCachedOperation('daily', fromPoint, toPoint, operation);
-
-      // Add the negation to the graph as well
-      const negatedPoint = pointNegate(toPoint);
-      const negateOp: Operation = {
-        type: OperationType.NEGATE,
-        description: '±',
-        value: '',
-        userCreated: false,
-      };
-      addCachedOperation('daily', toPoint, negatedPoint, negateOp);
-
       // Update selected point to the result
       state.selectedPoint = toPoint;
       state.graphStats = exportCachedGraphForRedux('daily');
