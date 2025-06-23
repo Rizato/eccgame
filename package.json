@@ -13,8 +13,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,css,json}\"",
     "cleanup": "npm run lint:fix && npm run format",
-    "test": "vitest",
-    "test:run": "vitest run",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
     "generate-icons": "../scripts/generate-icons.sh"
