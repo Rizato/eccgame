@@ -10,6 +10,9 @@ import {
   publicKeyToPoint,
   pointToPublicKey,
   modInverse,
+  doubleAndAdd,
+  doubleAndAddWithIntermediates,
+  pointMultiplyWithIntermediates,
 } from './ecc';
 
 describe('ECC utilities', () => {
@@ -166,6 +169,154 @@ describe('ECC utilities', () => {
 
     it('should throw for non-invertible values', () => {
       expect(() => modInverse(0n, 5n)).toThrow();
+    });
+  });
+
+  describe('doubleAndAdd', () => {
+    it('should produce same result as pointMultiply', () => {
+      const scalar = 7n;
+      const generator = getGeneratorPoint();
+
+      const doubleAndAddResult = doubleAndAdd(scalar, generator);
+      const pointMultiplyResult = pointMultiply(scalar, generator);
+
+      expect(doubleAndAddResult).toEqual(pointMultiplyResult);
+    });
+
+    it('should handle small scalars correctly', () => {
+      const generator = getGeneratorPoint();
+
+      expect(doubleAndAdd(0n, generator).isInfinity).toBe(true);
+      expect(doubleAndAdd(1n, generator)).toEqual(generator);
+
+      const twoG = doubleAndAdd(2n, generator);
+      expect(twoG).toEqual(pointAdd(generator, generator));
+    });
+
+    it('should handle large scalars correctly', () => {
+      const generator = getGeneratorPoint();
+      const largeScalar = CURVE_N - 1n;
+
+      const result = doubleAndAdd(largeScalar, generator);
+      const expected = pointNegate(generator);
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should handle negative scalars', () => {
+      const generator = getGeneratorPoint();
+      const negativeScalar = -5n;
+
+      const result = doubleAndAdd(negativeScalar, generator);
+      const expected = pointNegate(pointMultiply(5n, generator));
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should handle point at infinity', () => {
+      const infinity = { x: 0n, y: 0n, isInfinity: true };
+      const result = doubleAndAdd(5n, infinity);
+
+      expect(result.isInfinity).toBe(true);
+    });
+  });
+
+  describe('doubleAndAddWithIntermediates', () => {
+    it('should return same result as doubleAndAdd but with intermediates', () => {
+      const scalar = 5n;
+      const generator = getGeneratorPoint();
+
+      const { result, intermediates } = doubleAndAddWithIntermediates(scalar, generator);
+      const expectedResult = doubleAndAdd(scalar, generator);
+
+      expect(result).toEqual(expectedResult);
+      expect(intermediates).toBeDefined();
+      expect(Array.isArray(intermediates)).toBe(true);
+    });
+
+    it('should produce intermediate points during computation', () => {
+      const scalar = 5n; // Binary: 101, should produce intermediates
+      const generator = getGeneratorPoint();
+
+      const { intermediates } = doubleAndAddWithIntermediates(scalar, generator);
+
+      // For scalar 5 (binary 101), we expect:
+      // - Start with G (bit 2 set)
+      // - Double to 2G (for bit 1)
+      // - Add G to get 3G (bit 1 not set, but we still doubled)
+      // - Double to 6G (for bit 0)
+      // - Subtract G to get 5G (bit 0 set)
+      expect(intermediates.length).toBeGreaterThan(0);
+
+      // All intermediate points should be valid curve points
+      for (const intermediate of intermediates) {
+        expect(isPointOnCurve(intermediate.point)).toBe(true);
+        expect(intermediate.operation).toBeDefined();
+        expect(['multiply', 'add']).toContain(intermediate.operation.type);
+        expect(intermediate.operation.userCreated).toBe(false);
+      }
+    });
+
+    it('should handle scalar 1 with no intermediates', () => {
+      const generator = getGeneratorPoint();
+      const { result, intermediates } = doubleAndAddWithIntermediates(1n, generator);
+
+      expect(result).toEqual(generator);
+      expect(intermediates).toHaveLength(0);
+    });
+
+    it('should handle scalar 0 with no intermediates', () => {
+      const generator = getGeneratorPoint();
+      const { result, intermediates } = doubleAndAddWithIntermediates(0n, generator);
+
+      expect(result.isInfinity).toBe(true);
+      expect(intermediates).toHaveLength(0);
+    });
+
+    it('should produce correct operation descriptions', () => {
+      const scalar = 6n; // Binary: 110
+      const generator = getGeneratorPoint();
+
+      const { intermediates } = doubleAndAddWithIntermediates(scalar, generator);
+
+      // Check that we have both double and add operations
+      const operationTypes = intermediates.map(i => i.operation.type);
+      expect(operationTypes).toContain('multiply'); // Double operations
+
+      const descriptions = intermediates.map(i => i.operation.description);
+      expect(descriptions).toContain('Double');
+    });
+  });
+
+  describe('pointMultiplyWithIntermediates', () => {
+    it('should be alias for doubleAndAddWithIntermediates', () => {
+      const scalar = 7n;
+      const generator = getGeneratorPoint();
+
+      const directResult = doubleAndAddWithIntermediates(scalar, generator);
+      const aliasResult = pointMultiplyWithIntermediates(scalar, generator);
+
+      expect(aliasResult).toEqual(directResult);
+    });
+
+    it('should provide intermediates for graph visualization', () => {
+      const scalar = 10n; // Binary: 1010
+      const generator = getGeneratorPoint();
+
+      const { result, intermediates } = pointMultiplyWithIntermediates(scalar, generator);
+
+      expect(result).toEqual(pointMultiply(scalar, generator));
+      expect(intermediates.length).toBeGreaterThan(0);
+
+      // Each intermediate should have point and operation info
+      for (const intermediate of intermediates) {
+        expect(intermediate.point).toBeDefined();
+        expect(intermediate.point.x).toBeDefined();
+        expect(intermediate.point.y).toBeDefined();
+        expect(intermediate.operation).toBeDefined();
+        expect(intermediate.operation.type).toBeDefined();
+        expect(intermediate.operation.description).toBeDefined();
+      }
     });
   });
 });

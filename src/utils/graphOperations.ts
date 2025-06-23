@@ -88,6 +88,14 @@ export function addEdge(
   operation: Operation
 ): GraphEdge {
   const edgeId = `${fromNodeId}_to_${toNodeId}_by_operation_${operation.type}_${operation.value}`;
+  // Check if edge already exists - if so, update userCreated flag and return existing edge
+  if (graph.edges[edgeId]) {
+    const existing = graph.edges[edgeId];
+    // Use |= to make userCreated sticky (once true, stays true)
+    existing.operation.userCreated = existing.operation.userCreated || operation.userCreated;
+    return existing;
+  }
+
   const edge: GraphEdge = {
     id: edgeId,
     fromNodeId,
