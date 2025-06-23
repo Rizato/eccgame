@@ -46,6 +46,10 @@ export function addNode(
 
   if (existingNodeId) {
     const existingNode = graph.nodes[existingNodeId]!;
+    // Track if we need to propagate changes
+    const needsPrivateKeyPropagation =
+      options.privateKey !== undefined && existingNode.privateKey === undefined;
+
     // Update existing node with new information
     if (options.privateKey !== undefined) {
       existingNode.privateKey = options.privateKey;
@@ -59,6 +63,13 @@ export function addNode(
     if (options.isChallenge !== undefined) {
       existingNode.isChallenge = options.isChallenge;
     }
+
+    // If we just set a private key, propagate it to connected nodes
+    // But only if this node is now connectedToG (meaning it's likely user-created or generator)
+    if (needsPrivateKeyPropagation && existingNode.connectedToG) {
+      propagatePrivateKeyRecursively(graph, existingNodeId, new Set());
+    }
+
     return existingNode;
   }
 
@@ -236,11 +247,119 @@ export function ensureOperationInGraph(
   // Add the edge between them
   addEdge(graph, fromNode.id, toNode.id, operation);
 
-  // Propagate private keys if one node has a key and the other doesn't
-  propagatePrivateKeyFromNodes(graph, fromNode, toNode, operation);
+  // Single unified propagation pass
+  unifiedPropagation(graph, fromNode, toNode, operation);
+}
 
-  // Propagate connectedToG property between the two nodes
-  propagateConnectedToGFromNodes(graph, fromNode, toNode);
+/**
+ * Unified propagation that handles both connectedToG and private keys in a single BFS pass
+ * This is much more efficient than separate propagation functions
+ */
+function unifiedPropagation(
+  graph: PointGraph,
+  fromNode: GraphNode,
+  toNode: GraphNode,
+  operation: Operation
+): void {
+  // Determine initial state
+  const fromConnected = fromNode.connectedToG || false;
+  const toConnected = toNode.connectedToG || false;
+  const shouldPropagateKeys = operation.userCreated && fromConnected !== toConnected;
+
+  // Early exit if neither node needs propagation
+  if (!fromConnected && !toConnected && !fromNode.privateKey && !toNode.privateKey) {
+    return;
+  }
+
+  // Set up initial propagation state
+  const queue: string[] = [];
+  const visited = new Set<string>();
+
+  // Handle the immediate connection between fromNode and toNode
+  if (fromConnected && !toConnected) {
+    toNode.connectedToG = true;
+    if (
+      shouldPropagateKeys &&
+      fromNode.privateKey !== undefined &&
+      toNode.privateKey === undefined
+    ) {
+      toNode.privateKey = calculateKeyFromOperations([operation], fromNode.privateKey);
+    }
+    queue.push(toNode.id);
+  } else if (toConnected && !fromConnected) {
+    fromNode.connectedToG = true;
+    if (
+      shouldPropagateKeys &&
+      toNode.privateKey !== undefined &&
+      fromNode.privateKey === undefined
+    ) {
+      const reverseOp = reverseOperation(operation);
+      fromNode.privateKey = calculateKeyFromOperations([reverseOp], toNode.privateKey);
+    }
+    queue.push(fromNode.id);
+  }
+
+  // If both nodes are now connected or one was already connected, propagate from connected nodes
+  if (fromNode.connectedToG) queue.push(fromNode.id);
+  if (toNode.connectedToG) queue.push(toNode.id);
+
+  // Single BFS pass to propagate both properties
+  while (queue.length > 0) {
+    const currentNodeId = queue.shift()!;
+    if (visited.has(currentNodeId)) continue;
+    visited.add(currentNodeId);
+
+    const currentNode = graph.nodes[currentNodeId];
+    if (!currentNode) continue;
+
+    // Get all connected nodes
+    const connections = getAllConnectedEdges(graph, currentNodeId);
+
+    for (const { edge, direction } of connections) {
+      const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
+      const connectedNode = graph.nodes[connectedNodeId];
+
+      if (!connectedNode || visited.has(connectedNodeId)) continue;
+
+      let needsQueueing = false;
+
+      // Propagate connectedToG (always)
+      if (currentNode.connectedToG && !connectedNode.connectedToG) {
+        connectedNode.connectedToG = true;
+        needsQueueing = true;
+      }
+
+      // Propagate private key (only for user operations when crossing connectedToG boundary)
+      if (
+        edge.operation.userCreated &&
+        currentNode.privateKey !== undefined &&
+        connectedNode.privateKey === undefined &&
+        currentNode.connectedToG
+      ) {
+        try {
+          let calculatedKey: bigint;
+
+          if (direction === 'outgoing') {
+            calculatedKey = calculateKeyFromOperations([edge.operation], currentNode.privateKey);
+          } else {
+            const reverseOp = reverseOperation(edge.operation);
+            calculatedKey = calculateKeyFromOperations([reverseOp], currentNode.privateKey);
+          }
+
+          if (verifyPrivateKeyForPoint(calculatedKey, connectedNode.point)) {
+            connectedNode.privateKey = calculatedKey;
+            needsQueueing = true;
+          }
+        } catch (error) {
+          console.warn(`Failed to calculate private key for node ${connectedNodeId}:`, error);
+        }
+      }
+
+      if (needsQueueing) {
+        queue.push(connectedNodeId);
+      }
+    }
+  }
 }
 
 /**
@@ -469,5 +588,76 @@ function propagateConnectedToGRecursively(
 
     // Continue propagating from the newly connected node
     propagateConnectedToGRecursively(graph, connectedNodeId, visited);
+  }
+}
+
+/**
+ * Manually trigger propagation from a node - useful when properties are set after node creation
+ * Uses unified BFS propagation for efficiency
+ */
+export function triggerPropagationFromNode(graph: PointGraph, nodeId: string): void {
+  const node = graph.nodes[nodeId];
+  if (!node) {
+    return;
+  }
+
+  // Use unified BFS propagation starting from this node
+  const queue: string[] = [nodeId];
+  const visited = new Set<string>();
+
+  while (queue.length > 0) {
+    const currentNodeId = queue.shift()!;
+    if (visited.has(currentNodeId)) continue;
+    visited.add(currentNodeId);
+
+    const currentNode = graph.nodes[currentNodeId];
+    if (!currentNode) continue;
+
+    const connections = getAllConnectedEdges(graph, currentNodeId);
+
+    for (const { edge, direction } of connections) {
+      const connectedNodeId = direction === 'outgoing' ? edge.toNodeId : edge.fromNodeId;
+      const connectedNode = graph.nodes[connectedNodeId];
+
+      if (!connectedNode || visited.has(connectedNodeId)) continue;
+
+      let needsQueueing = false;
+
+      // Propagate connectedToG
+      if (currentNode.connectedToG && !connectedNode.connectedToG) {
+        connectedNode.connectedToG = true;
+        needsQueueing = true;
+      }
+
+      // Propagate private key (only for user operations)
+      if (
+        edge.operation.userCreated &&
+        currentNode.privateKey !== undefined &&
+        connectedNode.privateKey === undefined &&
+        currentNode.connectedToG
+      ) {
+        try {
+          let calculatedKey: bigint;
+
+          if (direction === 'outgoing') {
+            calculatedKey = calculateKeyFromOperations([edge.operation], currentNode.privateKey);
+          } else {
+            const reverseOp = reverseOperation(edge.operation);
+            calculatedKey = calculateKeyFromOperations([reverseOp], currentNode.privateKey);
+          }
+
+          if (verifyPrivateKeyForPoint(calculatedKey, connectedNode.point)) {
+            connectedNode.privateKey = calculatedKey;
+            needsQueueing = true;
+          }
+        } catch (error) {
+          console.warn(`Failed to calculate private key for node ${connectedNodeId}:`, error);
+        }
+      }
+
+      if (needsQueueing) {
+        queue.push(connectedNodeId);
+      }
+    }
   }
 }
