@@ -100,13 +100,20 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   // Calculate total number of user-created operations (excluding system-generated intermediates)
   const totalOperationCount = useMemo(() => {
     let total = 0;
+    const seenEdgeIds = new Set<string>();
+
     // Iterate through all nodes' edge lists
     for (const edgeList of Object.values(graph.edges)) {
       for (const edge of edgeList) {
         // Only count operations that were created by the user
-        // Count each edge only once (forward edges only)
-        if (edge.operation.userCreated && edge.fromNodeId < edge.toNodeId) {
+        // Use edge ID to avoid double counting since we have bidirectional edges
+        if (edge.operation.userCreated && !seenEdgeIds.has(edge.id)) {
           total += 1;
+          seenEdgeIds.add(edge.id);
+
+          // Also add the reverse edge ID to avoid counting the reverse direction
+          const reverseEdgeId = `${edge.toNodeId}_to_${edge.fromNodeId}_by_operation_${edge.operation.type}_${edge.operation.value}`;
+          seenEdgeIds.add(reverseEdgeId);
         }
       }
     }

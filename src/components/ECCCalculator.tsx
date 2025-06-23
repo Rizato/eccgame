@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './ECCCalculator.css';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { getCachedGraph } from '../utils/graphCache';
 import {
   addBatchOperationsToGraph as addDailyBatchOperations,
   addOperationToGraph as addDailyOperationToGraph,
@@ -25,7 +24,6 @@ import {
   hexToBigint,
   isPointOnCurve,
   pointAdd,
-  pointDivide,
   pointDivideWithIntermediates,
   pointMultiply,
   pointMultiplyWithIntermediates,
@@ -34,6 +32,7 @@ import {
   pointToPublicKey,
   publicKeyToPoint,
 } from '../utils/ecc';
+import { getCachedGraph } from '../utils/graphCache';
 import { calculatePrivateKeyFromGraph } from '../utils/graphOperations.ts';
 import { SavePointModal } from './SavePointModal';
 
@@ -84,6 +83,36 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
       }
     },
     [dispatch, gameMode]
+  );
+
+  // Reusable function to handle intermediates and add them to the graph
+  const addIntermediatesToGraph = useCallback(
+    (intermediates: IntermediatePoint[], startingPoint: ECPoint) => {
+      if (intermediates.length === 0) return;
+
+      const batchOps = [];
+      let previousPoint = startingPoint;
+
+      for (const intermediate of intermediates) {
+        if (!isPointOnCurve(intermediate.point)) {
+          onError('Intermediate point is not on the curve');
+          break;
+        }
+        batchOps.push({
+          fromPoint: previousPoint,
+          toPoint: intermediate.point,
+          operation: intermediate.operation,
+          toPointPrivateKey: intermediate.privateKey,
+        });
+        previousPoint = intermediate.point;
+      }
+
+      // Dispatch all operations as a batch
+      if (batchOps.length > 0) {
+        dispatchBatchOperations(batchOps);
+      }
+    },
+    [dispatchBatchOperations, onError]
   );
 
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
@@ -346,7 +375,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     if (isLocked) return;
     try {
       onError(null);
-      const newPoint = pointDivide(2n, currentPoint);
+      const { result: newPoint, intermediates } = pointDivideWithIntermediates(
+        2n,
+        currentPoint,
+        currentPrivateKey
+      );
       if (!isPointOnCurve(newPoint)) {
         onError('Result is not on the curve');
         return;
@@ -358,7 +391,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         userCreated: true,
       };
 
-      // Add to graph through Redux
+      // Add intermediates to graph if any
+      addIntermediatesToGraph(intermediates, currentPoint);
+
+      // Add final operation to graph through Redux
       dispatchOperation({
         fromPoint: currentPoint,
         toPoint: newPoint,
@@ -370,7 +406,15 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, dispatchOperation, onPointChange, onError, isLocked]);
+  }, [
+    currentPoint,
+    currentPrivateKey,
+    dispatchOperation,
+    addIntermediatesToGraph,
+    onPointChange,
+    onError,
+    isLocked,
+  ]);
 
   const quickNegate = useCallback(() => {
     if (isLocked) return;
@@ -544,30 +588,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           userCreated: true,
         };
 
-        // Add to graph through Redux - use batch operation for intermediates
-        if (steps.length > 0) {
-          // For operations with many intermediate steps, use batch dispatch
-          const batchOps = [];
-
-          // Add all intermediate operations
-          let previousPoint = currentPoint;
-          for (const intermediate of steps) {
-            if (!isPointOnCurve(intermediate.point)) {
-              onError('Intermediate point is not on the curve');
-              break;
-            }
-            batchOps.push({
-              fromPoint: previousPoint,
-              toPoint: intermediate.point,
-              operation: intermediate.operation,
-              toPointPrivateKey: intermediate.privateKey,
-            });
-            previousPoint = intermediate.point;
-          }
-
-          // Dispatch all operations as a batch
-          dispatchBatchOperations(batchOps);
-        }
+        // Add intermediates to graph if any
+        addIntermediatesToGraph(steps, currentPoint);
 
         // Single operation, dispatch after batch so they all get propagate (only once though)
         dispatchOperation({
@@ -587,8 +609,9 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     },
     [
       currentPoint,
+      currentPrivateKey,
       dispatchOperation,
-      dispatchBatchOperations,
+      addIntermediatesToGraph,
       onPointChange,
       onError,
       isLocked,
@@ -941,28 +964,69 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             <button className="calc-button spacer"></button>
             <button
               onClick={() => {
-                // Generate a random number between 2 and CURVE_N
-                // Use crypto.getRandomValues for better randomness
-                const randomBytes = new Uint8Array(32);
-                crypto.getRandomValues(randomBytes);
+                if (isLocked) return;
+                try {
+                  onError(null);
 
-                // Convert to BigInt and ensure it's in the range [2, CURVE_N)
-                let randomBigInt = BigInt(
-                  '0x' +
-                    Array.from(randomBytes)
-                      .map(b => b.toString(16).padStart(2, '0'))
-                      .join('')
-                );
+                  // Generate a random number between 2 and CURVE_N
+                  // Use crypto.getRandomValues for better randomness
+                  const randomBytes = new Uint8Array(32);
+                  crypto.getRandomValues(randomBytes);
 
-                // Ensure the number is within the valid range
-                const range = CURVE_N - BigInt(2);
-                randomBigInt = (randomBigInt % range) + BigInt(2);
+                  // Convert to BigInt and ensure it's in the range [2, CURVE_N)
+                  let randomBigInt = BigInt(
+                    '0x' +
+                      Array.from(randomBytes)
+                        .map(b => b.toString(16).padStart(2, '0'))
+                        .join('')
+                  );
 
-                setHexMode(true);
-                setCalculatorDisplay('0x' + randomBigInt.toString(16).toUpperCase());
+                  // Ensure the number is within the valid range
+                  const range = CURVE_N - BigInt(2);
+                  randomBigInt = (randomBigInt % range) + BigInt(2);
+
+                  const randomHexString = '0x' + randomBigInt.toString(16).toUpperCase();
+
+                  // Calculate G × random scalar with intermediates
+                  const { result: newPoint, intermediates } = pointMultiplyWithIntermediates(
+                    randomBigInt,
+                    generatorPoint,
+                    1n // Generator point has private key 1
+                  );
+
+                  if (!isPointOnCurve(newPoint)) {
+                    onError('Random point is not on the curve');
+                    return;
+                  }
+
+                  const operation: Operation = {
+                    type: OperationType.MULTIPLY,
+                    description: `→ G×rand`,
+                    value: randomHexString,
+                    userCreated: true,
+                  };
+
+                  // Add intermediates to graph
+                  addIntermediatesToGraph(intermediates, generatorPoint);
+
+                  // Add the final operation from G to the random point
+                  dispatchOperation({
+                    fromPoint: generatorPoint,
+                    toPoint: newPoint,
+                    operation: operation,
+                  });
+
+                  // Set the display to the random value
+                  setHexMode(true);
+                  setCalculatorDisplay(randomHexString);
+                } catch (error) {
+                  onError(
+                    `Random generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                  );
+                }
               }}
               className="calc-button rand"
-              title="Generate random number"
+              title="Generate random number and add to graph"
             >
               rand
             </button>
