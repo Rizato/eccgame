@@ -87,7 +87,7 @@ export function addEdge(
   toNodeId: string,
   operation: Operation
 ): GraphEdge {
-  const edgeId = `${fromNodeId}_to_${toNodeId}_${operation.id}`;
+  const edgeId = `${fromNodeId}_to_${toNodeId}_by_operation_${operation.type}_${operation.value}`;
   const edge: GraphEdge = {
     id: edgeId,
     fromNodeId,
