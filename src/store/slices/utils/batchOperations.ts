@@ -19,8 +19,8 @@ export function processBatchOperations(
   const veryFirstNode = findNodeByPoint(graph, operations[0].fromPoint);
   const veryLastNode = findNodeByPoint(graph, operations[operations.length - 1].fromPoint);
   const connectedToG = veryFirstNode?.connectedToG || veryLastNode?.connectedToG;
-  for (let i = 1; i < operations.length; i++) {
-    const { fromPoint, toPoint, operation } = operations[i];
+  for (let i = 0; i < operations.length; i++) {
+    const { fromPoint, toPoint, operation, toPointPrivateKey } = operations[i];
 
     // Fast structure creation without BFS propagation
     let fromNode = findNodeByPoint(graph, fromPoint);
@@ -31,7 +31,14 @@ export function processBatchOperations(
     let toNode = findNodeByPoint(graph, toPoint);
     if (!toNode) {
       const label = i == operations.length - 1 ? 'Batch Operation Result' : 'Intermediate';
-      toNode = addNode(graph, toPoint, { label, connectedToG });
+      toNode = addNode(graph, toPoint, {
+        label,
+        connectedToG,
+        privateKey: toPointPrivateKey,
+      });
+    } else if (toPointPrivateKey !== undefined && toNode.privateKey === undefined) {
+      // Update existing node with pre-calculated private key
+      toNode.privateKey = toPointPrivateKey;
     }
 
     // Initialize edge arrays if they don't exist

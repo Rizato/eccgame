@@ -505,12 +505,20 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
         const differencePoint = pointMultiply(scalar, generatorPoint);
         if (operation === OperationType.MULTIPLY) {
-          const { result, intermediates } = pointMultiplyWithIntermediates(scalar, currentPoint);
+          const { result, intermediates } = pointMultiplyWithIntermediates(
+            scalar,
+            currentPoint,
+            currentPrivateKey
+          );
           newPoint = result;
           steps = intermediates;
           description = `×${value}`;
         } else if (operation === OperationType.DIVIDE) {
-          const { result, intermediates } = pointDivideWithIntermediates(scalar, currentPoint);
+          const { result, intermediates } = pointDivideWithIntermediates(
+            scalar,
+            currentPoint,
+            currentPrivateKey
+          );
           newPoint = result;
           steps = intermediates;
           description = `÷${value}`;
@@ -550,6 +558,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               fromPoint: previousPoint,
               toPoint: intermediate.point,
               operation: intermediate.operation,
+              toPointPrivateKey: intermediate.privateKey,
             });
             previousPoint = intermediate.point;
           }

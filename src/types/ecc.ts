@@ -56,6 +56,7 @@ export interface ECPoint {
 export interface IntermediatePoint {
   point: ECPoint;
   operation: Operation;
+  privateKey?: bigint;
 }
 
 /**
@@ -65,4 +66,5 @@ export interface SingleOperationPayload {
   fromPoint: ECPoint;
   toPoint: ECPoint;
   operation: Operation;
+  toPointPrivateKey?: bigint; // Pre-calculated private key for toPoint
 }

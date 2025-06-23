@@ -122,9 +122,10 @@ export function pointMultiply(scalar: bigint, point: ECPoint): ECPoint {
  */
 export function pointMultiplyWithIntermediates(
   scalar: bigint,
-  point: ECPoint
+  point: ECPoint,
+  startingPrivateKey?: bigint
 ): { result: ECPoint; intermediates: IntermediatePoint[] } {
-  return doubleAndAddWithIntermediates(scalar, point);
+  return doubleAndAddWithIntermediates(scalar, point, startingPrivateKey);
 }
 
 /**
@@ -149,7 +150,8 @@ export function pointDivide(scalar: bigint, point: ECPoint): ECPoint {
  */
 export function pointDivideWithIntermediates(
   scalar: bigint,
-  point: ECPoint
+  point: ECPoint,
+  startingPrivateKey?: bigint
 ): { result: ECPoint; intermediates: IntermediatePoint[] } {
   if (scalar === 0n) {
     throw new Error('Cannot divide by zero');
@@ -158,8 +160,15 @@ export function pointDivideWithIntermediates(
   // Calculate modular inverse
   const inverse = modInverse(scalar, CURVE_N);
 
+  // Calculate the private key for division if we have the starting private key
+  let divisionPrivateKey: bigint | undefined;
+  if (startingPrivateKey !== undefined) {
+    const scalarInverse = modInverse(scalar, CURVE_N);
+    divisionPrivateKey = (startingPrivateKey * scalarInverse) % CURVE_N;
+  }
+
   // Use pointMultiply with the inverse
-  return pointMultiplyWithIntermediates(inverse, point);
+  return pointMultiplyWithIntermediates(inverse, point, divisionPrivateKey);
 }
 
 /**
@@ -385,7 +394,8 @@ export function doubleAndAdd(scalar: bigint, point: ECPoint): ECPoint {
  */
 export function doubleAndAddWithIntermediates(
   scalar: bigint,
-  point: ECPoint
+  point: ECPoint,
+  startingPrivateKey?: bigint
 ): { result: ECPoint; intermediates: IntermediatePoint[] } {
   const intermediates: IntermediatePoint[] = [];
 
@@ -420,9 +430,17 @@ export function doubleAndAddWithIntermediates(
   const rounds = scalar.toString(2).length - 1;
   let current = point;
 
+  // Track private key if we have the starting private key
+  let currentPrivateKey = startingPrivateKey;
+
   for (let i = rounds; i >= 1; i--) {
     // Double the current point
     current = pointAdd(current, current);
+
+    // Double the private key if we're tracking it
+    if (currentPrivateKey !== undefined) {
+      currentPrivateKey = (currentPrivateKey * 2n) % CURVE_N;
+    }
 
     // Record the double operation
     intermediates.push({
@@ -433,11 +451,17 @@ export function doubleAndAddWithIntermediates(
         value: '2',
         userCreated: false,
       },
+      privateKey: currentPrivateKey,
     });
 
     // Check if bit i-1 is set
     if ((scalar >> BigInt(i - 1)) & 1n) {
       current = pointAdd(current, point);
+
+      // Add the original private key if we're tracking it
+      if (currentPrivateKey !== undefined && startingPrivateKey !== undefined) {
+        currentPrivateKey = (currentPrivateKey + startingPrivateKey) % CURVE_N;
+      }
 
       // Record the add operation
       intermediates.push({
@@ -448,6 +472,7 @@ export function doubleAndAddWithIntermediates(
           value: '1',
           userCreated: false,
         },
+        privateKey: currentPrivateKey,
       });
     }
   }
