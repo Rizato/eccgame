@@ -4,6 +4,7 @@ import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux'
 import { useAppSelector } from '../store/hooks';
 import { getP2PKHAddress, createSignature } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
+import { getCachedGraph } from '../utils/graphCache';
 import './ECCPlayground.css';
 import {
   calculateChallengePrivateKeyFromGraph,
@@ -47,7 +48,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     hasWon,
     showVictoryModal,
     savedPoints,
-    graph,
     setCurrentPoint,
     setError,
     setShowVictoryModal,
@@ -56,11 +56,12 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     savePoint,
     loadSavedPoint,
   } = calculator;
-
+  const graph = getCachedGraph(isPracticeMode ? 'practice' : 'daily');
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
   const [signature, setSignature] = useState<string>('');
+  const [totalOperationCount, setTotalOperationCount] = useState<number>(0);
 
   const calculatorDisplayRef = useRef<((value: string) => void) | null>(null);
   const generatorPoint = getGeneratorPoint();
@@ -98,7 +99,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
   }, [hasWon, victoryPrivateKey]);
 
   // Calculate total number of user-created operations (excluding system-generated intermediates)
-  const totalOperationCount = useMemo(() => {
+  useEffect(() => {
     let total = 0;
     const seenEdgeIds = new Set<string>();
 
@@ -117,8 +118,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         }
       }
     }
-    return total;
-  }, [graph]);
+    setTotalOperationCount(total / 2);
+  }, [graph, hasWon]);
 
   // Note: Removed automatic reset to generator when challenge changes
   // to preserve current point state when switching between modes
