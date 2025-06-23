@@ -4,7 +4,6 @@ import { usePracticeCalculatorRedux } from '../hooks/usePracticeCalculatorRedux'
 import { useAppSelector } from '../store/hooks';
 import { getP2PKHAddress, createSignature } from '../utils/crypto';
 import { bigintToHex, getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../utils/ecc';
-import { getCachedGraph } from '../utils/graphCache';
 import './ECCPlayground.css';
 import {
   calculateChallengePrivateKeyFromGraph,
@@ -49,6 +48,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     showVictoryModal,
     savedPoints,
     setCurrentPoint,
+    graph,
     setError,
     setShowVictoryModal,
     resetToChallenge,
@@ -56,7 +56,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     savePoint,
     loadSavedPoint,
   } = calculator;
-  const graph = getCachedGraph(isPracticeMode ? 'practice' : 'daily');
+  // const graph = getCachedGraph(isPracticeMode ? 'practice' : 'daily');
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
