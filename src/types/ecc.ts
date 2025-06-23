@@ -1,9 +1,9 @@
 export interface Operation {
-  id: string;
   type: 'multiply' | 'divide' | 'add' | 'subtract' | 'negate';
   description: string;
   value: string;
   point?: ECPoint;
+  userCreated?: boolean;
 }
 
 export interface GraphEdge {
@@ -11,8 +11,6 @@ export interface GraphEdge {
   fromNodeId: string;
   toNodeId: string;
   operation: Operation;
-  isBundled?: boolean;
-  bundleCount?: bigint;
 }
 
 export interface GraphNode {
@@ -43,4 +41,12 @@ export interface ECPoint {
   x: bigint;
   y: bigint;
   isInfinity?: boolean;
+}
+
+/**
+ * Intermediate point information for tracking double-and-add steps
+ */
+export interface IntermediatePoint {
+  point: ECPoint;
+  operation: Operation;
 }

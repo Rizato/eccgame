@@ -7,7 +7,7 @@
 import { ec as EC } from 'elliptic';
 import * as secp256k1 from 'secp256k1';
 import { bytesToHex, hexToBytes } from './crypto';
-import type { ECPoint } from '../types/ecc.ts';
+import type { ECPoint, IntermediatePoint } from '../types/ecc.ts';
 
 // Initialize elliptic curve
 const ec = new EC('secp256k1');
@@ -109,32 +109,57 @@ export function pointSubtract(p1: ECPoint, p2: ECPoint): ECPoint {
 }
 
 /**
- * Scalar multiplication using elliptic.js
+ * Scalar multiplication using double-and-add algorithm
+ * Returns just the result point
  */
 export function pointMultiply(scalar: bigint, point: ECPoint): ECPoint {
-  if (scalar === 0n || point.isInfinity) {
-    return { x: 0n, y: 0n, isInfinity: true };
-  }
-
-  const ecPoint = pointToElliptic(point);
-  const result = ecPoint.mul(scalar.toString(16));
-  return ellipticToPoint(result);
+  return doubleAndAdd(scalar, point);
 }
 
 /**
- * Scalar division (multiply by modular inverse)
+ * Scalar multiplication with intermediate points for graph tracking
+ * Returns result and intermediates
+ */
+export function pointMultiplyWithIntermediates(
+  scalar: bigint,
+  point: ECPoint
+): { result: ECPoint; intermediates: IntermediatePoint[] } {
+  return doubleAndAddWithIntermediates(scalar, point);
+}
+
+/**
+ * Scalar division using double-and-add algorithm via modular inverse
+ * Returns just the result point
  */
 export function pointDivide(scalar: bigint, point: ECPoint): ECPoint {
   if (scalar === 0n) {
     throw new Error('Cannot divide by zero');
   }
 
-  // Calculate modular inverse manually using the extended Euclidean algorithm
+  // Calculate modular inverse
   const inverse = modInverse(scalar, CURVE_N);
 
-  const ecPoint = pointToElliptic(point);
-  const result = ecPoint.mul(inverse.toString(16));
-  return ellipticToPoint(result);
+  // Use pointMultiply with the inverse
+  return pointMultiply(inverse, point);
+}
+
+/**
+ * Scalar division with intermediate points for graph tracking
+ * Returns result and intermediates
+ */
+export function pointDivideWithIntermediates(
+  scalar: bigint,
+  point: ECPoint
+): { result: ECPoint; intermediates: IntermediatePoint[] } {
+  if (scalar === 0n) {
+    throw new Error('Cannot divide by zero');
+  }
+
+  // Calculate modular inverse
+  const inverse = modInverse(scalar, CURVE_N);
+
+  // Use pointMultiply with the inverse
+  return pointMultiplyWithIntermediates(inverse, point);
 }
 
 /**
@@ -343,4 +368,89 @@ export function getPointInfo(point: ECPoint): {
     compressed: ecPoint.encodeCompressed('hex'),
     uncompressed: ecPoint.encode('hex'),
   };
+}
+
+/**
+ * Double-and-add algorithm for scalar multiplication
+ * Calls doubleAndAddWithIntermediates and drops the intermediates
+ */
+export function doubleAndAdd(scalar: bigint, point: ECPoint): ECPoint {
+  const { result } = doubleAndAddWithIntermediates(scalar, point);
+  return result;
+}
+
+/**
+ * Double-and-add algorithm that returns intermediate points
+ * Translated from Kotlin implementation with intermediate tracking
+ */
+export function doubleAndAddWithIntermediates(
+  scalar: bigint,
+  point: ECPoint
+): { result: ECPoint; intermediates: IntermediatePoint[] } {
+  const intermediates: IntermediatePoint[] = [];
+
+  if (scalar === 0n || point.isInfinity) {
+    return {
+      result: { x: 0n, y: 0n, isInfinity: true },
+      intermediates: [],
+    };
+  }
+
+  if (scalar === 1n) {
+    return { result: point, intermediates: [] };
+  }
+
+  // Handle negative scalars
+  if (scalar < 0n) {
+    const negated = pointNegate(point);
+    return doubleAndAddWithIntermediates(-scalar, negated);
+  }
+
+  // Reduce scalar modulo curve order
+  scalar = scalar % CURVE_N;
+
+  if (scalar === 0n) {
+    return {
+      result: { x: 0n, y: 0n, isInfinity: true },
+      intermediates: [],
+    };
+  }
+
+  // Get bit length of scalar
+  const rounds = scalar.toString(2).length - 1;
+  let current = point;
+
+  for (let i = rounds; i >= 1; i--) {
+    // Double the current point
+    current = pointAdd(current, current);
+
+    // Record the double operation
+    intermediates.push({
+      point: current,
+      operation: {
+        type: 'multiply',
+        description: 'Double',
+        value: '2',
+        userCreated: false,
+      },
+    });
+
+    // Check if bit i-1 is set
+    if ((scalar >> BigInt(i - 1)) & 1n) {
+      current = pointAdd(current, point);
+
+      // Record the add operation
+      intermediates.push({
+        point: current,
+        operation: {
+          type: 'add',
+          description: 'Add',
+          value: '1',
+          userCreated: false,
+        },
+      });
+    }
+  }
+
+  return { result: current, intermediates };
 }

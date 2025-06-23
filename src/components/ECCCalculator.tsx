@@ -13,7 +13,9 @@ import {
   isPointOnCurve,
   pointAdd,
   pointDivide,
+  pointDivideWithIntermediates,
   pointMultiply,
+  pointMultiplyWithIntermediates,
   pointNegate,
   pointSubtract,
   pointToPublicKey,
@@ -21,7 +23,7 @@ import {
 } from '../utils/ecc';
 import { calculatePrivateKeyFromGraph } from '../utils/graphOperations.ts';
 import { SavePointModal } from './SavePointModal';
-import type { ECPoint, Operation } from '../types/ecc.ts';
+import type { ECPoint, Operation, IntermediatePoint } from '../types/ecc.ts';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
@@ -240,10 +242,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
         type: 'add',
         description: '+G',
         value: '1',
+        userCreated: true,
       };
 
       // Add to graph through Redux
@@ -270,10 +272,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
         type: 'subtract',
         description: '-G',
         value: '1',
+        userCreated: true,
       };
 
       // Add to graph through Redux
@@ -300,10 +302,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
         type: 'multiply',
         description: '×2',
         value: '2',
+        userCreated: true,
       };
 
       // Add to graph through Redux
@@ -330,10 +332,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
         type: 'divide',
         description: '÷2',
         value: '2',
+        userCreated: true,
       };
 
       // Add to graph through Redux
@@ -360,10 +362,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
         type: 'negate',
         description: '±',
         value: '',
+        userCreated: true,
       };
 
       // Add to graph through Redux
@@ -413,10 +415,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
       const newPoint = pointMultiply(scalar, generatorPoint);
       const operation: Operation = {
-        id: `op_${Date.now()}`,
         type: 'multiply',
         description: `→ G×${calculatorDisplay}`,
         value: calculatorDisplay,
+        userCreated: true,
       };
 
       // For go here, we're going from G to the new point, so the fromPoint should be G
@@ -480,14 +482,19 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         }
 
         let newPoint: ECPoint;
+        let steps: IntermediatePoint[] = [];
         let description: string;
 
         const differencePoint = pointMultiply(scalar, generatorPoint);
         if (operation === 'multiply') {
-          newPoint = pointMultiply(scalar, currentPoint);
+          const { result, intermediates } = pointMultiplyWithIntermediates(scalar, currentPoint);
+          newPoint = result;
+          steps = intermediates;
           description = `×${value}`;
         } else if (operation === 'divide') {
-          newPoint = pointDivide(scalar, currentPoint);
+          const { result, intermediates } = pointDivideWithIntermediates(scalar, currentPoint);
+          newPoint = result;
+          steps = intermediates;
           description = `÷${value}`;
         } else if (operation === 'add') {
           newPoint = pointAdd(currentPoint, differencePoint);
@@ -503,11 +510,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         }
 
         const operationObj: Operation = {
-          id: `op_${Date.now()}`,
           type: operation,
           point: operation === 'add' || operation === 'subtract' ? differencePoint : undefined,
           description,
           value,
+          userCreated: true,
         };
 
         // Add to graph through Redux
@@ -516,6 +523,21 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           toPoint: newPoint,
           operation: operationObj,
         });
+
+        // Add intermediates if there are any
+        let previousPoint = currentPoint;
+        for (const intermediate of steps) {
+          if (!isPointOnCurve(intermediate.point)) {
+            onError('Intermediate point is not on the curve');
+            break;
+          }
+          dispatchOperation({
+            fromPoint: previousPoint,
+            toPoint: intermediate.point,
+            operation: intermediate.operation,
+          });
+          previousPoint = intermediate.point;
+        }
 
         onPointChange(newPoint, operationObj);
         // Keep the value in display for potential chaining

@@ -22,9 +22,7 @@ describe('Private Key Calculation Tests', () => {
     });
 
     it('should handle multiply operation', () => {
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2' },
-      ];
+      const operations: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
       const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(2n);
     });
@@ -32,7 +30,7 @@ describe('Private Key Calculation Tests', () => {
     it('should handle divide operation', () => {
       // Division involves modular inverse which is complex to test directly
       // The functionality works in practice as verified by the calculator UI
-      const operations: Operation[] = [{ id: '1', type: 'divide', description: '÷2', value: '2' }];
+      const operations: Operation[] = [{ type: 'divide', description: '÷2', value: '2' }];
       const result = calculateKeyFromOperations(operations, 1n);
       // Just verify that we get a valid result
       expect(typeof result).toBe('bigint');
@@ -40,31 +38,27 @@ describe('Private Key Calculation Tests', () => {
     });
 
     it('should handle add operation', () => {
-      const operations: Operation[] = [{ id: '1', type: 'add', description: '+3', value: '3' }];
+      const operations: Operation[] = [{ type: 'add', description: '+3', value: '3' }];
       const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(4n);
     });
 
     it('should handle subtract operation', () => {
-      const operations: Operation[] = [
-        { id: '1', type: 'subtract', description: '-2', value: '2' },
-      ];
+      const operations: Operation[] = [{ type: 'subtract', description: '-2', value: '2' }];
       const result = calculateKeyFromOperations(operations, 5n);
       expect(result).toBe(3n);
     });
 
     it('should handle hex values', () => {
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×0xA', value: '0xA' },
-      ];
+      const operations: Operation[] = [{ type: 'multiply', description: '×0xA', value: '0xA' }];
       const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(10n);
     });
 
     it('should handle simple multiply chain', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×3', value: '3' },
-        { id: '2', type: 'multiply', description: '×2', value: '2' },
+        { type: 'multiply', description: '×3', value: '3' },
+        { type: 'multiply', description: '×2', value: '2' },
       ];
       // Start with 1: 1 * 3 = 3, 3 * 2 = 6
       const result = calculateKeyFromOperations(operations, 1n);
@@ -80,7 +74,6 @@ describe('Private Key Calculation Tests', () => {
     it('should handle modular arithmetic correctly for large numbers', () => {
       const operations: Operation[] = [
         {
-          id: 'op1',
           type: 'add',
           description: '+ CURVE_N + 5',
           value: (CURVE_N + 5n).toString(),
@@ -143,9 +136,7 @@ describe('Private Key Calculation Tests', () => {
       const doubledPoint = pointMultiply(2n, generatorPoint);
 
       // G * 2 using private key calculation
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2' },
-      ];
+      const operations: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
       const calculatedPrivateKey = calculateKeyFromOperations(operations, 1n);
       const calculatedPoint = pointMultiply(calculatedPrivateKey, generatorPoint);
 
@@ -157,8 +148,8 @@ describe('Private Key Calculation Tests', () => {
     it('should verify add/subtract operations work correctly', () => {
       // Test: 1 + 3 - 2 = 2
       const operations: Operation[] = [
-        { id: '1', type: 'add', description: '+3', value: '3' },
-        { id: '2', type: 'subtract', description: '-2', value: '2' },
+        { type: 'add', description: '+3', value: '3' },
+        { type: 'subtract', description: '-2', value: '2' },
       ];
       const result = calculateKeyFromOperations(operations, 1n);
       expect(result).toBe(2n);

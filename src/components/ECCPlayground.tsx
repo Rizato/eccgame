@@ -97,10 +97,14 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     }
   }, [hasWon, victoryPrivateKey]);
 
-  // Calculate total number of operations by summing all bundled edges
+  // Calculate total number of user-created operations (excluding system-generated intermediates)
   const totalOperationCount = useMemo(() => {
     return Object.values(graph.edges).reduce((total, edge) => {
-      return total + (edge.bundleCount ? Number(edge.bundleCount) : 1);
+      // Only count operations that were created by the user
+      if (edge.operation.userCreated) {
+        return total + 1;
+      }
+      return total;
     }, 0);
   }, [graph]);
 

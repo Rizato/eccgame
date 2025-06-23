@@ -37,9 +37,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should calculate private key 2 for G * 2', () => {
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2' },
-      ];
+      const operations: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
 
       const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(2n);
@@ -53,8 +51,8 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should calculate private key 2 for 4G / 2', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×4', value: '4' },
-        { id: '2', type: 'divide', description: '÷2', value: '2' },
+        { type: 'multiply', description: '×4', value: '4' },
+        { type: 'divide', description: '÷2', value: '2' },
       ];
 
       const privateKey = calculateKeyFromOperations(operations, 1n);
@@ -70,9 +68,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should calculate private key for complex operation chain', () => {
       const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×3', value: '3' },
-        { id: '2', type: 'multiply', description: '×4', value: '4' },
-        { id: '3', type: 'divide', description: '÷6', value: '6' },
+        { type: 'multiply', description: '×3', value: '3' },
+        { type: 'multiply', description: '×4', value: '4' },
+        { type: 'divide', description: '÷6', value: '6' },
       ];
 
       // 1 * 3 * 4 / 6 = 12 / 6 = 2
@@ -87,9 +85,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should handle hex values correctly', () => {
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×0xA', value: '0xA' },
-      ];
+      const operations: Operation[] = [{ type: 'multiply', description: '×0xA', value: '0xA' }];
 
       const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(10n); // 0xA = 10
@@ -112,9 +108,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should calculate private key 10 for challenge * 2', () => {
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2' },
-      ];
+      const operations: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
 
       const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(10n);
@@ -128,7 +122,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should calculate private key 1 for challenge / 5 (back to G)', () => {
-      const operations: Operation[] = [{ id: '1', type: 'divide', description: '÷5', value: '5' }];
+      const operations: Operation[] = [{ type: 'divide', description: '÷5', value: '5' }];
 
       const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(1n);
@@ -143,9 +137,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
   describe('Edge Cases and Advanced Tests', () => {
     it('should handle modular arithmetic correctly for large numbers', () => {
       const largeNumber = CURVE_N - 1n; // Maximum valid private key
-      const operations: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2' },
-      ];
+      const operations: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
 
       const privateKey = calculateKeyFromOperations(operations, largeNumber);
       const expected = (largeNumber * 2n) % CURVE_N;
@@ -153,7 +145,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should handle division by finding modular inverse', () => {
-      const operations: Operation[] = [{ id: '1', type: 'divide', description: '÷7', value: '7' }];
+      const operations: Operation[] = [{ type: 'divide', description: '÷7', value: '7' }];
 
       const privateKey = calculateKeyFromOperations(operations, 1n);
 
@@ -165,13 +157,11 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     it('should handle consecutive operations correctly', () => {
       // Test that (G * 2) * 3 = G * 6
       const operations1: Operation[] = [
-        { id: '1', type: 'multiply', description: '×2', value: '2' },
-        { id: '2', type: 'multiply', description: '×3', value: '3' },
+        { type: 'multiply', description: '×2', value: '2' },
+        { type: 'multiply', description: '×3', value: '3' },
       ];
 
-      const operations2: Operation[] = [
-        { id: '1', type: 'multiply', description: '×6', value: '6' },
-      ];
+      const operations2: Operation[] = [{ type: 'multiply', description: '×6', value: '6' }];
 
       const privateKey1 = calculateKeyFromOperations(operations1, 1n);
       const privateKey2 = calculateKeyFromOperations(operations2, 1n);

@@ -1,6 +1,11 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { getP2PKHAddress } from '../../utils/crypto';
-import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
+import {
+  getGeneratorPoint,
+  pointNegate,
+  pointToPublicKey,
+  publicKeyToPoint,
+} from '../../utils/ecc';
 import {
   createEmptyGraph,
   addNode,
@@ -317,6 +322,15 @@ const dailyCalculatorSlice = createSlice({
     ) => {
       const { fromPoint, toPoint, operation } = action.payload;
       ensureOperationInGraph(state.graph, fromPoint, toPoint, operation);
+      // Add the negation to the graph as well
+      const negatedPoint = pointNegate(toPoint);
+      const negateOp: Operation = {
+        type: 'negate',
+        description: '±',
+        value: '',
+        userCreated: false,
+      };
+      ensureOperationInGraph(state.graph, toPoint, negatedPoint, negateOp);
 
       // Update selected point to the result
       state.selectedPoint = toPoint;
