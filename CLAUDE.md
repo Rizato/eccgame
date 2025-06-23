@@ -4,11 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Structure
 
-This is a full-stack cryptocurrency guessing game called "ECC GAME" with a React TypeScript frontend.
-
+This is a cryptocurrency guessing game called "ECC GAME" with only a React TypeScript frontend.
 
 ### Frontend Structure
-
 
 - `src/` - Source code
     - `components/` - React components
@@ -19,11 +17,7 @@ This is a full-stack cryptocurrency guessing game called "ECC GAME" with a React
 - `public/` - Static assets
 - `package.json` - NPM dependencies and scripts
 
-
-
-
 ## Development Commands
-
 
 ### Frontend Setup
 
@@ -48,10 +42,9 @@ Access Django admin at `http://localhost:8000/admin/` after creating a superuser
 
 ## Important Notes
 
-
 ### Frontend
 
-- Uses React 18 with TypeScript and Vite for development
+- Uses React 19 with TypeScript and Vite for development
 - Styling with CSS modules and vanilla CSS
 - API communication through `src/services/api.ts`
 - Local storage utilities in `src/utils/storage.ts`
@@ -59,19 +52,16 @@ Access Django admin at `http://localhost:8000/admin/` after creating a superuser
 - Keep tests is .test.ts files, no mixing tests and code in the same file
 - Serialize bigint values as '0x' prefixed hex strings
 
-## Task Management Guidelines
+## Code Quality
 
-- Always use TodoWrite tool for complex multi-step tasks
-- Mark todos as `in_progress` when starting work
-- Mark todos as `completed` immediately after finishing each task
-- Only have one task `in_progress` at a time
-- Break down large features into smaller, specific tasks
-- Use descriptive task names that clearly indicate the work to be done
-- When leaving a mock or fake implementation, leave a `TODO` so that it is obvious the implementation is incomplete
-- Create git commits for each task as it is completed
-- This project is brand new and not yet released, don't worry about backwards compatibility yet
+- Prefer enums and types over string literals
 - Write DRY (Don't repeat yourself) code
+- When leaving a mock or fake implementation, leave a `TODO` so that it is obvious the implementation is incomplete
 - Follow the Zen of Python
+- Don't leave old implementations around when writing the replacement
+- Use existing functions/methods rather than copy-pasting them
+- Refactor functions out of components if you need to use it somewhere else
+- STOP COPYING CODE FROM ONE FILE INTO ANOTHER, USE THE EXISTING FUNCTION!
 
 ```
 Beautiful is better than ugly.
@@ -94,3 +84,13 @@ If the implementation is hard to explain, it's a bad idea.
 If the implementation is easy to explain, it may be a good idea.
 Namespaces are one honking great idea -- let's do more of those!
 ```
+
+## Task Management Guidelines
+
+- Always use TodoWrite tool for complex multi-step tasks
+- Mark todos as `in_progress` when starting work
+- Mark todos as `completed` immediately after finishing each task
+- Only have one task `in_progress` at a time
+- Break down large features into smaller, specific tasks
+- Use descriptive task names that clearly indicate the work to be done
+- Create git commits for each task as it is completed
