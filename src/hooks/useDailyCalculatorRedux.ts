@@ -17,8 +17,8 @@ import {
   calculateDailyCurrentAddress,
   setChallengePublicKey,
 } from '../store/slices/eccCalculatorSlice';
-import type { ECPoint, SavedPoint } from '../types/ecc';
 import { getCachedGraph } from '../utils/graphCache';
+import type { ECPoint, SavedPoint } from '../types/ecc';
 
 export function useDailyCalculatorRedux(challengePublicKey: string) {
   const dispatch = useAppDispatch();

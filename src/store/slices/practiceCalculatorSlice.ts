@@ -229,7 +229,7 @@ const practiceCalculatorSlice = createSlice({
 
       // Ensure generator node exists in cached graph
       const generatorNode = addCachedNode('practice', generatorPoint, {
-        id: 'generator',
+        id: 'practice_generator',
         label: 'Generator (G)',
         privateKey: 1n,
         isGenerator: true,

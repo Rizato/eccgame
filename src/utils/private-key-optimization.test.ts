@@ -1,12 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import {
-  getGeneratorPoint,
-  pointMultiplyWithIntermediates,
-  pointDivideWithIntermediates,
-} from './ecc';
-import { createEmptyGraph, addNode } from './graphOperations';
 import { processBatchOperations } from '../store/slices/utils/batchOperations';
-import { OperationType } from '../types/ecc';
+import { getGeneratorPoint } from './ecc';
+import { pointMultiplyWithIntermediates, pointDivideWithIntermediates } from './ecc';
+import { addNode, createEmptyGraph } from './graphOperations';
 
 describe('Private Key Optimization', () => {
   it('should calculate private keys for intermediates during multiplication', () => {
@@ -15,7 +11,7 @@ describe('Private Key Optimization', () => {
     const startingPrivateKey = 42n;
 
     // Test pointMultiplyWithIntermediates with private key
-    const { result, intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
+    const { result: _result, intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
 
     expect(intermediates.length).toBeGreaterThan(0);
 
@@ -39,7 +35,7 @@ describe('Private Key Optimization', () => {
     const startingPrivateKey = 21n;
 
     // Test pointDivideWithIntermediates with private key
-    const { result, intermediates } = pointDivideWithIntermediates(scalar, G, startingPrivateKey);
+    const { result: _result, intermediates } = pointDivideWithIntermediates(scalar, G, startingPrivateKey);
 
     expect(intermediates.length).toBeGreaterThan(0);
 
@@ -55,7 +51,7 @@ describe('Private Key Optimization', () => {
     const scalar = 15n;
 
     // Test without starting private key
-    const { result, intermediates } = pointMultiplyWithIntermediates(scalar, G);
+    const { result: _result, intermediates } = pointMultiplyWithIntermediates(scalar, G);
 
     expect(intermediates.length).toBeGreaterThan(0);
 
@@ -72,7 +68,7 @@ describe('Private Key Optimization', () => {
     const startingPrivateKey = 100n;
 
     // Get intermediates with private keys
-    const { result, intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
+    const { result: _result, intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
 
     // Create batch operations
     const operations = [];
@@ -94,7 +90,7 @@ describe('Private Key Optimization', () => {
     if (operations.length > 0) {
       const firstOp = operations[0];
       // The first operation connects G to the first intermediate
-      const toNode = addNode(graph, firstOp.toPoint, {
+      addNode(graph, firstOp.toPoint, {
         label: 'First Intermediate',
         connectedToG: true,
         privateKey: firstOp.toPointPrivateKey,
@@ -130,7 +126,7 @@ describe('Private Key Optimization', () => {
     const startingPrivateKey = 1n; // Generator private key
 
     const start = performance.now();
-    const { result, intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
+    const { result: _result, intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
     const end = performance.now();
 
     console.log(`Large scalar (${scalar}) with private key calculation: ${end - start}ms`);
@@ -141,5 +137,13 @@ describe('Private Key Optimization', () => {
 
     // Performance should still be reasonable
     expect(end - start).toBeLessThan(100); // Should complete in under 100ms
+  });
+
+  it('should optimize multiplication with intermediates', () => {
+    const scalar = 5n;
+    const G = getGeneratorPoint();
+    const startingPrivateKey = 1n;
+
+    const { result: _result, intermediates: _intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
   });
 });

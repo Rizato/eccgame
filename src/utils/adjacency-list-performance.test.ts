@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { createEmptyGraph, addNode, addEdge, getAllConnectedEdges } from './graphOperations';
-import { getGeneratorPoint, pointMultiply } from './ecc';
 import { OperationType } from '../types/ecc';
+import { getGeneratorPoint, pointMultiply } from './ecc';
+import { createEmptyGraph, addNode, addEdge, getAllConnectedEdges } from './graphOperations';
 
 describe('Adjacency List Performance', () => {
   it('should correctly create bidirectional edges', () => {

@@ -18,8 +18,8 @@ import {
   setChallengeWithPrivateKey,
   clearPracticeState,
 } from '../store/slices/practiceCalculatorSlice';
-import type { ECPoint, SavedPoint } from '../types/ecc';
 import { getCachedGraph } from '../utils/graphCache';
+import type { ECPoint, SavedPoint } from '../types/ecc';
 
 export function usePracticeCalculatorRedux(challengePublicKey: string, practicePrivateKey: string) {
   const dispatch = useAppDispatch();

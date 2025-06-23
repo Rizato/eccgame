@@ -56,7 +56,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     savePoint,
     loadSavedPoint,
   } = calculator;
-  // const graph = getCachedGraph(isPracticeMode ? 'practice' : 'daily');
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
