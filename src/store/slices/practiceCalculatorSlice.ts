@@ -339,7 +339,7 @@ const practiceCalculatorSlice = createSlice({
     addBatchOperationsToGraph: (state, action: PayloadAction<SingleOperationPayload[]>) => {
       const operations = action.payload;
       const graph = getCachedGraph('practice');
-      processBatchOperations(graph, operations);
+      processBatchOperations(graph, operations, 'practice');
       state.graphStats = exportCachedGraphForRedux('practice');
     },
     saveState: state => {

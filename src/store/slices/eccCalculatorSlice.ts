@@ -324,7 +324,7 @@ const dailyCalculatorSlice = createSlice({
     addBatchOperationsToGraph: (state, action: PayloadAction<SingleOperationPayload[]>) => {
       const operations = action.payload;
       const graph = getCachedGraph('daily');
-      processBatchOperations(graph, operations);
+      processBatchOperations(graph, operations, 'daily');
       state.graphStats = exportCachedGraphForRedux('daily');
     },
     saveState: state => {

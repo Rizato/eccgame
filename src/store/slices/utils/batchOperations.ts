@@ -13,7 +13,8 @@ import { findNodeByPoint, addNode, reverseOperation } from '../../../utils/graph
  */
 export function processBatchOperations(
   graph: PointGraph,
-  operations: SingleOperationPayload[]
+  operations: SingleOperationPayload[],
+  mode?: string // Add mode parameter to prevent cross-contamination
 ): void {
   if (operations.length === 0) return;
   const veryFirstNode = findNodeByPoint(graph, operations[0].fromPoint);
@@ -25,7 +26,7 @@ export function processBatchOperations(
     // Fast structure creation without BFS propagation
     let fromNode = findNodeByPoint(graph, fromPoint);
     if (!fromNode) {
-      fromNode = addNode(graph, fromPoint, { label: 'Intermediate', connectedToG });
+      fromNode = addNode(graph, fromPoint, { label: 'Intermediate', connectedToG, mode });
     }
 
     let toNode = findNodeByPoint(graph, toPoint);
@@ -35,6 +36,7 @@ export function processBatchOperations(
         label,
         connectedToG,
         privateKey: toPointPrivateKey,
+        mode,
       });
     } else if (toPointPrivateKey !== undefined && toNode.privateKey === undefined) {
       // Update existing node with pre-calculated private key

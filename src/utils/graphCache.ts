@@ -1,10 +1,10 @@
-import type { PointGraph, ECPoint, GraphNode, Operation } from '../types/ecc';
 import {
   createEmptyGraph,
   addNode,
-  findNodeByPoint,
   ensureOperationInGraph,
+  clearNodeCounter,
 } from './graphOperations';
+import type { PointGraph, ECPoint, GraphNode, Operation } from '../types/ecc';
 
 /**
  * High-performance graph cache that operates outside Redux state
@@ -51,7 +51,8 @@ class GraphCache {
     const nodeMap = this.nodeMap.get(mode)!;
     const pointMap = this.pointMap.get(mode)!;
 
-    const node = addNode(graph, point, options);
+    // Pass mode to prevent cross-contamination between practice/daily
+    const node = addNode(graph, point, { ...options, mode });
 
     // Update Maps for performance
     nodeMap.set(node.id, node);
@@ -65,7 +66,7 @@ class GraphCache {
    */
   addOperation(mode: string, fromPoint: ECPoint, toPoint: ECPoint, operation: Operation): void {
     const graph = this.getGraph(mode);
-    ensureOperationInGraph(graph, fromPoint, toPoint, operation);
+    ensureOperationInGraph(graph, fromPoint, toPoint, operation, mode);
 
     // Update Maps after operation
     this.syncMaps(mode, graph);
@@ -100,6 +101,8 @@ class GraphCache {
     this.nodeMap.set(mode, new Map());
     this.pointMap.set(mode, new Map());
     this.edgeMap.set(mode, new Map());
+    // Clear node counter to ensure complete isolation
+    clearNodeCounter(mode);
   }
 
   /**

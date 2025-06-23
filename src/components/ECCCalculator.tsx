@@ -999,23 +999,8 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
                     return;
                   }
 
-                  const operation: Operation = {
-                    type: OperationType.MULTIPLY,
-                    description: `→ G×rand`,
-                    value: randomHexString,
-                    userCreated: true,
-                  };
-
                   // Add intermediates to graph
                   addIntermediatesToGraph(intermediates, generatorPoint);
-
-                  // Add the final operation from G to the random point
-                  dispatchOperation({
-                    fromPoint: generatorPoint,
-                    toPoint: newPoint,
-                    operation: operation,
-                  });
-
                   // Set the display to the random value
                   setHexMode(true);
                   setCalculatorDisplay(randomHexString);

@@ -30,8 +30,31 @@ export function pointToXKey(point: ECPoint): string {
   return point.x.toString(16);
 }
 
-// Global counter to ensure unique node IDs even after cleanup
-let globalNodeCounter = 0;
+// Mode-specific counters to ensure unique node IDs and prevent cross-mode contamination
+const nodeCounters = new Map<string, number>();
+
+function getNextNodeId(mode?: string): string {
+  if (mode) {
+    // Mode-specific counter to prevent cross-contamination between practice/daily
+    const currentCount = nodeCounters.get(mode) || 0;
+    const nextCount = currentCount + 1;
+    nodeCounters.set(mode, nextCount);
+    return `${mode}_node_${nextCount}`;
+  } else {
+    // Fallback for when mode is not provided (shouldn't happen in normal usage)
+    const globalCount = nodeCounters.get('global') || 0;
+    const nextCount = globalCount + 1;
+    nodeCounters.set('global', nextCount);
+    return `node_${nextCount}`;
+  }
+}
+
+/**
+ * Clear node counter for a specific mode to ensure complete isolation
+ */
+export function clearNodeCounter(mode: string): void {
+  nodeCounters.delete(mode);
+}
 
 /**
  * Create an empty graph with x-coordinate tracking
@@ -58,6 +81,7 @@ export function addNode(
     isGenerator?: boolean;
     isChallenge?: boolean;
     connectedToG?: boolean;
+    mode?: string; // Add mode to prevent cross-contamination
   } = {}
 ): GraphNode {
   const pointHash = pointToHash(point);
@@ -100,7 +124,7 @@ export function addNode(
     return existingNode;
   }
 
-  const nodeId = options.id || `node_${globalNodeCounter++}`;
+  const nodeId = options.id || getNextNodeId(options.mode);
   const node: GraphNode = {
     id: nodeId,
     point,
@@ -365,13 +389,15 @@ export function ensureOperationInGraph(
   graph: PointGraph,
   fromPoint: ECPoint,
   toPoint: ECPoint,
-  operation: Operation
+  operation: Operation,
+  mode?: string // Add mode to prevent cross-contamination
 ): void {
   // Add the from node if it doesn't exist
   let fromNode = findNodeByPoint(graph, fromPoint);
   if (!fromNode) {
     fromNode = addNode(graph, fromPoint, {
       label: 'Point',
+      mode,
     });
   }
 
@@ -380,6 +406,7 @@ export function ensureOperationInGraph(
   if (!toNode) {
     toNode = addNode(graph, toPoint, {
       label: `Point from ${operation.description}`,
+      mode,
     });
   }
 
