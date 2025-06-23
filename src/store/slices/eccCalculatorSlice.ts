@@ -1,4 +1,12 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import {
+  OperationType,
+  type ECPoint,
+  type Operation,
+  type SavedPoint,
+  type PointGraph,
+  type SingleOperationPayload,
+} from '../../types/ecc';
 import { getP2PKHAddress } from '../../utils/crypto';
 import {
   getGeneratorPoint,
@@ -13,7 +21,7 @@ import {
   ensureOperationInGraph,
 } from '../../utils/graphOperations';
 import { saveDailyState, loadDailyState } from '../../utils/storage';
-import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
+import { processBatchOperations } from './utils/batchOperations';
 
 export interface DailyCalculatorState {
   selectedPoint: ECPoint;
@@ -312,20 +320,14 @@ const dailyCalculatorSlice = createSlice({
         }
       }
     },
-    addOperationToGraph: (
-      state,
-      action: PayloadAction<{
-        fromPoint: ECPoint;
-        toPoint: ECPoint;
-        operation: Operation;
-      }>
-    ) => {
+    addOperationToGraph: (state, action: PayloadAction<SingleOperationPayload>) => {
+      // Single operation: use regular processing
       const { fromPoint, toPoint, operation } = action.payload;
       ensureOperationInGraph(state.graph, fromPoint, toPoint, operation);
       // Add the negation to the graph as well
       const negatedPoint = pointNegate(toPoint);
       const negateOp: Operation = {
-        type: 'negate',
+        type: OperationType.NEGATE,
         description: '±',
         value: '',
         userCreated: false,
@@ -334,6 +336,10 @@ const dailyCalculatorSlice = createSlice({
 
       // Update selected point to the result
       state.selectedPoint = toPoint;
+    },
+    addBatchOperationsToGraph: (state, action: PayloadAction<SingleOperationPayload[]>) => {
+      const operations = action.payload;
+      processBatchOperations(state.graph, operations);
     },
     saveState: state => {
       // Save current state to localStorage
@@ -374,6 +380,7 @@ export const {
   loadSavedPoint,
   checkWinCondition,
   addOperationToGraph,
+  addBatchOperationsToGraph,
   saveState,
   loadState,
 } = dailyCalculatorSlice.actions;

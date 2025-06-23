@@ -1,8 +1,15 @@
+export enum OperationType {
+  MULTIPLY = 'multiply',
+  DIVIDE = 'divide',
+  ADD = 'add',
+  SUBTRACT = 'subtract',
+  NEGATE = 'negate',
+}
+
 export interface Operation {
-  type: 'multiply' | 'divide' | 'add' | 'subtract' | 'negate';
+  type: OperationType;
   description: string;
   value: string;
-  point?: ECPoint;
   userCreated?: boolean;
 }
 
@@ -48,5 +55,14 @@ export interface ECPoint {
  */
 export interface IntermediatePoint {
   point: ECPoint;
+  operation: Operation;
+}
+
+/**
+ * Single operation to add to the graph
+ */
+export interface SingleOperationPayload {
+  fromPoint: ECPoint;
+  toPoint: ECPoint;
   operation: Operation;
 }

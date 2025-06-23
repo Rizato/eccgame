@@ -1,9 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './ECCCalculator.css';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
-import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import {
+  addBatchOperationsToGraph as addDailyBatchOperations,
+  addOperationToGraph as addDailyOperationToGraph,
+} from '../store/slices/eccCalculatorSlice';
+import {
+  addBatchOperationsToGraph as addPracticeBatchOperations,
+  addOperationToGraph as addPracticeOperationToGraph,
+} from '../store/slices/practiceCalculatorSlice';
 import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
+import {
+  type ECPoint,
+  type IntermediatePoint,
+  type Operation,
+  OperationType,
+} from '../types/ecc.ts';
 import { getP2PKHAddress } from '../utils/crypto';
 import {
   bigintToHex,
@@ -23,7 +35,6 @@ import {
 } from '../utils/ecc';
 import { calculatePrivateKeyFromGraph } from '../utils/graphOperations.ts';
 import { SavePointModal } from './SavePointModal';
-import type { ECPoint, Operation, IntermediatePoint } from '../types/ecc.ts';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
@@ -62,13 +73,20 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     [dispatch, gameMode]
   );
 
+  const dispatchBatchOperations = useCallback(
+    (operations: Parameters<typeof addDailyBatchOperations>[0]) => {
+      if (gameMode === 'practice') {
+        dispatch(addPracticeBatchOperations(operations));
+      } else {
+        dispatch(addDailyBatchOperations(operations));
+      }
+    },
+    [dispatch, gameMode]
+  );
+
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
-  const [pendingOperation, setPendingOperation] = useState<
-    'multiply' | 'divide' | 'add' | 'subtract' | null
-  >(null);
-  const [lastOperationType, setLastOperationType] = useState<
-    'multiply' | 'divide' | 'add' | 'subtract' | null
-  >(null);
+  const [pendingOperation, setPendingOperation] = useState<OperationType | null>(null);
+  const [lastOperationType, setLastOperationType] = useState<OperationType | null>(null);
   const [hexMode, setHexMode] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<string>('');
   const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
@@ -209,11 +227,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
   // Forward declare the executeCalculatorOperation function reference
   const executeCalculatorOperationRef = useRef<
-    ((operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => void) | null
+    ((operation: OperationType, value: string) => void) | null
   >(null);
 
   const setCalculatorOperation = useCallback(
-    (operation: 'multiply' | 'divide' | 'add' | 'subtract') => {
+    (operation: OperationType) => {
       if (isLocked) return;
 
       // If there's a value in the display, set pending operation
@@ -242,7 +260,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        type: 'add',
+        type: OperationType.ADD,
         description: '+G',
         value: '1',
         userCreated: true,
@@ -272,7 +290,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        type: 'subtract',
+        type: OperationType.SUBTRACT,
         description: '-G',
         value: '1',
         userCreated: true,
@@ -302,7 +320,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
         userCreated: true,
@@ -332,7 +350,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        type: 'divide',
+        type: OperationType.DIVIDE,
         description: '÷2',
         value: '2',
         userCreated: true,
@@ -362,7 +380,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        type: 'negate',
+        type: OperationType.NEGATE,
         description: '±',
         value: '',
         userCreated: true,
@@ -415,7 +433,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
       const newPoint = pointMultiply(scalar, generatorPoint);
       const operation: Operation = {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: `→ G×${calculatorDisplay}`,
         value: calculatorDisplay,
         userCreated: true,
@@ -446,7 +464,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   ]);
 
   const executeCalculatorOperation = useCallback(
-    (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
+    (operation: OperationType, value: string) => {
       if (isLocked) return;
       try {
         onError(null);
@@ -486,17 +504,17 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         let description: string;
 
         const differencePoint = pointMultiply(scalar, generatorPoint);
-        if (operation === 'multiply') {
+        if (operation === OperationType.MULTIPLY) {
           const { result, intermediates } = pointMultiplyWithIntermediates(scalar, currentPoint);
           newPoint = result;
           steps = intermediates;
           description = `×${value}`;
-        } else if (operation === 'divide') {
+        } else if (operation === OperationType.DIVIDE) {
           const { result, intermediates } = pointDivideWithIntermediates(scalar, currentPoint);
           newPoint = result;
           steps = intermediates;
           description = `÷${value}`;
-        } else if (operation === 'add') {
+        } else if (operation === OperationType.ADD) {
           newPoint = pointAdd(currentPoint, differencePoint);
           description = `+${value}`;
         } else {
@@ -511,34 +529,41 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
         const operationObj: Operation = {
           type: operation,
-          point: operation === 'add' || operation === 'subtract' ? differencePoint : undefined,
           description,
           value,
           userCreated: true,
         };
 
-        // Add to graph through Redux
+        // Add to graph through Redux - use batch operation for intermediates
+        if (steps.length > 0) {
+          // For operations with many intermediate steps, use batch dispatch
+          const batchOps = [];
+
+          // Add all intermediate operations
+          let previousPoint = currentPoint;
+          for (const intermediate of steps) {
+            if (!isPointOnCurve(intermediate.point)) {
+              onError('Intermediate point is not on the curve');
+              break;
+            }
+            batchOps.push({
+              fromPoint: previousPoint,
+              toPoint: intermediate.point,
+              operation: intermediate.operation,
+            });
+            previousPoint = intermediate.point;
+          }
+
+          // Dispatch all operations as a batch
+          dispatchBatchOperations(batchOps);
+        }
+
+        // Single operation, dispatch after batch so they all get propagate (only once though)
         dispatchOperation({
           fromPoint: currentPoint,
           toPoint: newPoint,
           operation: operationObj,
         });
-
-        // Add intermediates if there are any
-        let previousPoint = currentPoint;
-        for (const intermediate of steps) {
-          if (!isPointOnCurve(intermediate.point)) {
-            onError('Intermediate point is not on the curve');
-            break;
-          }
-          dispatchOperation({
-            fromPoint: previousPoint,
-            toPoint: intermediate.point,
-            operation: intermediate.operation,
-          });
-          previousPoint = intermediate.point;
-        }
-
         onPointChange(newPoint, operationObj);
         // Keep the value in display for potential chaining
         setCalculatorDisplay(value);
@@ -549,7 +574,15 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [currentPoint, dispatchOperation, onPointChange, onError, isLocked, generatorPoint]
+    [
+      currentPoint,
+      dispatchOperation,
+      dispatchBatchOperations,
+      onPointChange,
+      onError,
+      isLocked,
+      generatorPoint,
+    ]
   );
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
@@ -600,19 +633,19 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         case 'x':
         case 'X':
           event.preventDefault();
-          setCalculatorOperation('multiply');
+          setCalculatorOperation(OperationType.MULTIPLY);
           break;
         case '/':
           event.preventDefault();
-          setCalculatorOperation('divide');
+          setCalculatorOperation(OperationType.DIVIDE);
           break;
         case '+':
           event.preventDefault();
-          setCalculatorOperation('add');
+          setCalculatorOperation(OperationType.ADD);
           break;
         case '-':
           event.preventDefault();
-          setCalculatorOperation('subtract');
+          setCalculatorOperation(OperationType.SUBTRACT);
           break;
         case 'Enter':
         case '=':
@@ -808,14 +841,14 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               B
             </button>
             <button
-              onClick={() => setCalculatorOperation('divide')}
-              className={`calc-button operator ${pendingOperation === 'divide' ? 'highlighted' : ''}`}
+              onClick={() => setCalculatorOperation(OperationType.DIVIDE)}
+              className={`calc-button operator ${pendingOperation === OperationType.DIVIDE ? 'highlighted' : ''}`}
             >
               ÷
             </button>
             <button
-              onClick={() => setCalculatorOperation('multiply')}
-              className={`calc-button operator ${pendingOperation === 'multiply' ? 'highlighted' : ''}`}
+              onClick={() => setCalculatorOperation(OperationType.MULTIPLY)}
+              className={`calc-button operator ${pendingOperation === OperationType.MULTIPLY ? 'highlighted' : ''}`}
             >
               ×
             </button>
@@ -841,14 +874,14 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               D
             </button>
             <button
-              onClick={() => setCalculatorOperation('subtract')}
-              className={`calc-button operator ${pendingOperation === 'subtract' ? 'highlighted' : ''}`}
+              onClick={() => setCalculatorOperation(OperationType.SUBTRACT)}
+              className={`calc-button operator ${pendingOperation === OperationType.SUBTRACT ? 'highlighted' : ''}`}
             >
               -
             </button>
             <button
-              onClick={() => setCalculatorOperation('add')}
-              className={`calc-button operator ${pendingOperation === 'add' ? 'highlighted' : ''}`}
+              onClick={() => setCalculatorOperation(OperationType.ADD)}
+              className={`calc-button operator ${pendingOperation === OperationType.ADD ? 'highlighted' : ''}`}
             >
               +
             </button>

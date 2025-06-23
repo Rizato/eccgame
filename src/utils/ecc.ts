@@ -7,7 +7,7 @@
 import { ec as EC } from 'elliptic';
 import * as secp256k1 from 'secp256k1';
 import { bytesToHex, hexToBytes } from './crypto';
-import type { ECPoint, IntermediatePoint } from '../types/ecc.ts';
+import { OperationType, type ECPoint, type IntermediatePoint } from '../types/ecc.ts';
 
 // Initialize elliptic curve
 const ec = new EC('secp256k1');
@@ -286,7 +286,7 @@ export function reconstructPrivateKey(
     const isReverse = op.direction === 'reverse';
 
     switch (op.type) {
-      case 'multiply':
+      case OperationType.MULTIPLY:
         if (isReverse) {
           // In reverse mode, multiplication becomes multiplication (key inflation)
           accumulatedScalar = (accumulatedScalar * (op.value as bigint)) % CURVE_N;
@@ -296,7 +296,7 @@ export function reconstructPrivateKey(
             (accumulatedScalar * modInverse(op.value as bigint, CURVE_N)) % CURVE_N;
         }
         break;
-      case 'divide':
+      case OperationType.DIVIDE:
         if (isReverse) {
           // In reverse mode, division becomes division
           accumulatedScalar =
@@ -306,14 +306,14 @@ export function reconstructPrivateKey(
           accumulatedScalar = (accumulatedScalar * (op.value as bigint)) % CURVE_N;
         }
         break;
-      case 'add':
+      case OperationType.ADD:
         if (isReverse) {
           accumulatedScalar = (accumulatedScalar + (op.value as bigint)) % CURVE_N;
         } else {
           accumulatedScalar = (accumulatedScalar - (op.value as bigint)) % CURVE_N;
         }
         break;
-      case 'subtract':
+      case OperationType.SUBTRACT:
         if (isReverse) {
           accumulatedScalar = (accumulatedScalar - (op.value as bigint)) % CURVE_N;
         } else {
@@ -428,7 +428,7 @@ export function doubleAndAddWithIntermediates(
     intermediates.push({
       point: current,
       operation: {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: 'Double',
         value: '2',
         userCreated: false,
@@ -443,7 +443,7 @@ export function doubleAndAddWithIntermediates(
       intermediates.push({
         point: current,
         operation: {
-          type: 'add',
+          type: OperationType.ADD,
           description: 'Add',
           value: '1',
           userCreated: false,
