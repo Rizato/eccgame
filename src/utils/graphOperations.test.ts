@@ -14,6 +14,7 @@ import {
   calculateChallengePrivateKeyFromGraph,
 } from './graphOperations';
 import type { Operation, PointGraph } from '../types/ecc';
+import { OperationType } from '../types/ecc';
 import type { Challenge } from '../types/game';
 
 describe('Graph Operations', () => {
@@ -29,7 +30,7 @@ describe('Graph Operations', () => {
       const point5G = pointMultiply(5n, generatorPoint);
 
       ensureOperationInGraph(graph, generatorPoint, point5G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×5',
         value: '5',
       });
@@ -42,13 +43,13 @@ describe('Graph Operations', () => {
       const point5G = pointMultiply(5n, generatorPoint);
 
       ensureOperationInGraph(graph, generatorPoint, point5G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×5',
         value: '5',
       });
 
       ensureOperationInGraph(graph, generatorPoint, point5G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×5',
         value: '5',
       });
@@ -68,7 +69,7 @@ describe('Graph Operations', () => {
       const point5G = pointMultiply(5n, generatorPoint);
 
       ensureOperationInGraph(graph, generatorPoint, point5G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×5',
         value: '5',
       });
@@ -90,7 +91,7 @@ describe('Graph Operations', () => {
       });
 
       ensureOperationInGraph(graph, generatorPoint, point5G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×5',
         value: '5',
       });
@@ -113,7 +114,7 @@ describe('Graph Operations', () => {
       const negatedPoint = pointMultiply(-1n, generatorPoint);
 
       ensureOperationInGraph(graph, generatorPoint, negatedPoint, {
-        type: 'negate',
+        type: OperationType.NEGATE,
         description: '±',
         value: '',
       });
@@ -180,13 +181,13 @@ describe('Graph Operations', () => {
       // Use ensureOperationInGraph to create the path and propagate private keys
       const point5G = pointMultiply(5n, generatorPoint);
       ensureOperationInGraph(graph, generatorPoint, point5G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×5',
         value: '5',
       });
 
       ensureOperationInGraph(graph, point5G, challengePoint, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
       });
@@ -208,7 +209,7 @@ describe('Graph Operations', () => {
 
       const point2G = pointMultiply(2n, generatorPoint);
       ensureOperationInGraph(graph, generatorPoint, point2G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
       });
@@ -235,7 +236,7 @@ describe('Graph Operations', () => {
 
       // Create a chain: G -> 2G -> 10G (via ×5) and also 5G -> 10G (via ×2)
       ensureOperationInGraph(graph, generatorPoint, point2G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
       });
@@ -247,14 +248,14 @@ describe('Graph Operations', () => {
       });
 
       ensureOperationInGraph(graph, point2G, point10G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×5',
         value: '5',
       });
 
       // Now connect 5G to 10G - this should propagate connectedToG back to 5G
       ensureOperationInGraph(graph, point5G, point10G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
       });
@@ -292,7 +293,7 @@ describe('Graph Operations', () => {
         (result.x !== currentPoint.x || result.y !== currentPoint.y)
       ) {
         ensureOperationInGraph(graph, currentPoint, result, {
-          type: 'multiply',
+          type: OperationType.MULTIPLY,
           description: 'Final',
           value: '1',
           userCreated: false,
@@ -323,7 +324,7 @@ describe('Graph Operations', () => {
 
       // Simulate automatic negation being added by calculator slice
       ensureOperationInGraph(graph, generatorPoint, negatedPoint, {
-        type: 'negate',
+        type: OperationType.NEGATE,
         description: '±',
         value: '',
         userCreated: false, // Automatically added
@@ -388,7 +389,7 @@ describe('Graph Operations', () => {
       // User operation: multiply by 3
       const point3G = pointMultiply(3n, generatorPoint);
       ensureOperationInGraph(graph, generatorPoint, point3G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×3',
         value: '3',
         userCreated: true,
@@ -423,7 +424,7 @@ describe('Graph Operations', () => {
     it('should not create duplicate edges for identical operations', () => {
       const point5G = pointMultiply(5n, generatorPoint);
       const operation: Operation = {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×5',
         value: '5',
         userCreated: true,
@@ -448,13 +449,13 @@ describe('Graph Operations', () => {
 
       // Add different operations between same points
       ensureOperationInGraph(graph, generatorPoint, point2G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
       });
 
       ensureOperationInGraph(graph, generatorPoint, point2G, {
-        type: 'add',
+        type: OperationType.ADD,
         description: '+G',
         value: '1',
       });
@@ -469,7 +470,7 @@ describe('Graph Operations', () => {
 
       // Add user operation
       ensureOperationInGraph(graph, generatorPoint, point7G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×7',
         value: '7',
         userCreated: true,
@@ -477,7 +478,7 @@ describe('Graph Operations', () => {
 
       // Add automatic operation
       ensureOperationInGraph(graph, generatorPoint, point7G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×7',
         value: '7',
         userCreated: false,
@@ -497,7 +498,7 @@ describe('Graph Operations', () => {
 
       // Add automatic operation
       ensureOperationInGraph(graph, generatorPoint, point7G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×7',
         value: '7',
         userCreated: false,
@@ -505,7 +506,7 @@ describe('Graph Operations', () => {
 
       // Add user operation
       ensureOperationInGraph(graph, generatorPoint, point7G, {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×7',
         value: '7',
         userCreated: true,

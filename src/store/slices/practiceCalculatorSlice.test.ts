@@ -6,6 +6,7 @@ import practiceCalculatorReducer, {
   clearPracticeState,
 } from './practiceCalculatorSlice';
 import type { Operation, GraphNode, GraphEdge } from '../../types/ecc';
+import { OperationType } from '../../types/ecc';
 
 describe('PracticeCalculatorSlice Force Multiplication', () => {
   let store: ReturnType<typeof configureStore>;
@@ -26,7 +27,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
       const fromPoint = getGeneratorPoint();
       const toPoint = pointMultiply(2n, fromPoint); // 2G
       const operation: Operation = {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
         userCreated: true,
@@ -67,7 +68,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
       const fromPoint = { x: 0n, y: 0n, isInfinity: true }; // Point at infinity
       const toPoint = getGeneratorPoint(); // G
       const operation: Operation = {
-        type: 'add',
+        type: OperationType.ADD,
         description: '+G',
         value: '1',
         userCreated: true,
@@ -105,7 +106,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
           fromPoint: generator,
           toPoint: twoG,
           operation: {
-            type: 'multiply',
+            type: OperationType.MULTIPLY,
             description: '×2',
             value: '2',
             userCreated: true,
@@ -120,7 +121,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
           fromPoint: twoG,
           toPoint: threeG,
           operation: {
-            type: 'add',
+            type: OperationType.ADD,
             description: '+G',
             value: '1',
             point: generator,
@@ -163,7 +164,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
       // Add same operation twice
       const operation: Operation = {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
         userCreated: true,
@@ -210,7 +211,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
       const fromPoint = getGeneratorPoint();
       const toPoint = pointMultiply(2n, fromPoint);
       const operation: Operation = {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
         userCreated: true,

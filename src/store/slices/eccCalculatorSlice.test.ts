@@ -7,6 +7,7 @@ import dailyCalculatorReducer, {
   setChallengePublicKey,
 } from './eccCalculatorSlice';
 import type { Operation, GraphNode, GraphEdge } from '../../types/ecc';
+import { OperationType } from '../../types/ecc';
 
 describe('DailyCalculatorSlice Force Multiplication', () => {
   let store: ReturnType<typeof configureStore>;
@@ -27,7 +28,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
       const fromPoint = getGeneratorPoint();
       const toPoint = pointMultiply(3n, fromPoint); // 3G
       const operation: Operation = {
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×3',
         value: '3',
         userCreated: true,
@@ -78,7 +79,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
           fromPoint: challengePoint,
           toPoint: resultPoint,
           operation: {
-            type: 'multiply',
+            type: OperationType.MULTIPLY,
             description: '×2',
             value: '2',
             userCreated: true,
@@ -112,7 +113,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
           fromPoint: generator,
           toPoint: fiveG,
           operation: {
-            type: 'multiply',
+            type: OperationType.MULTIPLY,
             description: '×5',
             value: '5',
             userCreated: true,
@@ -126,7 +127,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
           fromPoint: fiveG,
           toPoint: resultPoint,
           operation: {
-            type: 'subtract',
+            type: OperationType.SUBTRACT,
             description: '-2G',
             value: '2',
             point: twoG,
@@ -171,7 +172,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
             fromPoint: i === 0 ? generator : points[i - 1],
             toPoint: points[i],
             operation: {
-              type: 'multiply',
+              type: OperationType.MULTIPLY,
               description: `×${i + 2}`,
               value: `${i + 2}`,
               userCreated: true,
@@ -218,7 +219,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
           fromPoint: generator,
           toPoint: twoG,
           operation: {
-            type: 'multiply',
+            type: OperationType.MULTIPLY,
             description: '×2',
             value: '2',
             userCreated: true,
@@ -232,7 +233,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
           fromPoint: negatedTwoG,
           toPoint: generator,
           operation: {
-            type: 'add',
+            type: OperationType.ADD,
             description: '+2G',
             value: '2',
             point: twoG,

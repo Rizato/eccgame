@@ -19,6 +19,7 @@ import {
   clearPracticeState,
 } from '../store/slices/practiceCalculatorSlice';
 import type { ECPoint, SavedPoint } from '../types/ecc';
+import { getCachedGraph } from '../utils/graphCache';
 
 export function usePracticeCalculatorRedux(challengePublicKey: string, practicePrivateKey: string) {
   const dispatch = useAppDispatch();
@@ -74,7 +75,7 @@ export function usePracticeCalculatorRedux(challengePublicKey: string, practiceP
   return {
     // State
     currentPoint: practiceState.selectedPoint,
-    graph: practiceState.graph,
+    graph: getCachedGraph('practice'),
     error: practiceState.error,
     currentAddress: practiceState.currentAddress,
     calculatorDisplay: practiceState.calculatorDisplay,

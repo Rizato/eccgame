@@ -10,6 +10,7 @@ import {
 } from '../utils/ecc';
 import { calculateKeyFromOperations } from '../utils/privateKeyCalculation';
 import type { Operation } from '../types/ecc';
+import { OperationType } from '../types/ecc';
 
 describe('modInverse Tests', () => {
   it('should verify 2 modInverse N is the known value', () => {
@@ -37,7 +38,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should calculate private key 2 for G * 2', () => {
-      const operations: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
+      const operations: Operation[] = [
+        { type: OperationType.MULTIPLY, description: '×2', value: '2' },
+      ];
 
       const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(2n);
@@ -51,8 +54,8 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should calculate private key 2 for 4G / 2', () => {
       const operations: Operation[] = [
-        { type: 'multiply', description: '×4', value: '4' },
-        { type: 'divide', description: '÷2', value: '2' },
+        { type: OperationType.MULTIPLY, description: '×4', value: '4' },
+        { type: OperationType.DIVIDE, description: '÷2', value: '2' },
       ];
 
       const privateKey = calculateKeyFromOperations(operations, 1n);
@@ -68,9 +71,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should calculate private key for complex operation chain', () => {
       const operations: Operation[] = [
-        { type: 'multiply', description: '×3', value: '3' },
-        { type: 'multiply', description: '×4', value: '4' },
-        { type: 'divide', description: '÷6', value: '6' },
+        { type: OperationType.MULTIPLY, description: '×3', value: '3' },
+        { type: OperationType.MULTIPLY, description: '×4', value: '4' },
+        { type: OperationType.DIVIDE, description: '÷6', value: '6' },
       ];
 
       // 1 * 3 * 4 / 6 = 12 / 6 = 2
@@ -85,7 +88,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should handle hex values correctly', () => {
-      const operations: Operation[] = [{ type: 'multiply', description: '×0xA', value: '0xA' }];
+      const operations: Operation[] = [
+        { type: OperationType.MULTIPLY, description: '×0xA', value: '0xA' },
+      ];
 
       const privateKey = calculateKeyFromOperations(operations, 1n);
       expect(privateKey).toBe(10n); // 0xA = 10
@@ -108,7 +113,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should calculate private key 10 for challenge * 2', () => {
-      const operations: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
+      const operations: Operation[] = [
+        { type: OperationType.MULTIPLY, description: '×2', value: '2' },
+      ];
 
       const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(10n);
@@ -122,7 +129,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should calculate private key 1 for challenge / 5 (back to G)', () => {
-      const operations: Operation[] = [{ type: 'divide', description: '÷5', value: '5' }];
+      const operations: Operation[] = [
+        { type: OperationType.DIVIDE, description: '÷5', value: '5' },
+      ];
 
       const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
       expect(privateKey).toBe(1n);
@@ -137,7 +146,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
   describe('Edge Cases and Advanced Tests', () => {
     it('should handle modular arithmetic correctly for large numbers', () => {
       const largeNumber = CURVE_N - 1n; // Maximum valid private key
-      const operations: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
+      const operations: Operation[] = [
+        { type: OperationType.MULTIPLY, description: '×2', value: '2' },
+      ];
 
       const privateKey = calculateKeyFromOperations(operations, largeNumber);
       const expected = (largeNumber * 2n) % CURVE_N;
@@ -145,7 +156,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should handle division by finding modular inverse', () => {
-      const operations: Operation[] = [{ type: 'divide', description: '÷7', value: '7' }];
+      const operations: Operation[] = [
+        { type: OperationType.DIVIDE, description: '÷7', value: '7' },
+      ];
 
       const privateKey = calculateKeyFromOperations(operations, 1n);
 
@@ -157,11 +170,13 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     it('should handle consecutive operations correctly', () => {
       // Test that (G * 2) * 3 = G * 6
       const operations1: Operation[] = [
-        { type: 'multiply', description: '×2', value: '2' },
-        { type: 'multiply', description: '×3', value: '3' },
+        { type: OperationType.MULTIPLY, description: '×2', value: '2' },
+        { type: OperationType.MULTIPLY, description: '×3', value: '3' },
       ];
 
-      const operations2: Operation[] = [{ type: 'multiply', description: '×6', value: '6' }];
+      const operations2: Operation[] = [
+        { type: OperationType.MULTIPLY, description: '×6', value: '6' },
+      ];
 
       const privateKey1 = calculateKeyFromOperations(operations1, 1n);
       const privateKey2 = calculateKeyFromOperations(operations2, 1n);
@@ -172,8 +187,8 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should handle inverse operations (multiply then divide)', () => {
       const operations: Operation[] = [
-        { type: 'multiply', description: '×7', value: '7' },
-        { type: 'divide', description: '÷7', value: '7' },
+        { type: OperationType.MULTIPLY, description: '×7', value: '7' },
+        { type: OperationType.DIVIDE, description: '÷7', value: '7' },
       ];
 
       const privateKey = calculateKeyFromOperations(operations, 1n);
@@ -183,7 +198,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
   describe('Addition and Subtraction Private Key Recovery', () => {
     it('should calculate private key 4 for G + 3 (reverse direction)', () => {
-      const operations: Operation[] = [{ type: 'add', description: '+3', value: '3' }];
+      const operations: Operation[] = [{ type: OperationType.ADD, description: '+3', value: '3' }];
 
       // Starting from 1: 1 + 3 = 4
       const privateKey = calculateKeyFromOperations(operations, 1n);
@@ -198,7 +213,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should calculate private key 2 for 5G - 3 (forward direction)', () => {
       const challengePrivateKey = 5n;
-      const operations: Operation[] = [{ type: 'subtract', description: '-3', value: '3' }];
+      const operations: Operation[] = [
+        { type: OperationType.SUBTRACT, description: '-3', value: '3' },
+      ];
 
       // Starting from 5: 5 - 3 = 2
       const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
@@ -212,7 +229,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     });
 
     it('should calculate private key for G - 5 (reverse direction)', () => {
-      const operations: Operation[] = [{ type: 'subtract', description: '-5', value: '5' }];
+      const operations: Operation[] = [
+        { type: OperationType.SUBTRACT, description: '-5', value: '5' },
+      ];
 
       // Starting from 1: 1 - 5 = -4
       // JavaScript's % operator can return negative values, so we need to handle this
@@ -234,7 +253,7 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should calculate private key 8 for 5G + 3 (forward direction)', () => {
       const challengePrivateKey = 5n;
-      const operations: Operation[] = [{ type: 'add', description: '+3', value: '3' }];
+      const operations: Operation[] = [{ type: OperationType.ADD, description: '+3', value: '3' }];
 
       // Starting from 5: 5 + 3 = 8
       const privateKey = calculateKeyFromOperations(operations, challengePrivateKey);
@@ -249,9 +268,9 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should handle complex addition/subtraction chain', () => {
       const operations: Operation[] = [
-        { type: 'add', description: '+7', value: '7' },
-        { type: 'subtract', description: '-3', value: '3' },
-        { type: 'add', description: '+2', value: '2' },
+        { type: OperationType.ADD, description: '+7', value: '7' },
+        { type: OperationType.SUBTRACT, description: '-3', value: '3' },
+        { type: OperationType.ADD, description: '+2', value: '2' },
       ];
 
       // Starting from 1: 1 + 7 - 3 + 2 = 7
@@ -267,8 +286,8 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should handle hex values in addition/subtraction', () => {
       const operations: Operation[] = [
-        { type: 'add', description: '+0xA', value: '0xA' },
-        { type: 'subtract', description: '-0x5', value: '0x5' },
+        { type: OperationType.ADD, description: '+0xA', value: '0xA' },
+        { type: OperationType.SUBTRACT, description: '-0x5', value: '0x5' },
       ];
 
       // Starting from 1: 1 + 10 - 5 = 6
@@ -286,10 +305,10 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
   describe('Mixed Operations with All Four Types', () => {
     it('should handle all four operations: multiply, add, divide, subtract', () => {
       const operations: Operation[] = [
-        { type: 'multiply', description: '×6', value: '6' },
-        { type: 'add', description: '+4', value: '4' },
-        { type: 'divide', description: '÷2', value: '2' },
-        { type: 'subtract', description: '-1', value: '1' },
+        { type: OperationType.MULTIPLY, description: '×6', value: '6' },
+        { type: OperationType.ADD, description: '+4', value: '4' },
+        { type: OperationType.DIVIDE, description: '÷2', value: '2' },
+        { type: OperationType.SUBTRACT, description: '-1', value: '1' },
       ];
 
       // Starting from 1: (((1 * 6) + 4) / 2) - 1 = ((6 + 4) / 2) - 1 = (10 / 2) - 1 = 5 - 1 = 4
@@ -305,10 +324,10 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should alternate add/multiply/subtract/divide operations', () => {
       const operations: Operation[] = [
-        { type: 'add', description: '+2', value: '2' },
-        { type: 'multiply', description: '×3', value: '3' },
-        { type: 'subtract', description: '-3', value: '3' },
-        { type: 'divide', description: '÷2', value: '2' },
+        { type: OperationType.ADD, description: '+2', value: '2' },
+        { type: OperationType.MULTIPLY, description: '×3', value: '3' },
+        { type: OperationType.SUBTRACT, description: '-3', value: '3' },
+        { type: OperationType.DIVIDE, description: '÷2', value: '2' },
       ];
 
       // Starting from 1: (((1 + 2) * 3) - 3) / 2 = ((3 * 3) - 3) / 2 = (9 - 3) / 2 = 6 / 2 = 3
@@ -324,10 +343,10 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should handle subtract/divide/add/multiply pattern', () => {
       const operations: Operation[] = [
-        { type: 'subtract', description: '-1', value: '1' },
-        { type: 'divide', description: '÷2', value: '2' },
-        { type: 'add', description: '+5', value: '5' },
-        { type: 'multiply', description: '×2', value: '2' },
+        { type: OperationType.SUBTRACT, description: '-1', value: '1' },
+        { type: OperationType.DIVIDE, description: '÷2', value: '2' },
+        { type: OperationType.ADD, description: '+5', value: '5' },
+        { type: OperationType.MULTIPLY, description: '×2', value: '2' },
       ];
 
       // Starting from 10: (((10 - 1) / 2) + 5) * 2 = ((9 / 2) + 5) * 2
@@ -354,10 +373,10 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
     it('should handle forward and reverse directions mixed', () => {
       const challengePrivateKey = 7n;
       const operations: Operation[] = [
-        { type: 'multiply', description: '×2', value: '2' },
-        { type: 'add', description: '+3', value: '3' },
-        { type: 'divide', description: '÷4', value: '4' },
-        { type: 'subtract', description: '-1', value: '1' },
+        { type: OperationType.MULTIPLY, description: '×2', value: '2' },
+        { type: OperationType.ADD, description: '+3', value: '3' },
+        { type: OperationType.DIVIDE, description: '÷4', value: '4' },
+        { type: OperationType.SUBTRACT, description: '-1', value: '1' },
       ];
 
       // Mixed directions:
@@ -386,10 +405,10 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should verify inverse operations cancel out', () => {
       const operations: Operation[] = [
-        { type: 'add', description: '+5', value: '5' },
-        { type: 'multiply', description: '×3', value: '3' },
-        { type: 'subtract', description: '-5', value: '5' },
-        { type: 'divide', description: '÷3', value: '3' },
+        { type: OperationType.ADD, description: '+5', value: '5' },
+        { type: OperationType.MULTIPLY, description: '×3', value: '3' },
+        { type: OperationType.SUBTRACT, description: '-5', value: '5' },
+        { type: OperationType.DIVIDE, description: '÷3', value: '3' },
       ];
 
       // Starting from 1: (((1 + 5) * 3) - 5) / 3 = ((6 * 3) - 5) / 3 = (18 - 5) / 3 = 13 / 3
@@ -441,14 +460,14 @@ describe('ECC Calculator Mathematical Equivalence Tests', () => {
 
     it('should verify private key calculations for all equivalent operations', () => {
       // G * 2: private key should be 2
-      const ops1: Operation[] = [{ type: 'multiply', description: '×2', value: '2' }];
+      const ops1: Operation[] = [{ type: OperationType.MULTIPLY, description: '×2', value: '2' }];
       const pk1 = calculateKeyFromOperations(ops1, 1n);
       expect(pk1).toBe(2n);
 
       // 4G / 2: private key should be 2
       const ops2: Operation[] = [
-        { type: 'multiply', description: '×4', value: '4' },
-        { type: 'divide', description: '÷2', value: '2' },
+        { type: OperationType.MULTIPLY, description: '×4', value: '4' },
+        { type: OperationType.DIVIDE, description: '÷2', value: '2' },
       ];
       const pk2 = calculateKeyFromOperations(ops2, 1n);
       expect(pk2).toBe(2n);

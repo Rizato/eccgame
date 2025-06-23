@@ -18,6 +18,7 @@ import {
   setChallengePublicKey,
 } from '../store/slices/eccCalculatorSlice';
 import type { ECPoint, SavedPoint } from '../types/ecc';
+import { getCachedGraph } from '../utils/graphCache';
 
 export function useDailyCalculatorRedux(challengePublicKey: string) {
   const dispatch = useAppDispatch();
@@ -47,7 +48,7 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
   return {
     // State
     currentPoint: dailyState.selectedPoint,
-    graph: dailyState.graph,
+    graph: getCachedGraph('daily'),
     error: dailyState.error,
     currentAddress: dailyState.currentAddress,
     calculatorDisplay: dailyState.calculatorDisplay,

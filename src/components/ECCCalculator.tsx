@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './ECCCalculator.css';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { getCachedGraph } from '../utils/graphCache';
 import {
   addBatchOperationsToGraph as addDailyBatchOperations,
   addOperationToGraph as addDailyOperationToGraph,
@@ -56,9 +57,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   calculatorDisplayRef,
 }) => {
   const gameMode = useAppSelector(state => state.game.gameMode);
-  const { graph, savedPoints } = useAppSelector(state =>
+  const { savedPoints } = useAppSelector(state =>
     gameMode === 'practice' ? state.practiceCalculator : state.dailyCalculator
   );
+  const graph = getCachedGraph(gameMode === 'practice' ? 'practice' : 'daily');
   const dispatch = useAppDispatch();
 
   // Create stable dispatch function to avoid circular dependencies

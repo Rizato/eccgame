@@ -8,6 +8,7 @@ import {
   resetToChallengeWithPrivateKey as practiceResetToChallenge,
 } from './practiceCalculatorSlice';
 import type { RootState } from '../index';
+import { OperationType } from '../../types/ecc';
 
 describe('State Persistence with switchGameMode', () => {
   it('should preserve practice state when switching to daily and back', () => {
@@ -78,7 +79,7 @@ describe('State Persistence with switchGameMode', () => {
         fromPoint: generatorPoint,
         toPoint: doubledPoint,
         operation: {
-          type: 'multiply',
+          type: OperationType.MULTIPLY,
           description: 'double edge',
           value: '2',
         },
@@ -107,7 +108,7 @@ describe('State Persistence with switchGameMode', () => {
         fromPoint: dailyGeneratorPoint,
         toPoint: negatedPoint,
         operation: {
-          type: 'negate',
+          type: OperationType.NEGATE,
           description: 'negate point',
           value: '1',
         },
