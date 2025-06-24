@@ -8,7 +8,6 @@ import {
   getCachedGraph,
   clearCachedGraph,
   findCachedNodeByPoint,
-  exportCachedGraphForRedux,
 } from '../../utils/graphCache';
 import { calculatePrivateKeyFromGraph } from '../../utils/graphOperations';
 import { saveDailyState, loadDailyState } from '../../utils/storage';
@@ -16,7 +15,6 @@ import { processBatchOperations } from './utils/batchOperations';
 
 export interface DailyCalculatorState {
   selectedPoint: ECPoint;
-  graphStats: { nodeCount: number; edgeCount: number; hasNodes: boolean };
   generatorNodeId: string | null;
   challengeNodeId: string | null;
   error: string | null;
@@ -52,7 +50,6 @@ const initialGeneratorNodeId = initializeCachedGraph();
 
 const initialState: DailyCalculatorState = {
   selectedPoint: generatorPoint,
-  graphStats: exportCachedGraphForRedux('daily'),
   generatorNodeId: initialGeneratorNodeId,
   challengeNodeId: null,
   error: null,
@@ -119,7 +116,6 @@ const dailyCalculatorSlice = createSlice({
         isChallenge: true,
       });
       state.challengeNodeId = challengeNode.id;
-      state.graphStats = exportCachedGraphForRedux('daily');
     },
     setChallengeWithPrivateKey: (
       state,
@@ -138,7 +134,6 @@ const dailyCalculatorSlice = createSlice({
         isChallenge: true,
       });
       state.challengeNodeId = challengeNode.id;
-      state.graphStats = exportCachedGraphForRedux('daily');
     },
     clearCalculator: state => {
       state.calculatorDisplay = '';
@@ -189,7 +184,6 @@ const dailyCalculatorSlice = createSlice({
         isChallenge: true,
       });
       state.challengeNodeId = challengeNode.id;
-      state.graphStats = exportCachedGraphForRedux('daily');
 
       // Don't clear saved points when switching to challenge
       state.error = null;
@@ -217,7 +211,6 @@ const dailyCalculatorSlice = createSlice({
         isChallenge: true,
       });
       state.challengeNodeId = challengeNode.id;
-      state.graphStats = exportCachedGraphForRedux('daily');
 
       // Don't clear saved points when switching to challenge
       state.error = null;
@@ -241,7 +234,6 @@ const dailyCalculatorSlice = createSlice({
         connectedToG: true,
       });
       state.generatorNodeId = generatorNode.id;
-      state.graphStats = exportCachedGraphForRedux('daily');
 
       // Don't clear saved points when switching to generator
       state.error = null;
@@ -288,7 +280,6 @@ const dailyCalculatorSlice = createSlice({
         }
       }
 
-      state.graphStats = exportCachedGraphForRedux('daily');
       state.error = null;
       state.calculatorDisplay = '';
       state.pendingOperation = null;
@@ -319,13 +310,11 @@ const dailyCalculatorSlice = createSlice({
       addCachedOperation('daily', fromPoint, toPoint, operation);
       // Update selected point to the result
       state.selectedPoint = toPoint;
-      state.graphStats = exportCachedGraphForRedux('daily');
     },
-    addBatchOperationsToGraph: (state, action: PayloadAction<SingleOperationPayload[]>) => {
+    addBatchOperationsToGraph: (_state, action: PayloadAction<SingleOperationPayload[]>) => {
       const operations = action.payload;
       const graph = getCachedGraph('daily');
       processBatchOperations(graph, operations, 'daily');
-      state.graphStats = exportCachedGraphForRedux('daily');
     },
     saveState: state => {
       // Save current state to localStorage

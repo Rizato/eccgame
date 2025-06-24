@@ -8,7 +8,6 @@ import {
   getCachedGraph,
   clearCachedGraph,
   findCachedNodeByPoint,
-  exportCachedGraphForRedux,
 } from '../../utils/graphCache';
 import { calculatePrivateKeyFromGraph } from '../../utils/graphOperations';
 import { savePracticeState, loadPracticeState } from '../../utils/storage';
@@ -16,7 +15,6 @@ import { processBatchOperations } from './utils/batchOperations';
 
 export interface PracticeCalculatorState {
   selectedPoint: ECPoint;
-  graphStats: { nodeCount: number; edgeCount: number; hasNodes: boolean };
   generatorNodeId: string | null;
   challengeNodeId: string | null;
   error: string | null;
@@ -52,7 +50,6 @@ const initialPracticeGeneratorNodeId = initializePracticeCachedGraph();
 
 const initialState: PracticeCalculatorState = {
   selectedPoint: generatorPoint,
-  graphStats: exportCachedGraphForRedux('practice'),
   generatorNodeId: initialPracticeGeneratorNodeId,
   challengeNodeId: null,
   error: null,
@@ -141,7 +138,6 @@ const practiceCalculatorSlice = createSlice({
 
       const challengeNode = addCachedNode('practice', challengePoint, nodeOptions);
       state.challengeNodeId = challengeNode.id;
-      state.graphStats = exportCachedGraphForRedux('practice');
     },
     clearCalculator: state => {
       state.calculatorDisplay = '';
@@ -211,7 +207,6 @@ const practiceCalculatorSlice = createSlice({
 
       const challengeNode = addCachedNode('practice', challengePoint, nodeOptions);
       state.challengeNodeId = challengeNode.id;
-      state.graphStats = exportCachedGraphForRedux('practice');
 
       // Don't clear saved points when switching to challenge
       state.error = null;
@@ -236,7 +231,6 @@ const practiceCalculatorSlice = createSlice({
         connectedToG: true,
       });
       state.generatorNodeId = generatorNode.id;
-      state.graphStats = exportCachedGraphForRedux('practice');
 
       // Don't clear saved points when switching to generator
       state.error = null;
@@ -251,7 +245,6 @@ const practiceCalculatorSlice = createSlice({
       // Reset cached graph and state
       const resetGeneratorNodeId = initializePracticeCachedGraph();
       state.selectedPoint = generatorPoint;
-      state.graphStats = exportCachedGraphForRedux('practice');
       state.generatorNodeId = resetGeneratorNodeId;
       state.challengeNodeId = null;
       state.error = null;
@@ -301,7 +294,6 @@ const practiceCalculatorSlice = createSlice({
         }
       }
 
-      state.graphStats = exportCachedGraphForRedux('practice');
       // Clean up dangling nodes and edges when loading a point
       state.error = null;
       state.calculatorDisplay = '';
@@ -334,13 +326,11 @@ const practiceCalculatorSlice = createSlice({
       addCachedOperation('practice', fromPoint, toPoint, operation);
       // Update selected point to the result
       state.selectedPoint = toPoint;
-      state.graphStats = exportCachedGraphForRedux('practice');
     },
-    addBatchOperationsToGraph: (state, action: PayloadAction<SingleOperationPayload[]>) => {
+    addBatchOperationsToGraph: (_state, action: PayloadAction<SingleOperationPayload[]>) => {
       const operations = action.payload;
       const graph = getCachedGraph('practice');
       processBatchOperations(graph, operations, 'practice');
-      state.graphStats = exportCachedGraphForRedux('practice');
     },
     saveState: state => {
       // Save current state to localStorage

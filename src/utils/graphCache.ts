@@ -73,27 +73,6 @@ class GraphCache {
   }
 
   /**
-   * Get graph statistics efficiently
-   */
-  getStats(mode: string): { nodes: number; edges: number } {
-    const nodeMap = this.nodeMap.get(mode);
-    const edgeMap = this.edgeMap.get(mode);
-
-    if (nodeMap && edgeMap) {
-      const nodes = nodeMap.size;
-      const edges = Array.from(edgeMap.values()).reduce((sum, edges) => sum + edges.length, 0);
-      return { nodes, edges };
-    }
-
-    // Fallback to object counting
-    const graph = this.getGraph(mode);
-    return {
-      nodes: Object.keys(graph.nodes).length,
-      edges: Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0),
-    };
-  }
-
-  /**
    * Clear graph for mode
    */
   clearGraph(mode: string): void {
@@ -103,18 +82,6 @@ class GraphCache {
     this.edgeMap.set(mode, new Map());
     // Clear node counter to ensure complete isolation
     clearNodeCounter(mode);
-  }
-
-  /**
-   * Export graph state for Redux (minimal data)
-   */
-  exportForRedux(mode: string): { nodeCount: number; edgeCount: number; hasNodes: boolean } {
-    const stats = this.getStats(mode);
-    return {
-      nodeCount: stats.nodes,
-      edgeCount: stats.edges,
-      hasNodes: stats.nodes > 0,
-    };
   }
 
   private pointToHash(point: ECPoint): string {
@@ -152,7 +119,11 @@ export function getCachedGraph(mode: string): PointGraph {
   return graphCache.getGraph(mode);
 }
 
-export function addCachedNode(mode: string, point: ECPoint, options: Record<string, unknown> = {}): GraphNode {
+export function addCachedNode(
+  mode: string,
+  point: ECPoint,
+  options: Record<string, unknown> = {}
+): GraphNode {
   return graphCache.addNode(mode, point, options);
 }
 
@@ -169,14 +140,6 @@ export function addCachedOperation(
   graphCache.addOperation(mode, fromPoint, toPoint, operation);
 }
 
-export function getCachedGraphStats(mode: string): { nodes: number; edges: number } {
-  return graphCache.getStats(mode);
-}
-
 export function clearCachedGraph(mode: string): void {
   graphCache.clearGraph(mode);
-}
-
-export function exportCachedGraphForRedux(mode: string) {
-  return graphCache.exportForRedux(mode);
 }
