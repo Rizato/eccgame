@@ -6,8 +6,8 @@
  */
 import { ec as EC } from 'elliptic';
 import * as secp256k1 from 'secp256k1';
+import { OperationType, type ECPoint, type IntermediatePoint } from '../types/ecc.ts';
 import { bytesToHex, hexToBytes } from './crypto';
-import type { ECPoint } from '../types/ecc.ts';
 
 // Initialize elliptic curve
 const ec = new EC('secp256k1');
@@ -109,32 +109,150 @@ export function pointSubtract(p1: ECPoint, p2: ECPoint): ECPoint {
 }
 
 /**
- * Scalar multiplication using elliptic.js
+ * Scalar multiplication using double-and-add algorithm
+ * Returns just the result point
  */
 export function pointMultiply(scalar: bigint, point: ECPoint): ECPoint {
-  if (scalar === 0n || point.isInfinity) {
-    return { x: 0n, y: 0n, isInfinity: true };
-  }
-
   const ecPoint = pointToElliptic(point);
+  // Ensure scalar is properly normalized
+  scalar = ((scalar % CURVE_N) + CURVE_N) % CURVE_N;
   const result = ecPoint.mul(scalar.toString(16));
   return ellipticToPoint(result);
 }
 
 /**
- * Scalar division (multiply by modular inverse)
+ * Double-and-add algorithm that returns intermediate points
+ * Optimized to use elliptic.js points internally to avoid conversion overhead
+ *
+ * if startingPrivateKey is provided, it must be the private key for the given point
+ */
+export function scalarMultiplyWithIntermediates(
+  scalar: bigint,
+  point: ECPoint,
+  startingPrivateKey?: bigint
+): { result: ECPoint; intermediates: IntermediatePoint[] } {
+  if (scalar === 0n || point.isInfinity) {
+    return {
+      result: { x: 0n, y: 0n, isInfinity: true },
+      intermediates: [],
+    };
+  }
+
+  if (scalar === 1n) {
+    return { result: point, intermediates: [] };
+  }
+
+  // Handle negative scalars
+  if (scalar < 0n) {
+    const negated = pointNegate(point);
+    return scalarMultiplyWithIntermediates(-scalar, negated, startingPrivateKey);
+  }
+
+  scalar = scalar % CURVE_N;
+  if (scalar === 0n) {
+    return {
+      result: { x: 0n, y: 0n, isInfinity: true },
+      intermediates: [],
+    };
+  }
+
+  // Use proper double-and-add algorithm for both result and intermediates
+  const intermediates: IntermediatePoint[] = [];
+  const binaryScalar = scalar.toString(2);
+
+  // Convert to elliptic.js points for operations
+  const ecPoint = pointToElliptic(point);
+
+  // Initialize with point at infinity
+  let currentPoint = ec.curve.point(null, null); // Point at infinity
+
+  // Track the corresponding private key
+  let currentPrivateKey = startingPrivateKey !== undefined ? 0n : undefined;
+
+  // Process bits from most significant to least significant
+  for (let i = 0; i < binaryScalar.length; i++) {
+    const bit = binaryScalar[i];
+
+    if (i > 0) {
+      // Double the current point (except for the first bit)
+      currentPoint = currentPoint.dbl();
+      if (currentPrivateKey !== undefined && startingPrivateKey !== undefined) {
+        currentPrivateKey = (currentPrivateKey * 2n) % CURVE_N;
+      }
+
+      intermediates.push({
+        point: ellipticToPoint(currentPoint),
+        operation: {
+          type: OperationType.MULTIPLY,
+          description: 'Double',
+          value: '',
+          userCreated: false,
+        },
+        privateKey: currentPrivateKey,
+      });
+    }
+
+    if (bit === '1') {
+      // Add the original point
+      currentPoint = currentPoint.add(ecPoint);
+      if (currentPrivateKey !== undefined && startingPrivateKey !== undefined) {
+        currentPrivateKey = (currentPrivateKey + startingPrivateKey) % CURVE_N;
+      }
+
+      intermediates.push({
+        point: ellipticToPoint(currentPoint),
+        operation: {
+          type: OperationType.ADD,
+          description: 'Add',
+          value: '',
+          userCreated: false,
+        },
+        privateKey: currentPrivateKey,
+      });
+    }
+  }
+
+  // The final result is the last point from our double-and-add algorithm
+  const result = ellipticToPoint(currentPoint);
+
+  return { result, intermediates };
+}
+
+// Alias for backward compatibility
+/**
+ * Scalar division using double-and-add algorithm via modular inverse
+ * Returns just the result point
  */
 export function pointDivide(scalar: bigint, point: ECPoint): ECPoint {
   if (scalar === 0n) {
     throw new Error('Cannot divide by zero');
   }
 
-  // Calculate modular inverse manually using the extended Euclidean algorithm
+  // Calculate modular inverse
   const inverse = modInverse(scalar, CURVE_N);
 
-  const ecPoint = pointToElliptic(point);
-  const result = ecPoint.mul(inverse.toString(16));
-  return ellipticToPoint(result);
+  // Use pointMultiply with the inverse
+  return pointMultiply(inverse, point);
+}
+
+/**
+ * Scalar division with intermediate points for graph tracking
+ * Returns result and intermediates
+ */
+export function pointDivideWithIntermediates(
+  scalar: bigint,
+  point: ECPoint,
+  startingPrivateKey?: bigint
+): { result: ECPoint; intermediates: IntermediatePoint[] } {
+  if (scalar === 0n) {
+    throw new Error('Cannot divide by zero');
+  }
+
+  // Calculate modular inverse
+  const inverse = modInverse(scalar, CURVE_N);
+
+  // Use pointMultiply with the inverse
+  return scalarMultiplyWithIntermediates(inverse, point, startingPrivateKey);
 }
 
 /**
@@ -148,19 +266,6 @@ export function pointNegate(point: ECPoint): ECPoint {
   const ecPoint = pointToElliptic(point);
   const result = ecPoint.neg();
   return ellipticToPoint(result);
-}
-
-/**
- * Get distance between two points using ECC point subtraction
- * Returns the difference point P1 - P2 (useful for analysis but unknown private key)
- */
-export function getPointDistance(p1: ECPoint, p2: ECPoint): ECPoint {
-  if (p1.isInfinity || p2.isInfinity) {
-    return { x: 0n, y: 0n, isInfinity: true };
-  }
-
-  // Calculate ECC point difference: P1 - P2
-  return pointSubtract(p1, p2);
 }
 
 /**
@@ -240,107 +345,16 @@ function extendedGcd(a: bigint, b: bigint): { gcd: bigint; x: bigint; y: bigint 
   return { gcd: old_r, x: old_s, y: old_t };
 }
 
-/**
- * Reconstruct private key from a series of operations
- * Enhanced to work with elliptic.js operations
- */
-export function reconstructPrivateKey(
-  operations: Array<{
-    type: 'multiply' | 'divide' | 'add' | 'subtract';
-    value: bigint | ECPoint;
-    direction?: 'forward' | 'reverse';
-  }>
-): bigint {
-  // Start with 1 (multiplying by the private key gives the public key)
-  let accumulatedScalar = 1n;
-
-  for (const op of operations.reverse()) {
-    // Direction affects how we interpret the operations:
-    // forward: challenge->G (normal interpretation)
-    // reverse: G->challenge (inverted interpretation for key inflation)
-    const isReverse = op.direction === 'reverse';
-
-    switch (op.type) {
-      case 'multiply':
-        if (isReverse) {
-          // In reverse mode, multiplication becomes multiplication (key inflation)
-          accumulatedScalar = (accumulatedScalar * (op.value as bigint)) % CURVE_N;
-        } else {
-          // In forward mode, if we multiplied by k, we need to divide by k
-          accumulatedScalar =
-            (accumulatedScalar * modInverse(op.value as bigint, CURVE_N)) % CURVE_N;
-        }
-        break;
-      case 'divide':
-        if (isReverse) {
-          // In reverse mode, division becomes division
-          accumulatedScalar =
-            (accumulatedScalar * modInverse(op.value as bigint, CURVE_N)) % CURVE_N;
-        } else {
-          // In forward mode, if we divided by k, we need to multiply by k
-          accumulatedScalar = (accumulatedScalar * (op.value as bigint)) % CURVE_N;
-        }
-        break;
-      case 'add':
-        if (isReverse) {
-          accumulatedScalar = (accumulatedScalar + (op.value as bigint)) % CURVE_N;
-        } else {
-          accumulatedScalar = (accumulatedScalar - (op.value as bigint)) % CURVE_N;
-        }
-        break;
-      case 'subtract':
-        if (isReverse) {
-          accumulatedScalar = (accumulatedScalar - (op.value as bigint)) % CURVE_N;
-        } else {
-          accumulatedScalar = (accumulatedScalar + (op.value as bigint)) % CURVE_N;
-        }
-        break;
-      // Point addition/subtraction operations are more complex and would require
-      // tracking the specific points and operations in a different way
-      default:
-        throw new Error(`Operation ${op.type} not supported for private key reconstruction yet`);
-    }
-  }
-
-  return accumulatedScalar;
+// Update all references in this file
+export function doubleAndAdd(scalar: bigint, point: ECPoint): ECPoint {
+  const { result } = scalarMultiplyWithIntermediates(scalar, point);
+  return result;
 }
 
-/**
- * Validate that a point is valid on the curve using elliptic.js
- */
-export function validatePoint(point: ECPoint): boolean {
-  try {
-    const ecPoint = pointToElliptic(point);
-    return ecPoint.validate();
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Get point in different coordinate systems for debugging
- */
-export function getPointInfo(point: ECPoint): {
-  affine: { x: string; y: string };
-  compressed: string;
-  uncompressed: string;
-} {
-  if (point.isInfinity) {
-    return {
-      affine: { x: 'infinity', y: 'infinity' },
-      compressed: 'point at infinity',
-      uncompressed: 'point at infinity',
-    };
-  }
-
-  const ecPoint = pointToElliptic(point);
-
-  return {
-    affine: {
-      x: point.x.toString(16),
-      y: point.y.toString(16),
-    },
-    compressed: ecPoint.encodeCompressed('hex'),
-    uncompressed: ecPoint.encode('hex'),
-  };
+export function pointMultiplyWithIntermediates(
+  scalar: bigint,
+  point: ECPoint,
+  startingPrivateKey?: bigint
+): { result: ECPoint; intermediates: IntermediatePoint[] } {
+  return scalarMultiplyWithIntermediates(scalar, point, startingPrivateKey);
 }

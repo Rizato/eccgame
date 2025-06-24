@@ -1,9 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './ECCCalculator.css';
-import { useAppSelector, useAppDispatch } from '../store/hooks';
-import { addOperationToGraph as addDailyOperationToGraph } from '../store/slices/eccCalculatorSlice';
-import { addOperationToGraph as addPracticeOperationToGraph } from '../store/slices/practiceCalculatorSlice';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import {
+  addBatchOperationsToGraph as addDailyBatchOperations,
+  addOperationToGraph as addDailyOperationToGraph,
+} from '../store/slices/eccCalculatorSlice';
+import {
+  addBatchOperationsToGraph as addPracticeBatchOperations,
+  addOperationToGraph as addPracticeOperationToGraph,
+} from '../store/slices/practiceCalculatorSlice';
 import { togglePrivateKeyDisplayMode } from '../store/slices/uiSlice';
+import {
+  type ECPoint,
+  type IntermediatePoint,
+  type Operation,
+  OperationType,
+} from '../types/ecc.ts';
 import { getP2PKHAddress } from '../utils/crypto';
 import {
   bigintToHex,
@@ -12,16 +24,17 @@ import {
   hexToBigint,
   isPointOnCurve,
   pointAdd,
-  pointDivide,
+  pointDivideWithIntermediates,
   pointMultiply,
+  pointMultiplyWithIntermediates,
   pointNegate,
   pointSubtract,
   pointToPublicKey,
   publicKeyToPoint,
 } from '../utils/ecc';
+import { getCachedGraph } from '../utils/graphCache';
 import { calculatePrivateKeyFromGraph } from '../utils/graphOperations.ts';
 import { SavePointModal } from './SavePointModal';
-import type { ECPoint, Operation } from '../types/ecc.ts';
 
 interface ECCCalculatorProps {
   currentPoint: ECPoint;
@@ -43,9 +56,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   calculatorDisplayRef,
 }) => {
   const gameMode = useAppSelector(state => state.game.gameMode);
-  const { graph, savedPoints } = useAppSelector(state =>
+  const { savedPoints } = useAppSelector(state =>
     gameMode === 'practice' ? state.practiceCalculator : state.dailyCalculator
   );
+  const graph = getCachedGraph(gameMode === 'practice' ? 'practice' : 'daily');
   const dispatch = useAppDispatch();
 
   // Create stable dispatch function to avoid circular dependencies
@@ -60,13 +74,50 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     [dispatch, gameMode]
   );
 
+  const dispatchBatchOperations = useCallback(
+    (operations: Parameters<typeof addDailyBatchOperations>[0]) => {
+      if (gameMode === 'practice') {
+        dispatch(addPracticeBatchOperations(operations));
+      } else {
+        dispatch(addDailyBatchOperations(operations));
+      }
+    },
+    [dispatch, gameMode]
+  );
+
+  // Reusable function to handle intermediates and add them to the graph
+  const addIntermediatesToGraph = useCallback(
+    (intermediates: IntermediatePoint[], startingPoint: ECPoint) => {
+      if (intermediates.length === 0) return;
+
+      const batchOps = [];
+      let previousPoint = startingPoint;
+
+      for (const intermediate of intermediates) {
+        if (!isPointOnCurve(intermediate.point)) {
+          onError('Intermediate point is not on the curve');
+          break;
+        }
+        batchOps.push({
+          fromPoint: previousPoint,
+          toPoint: intermediate.point,
+          operation: intermediate.operation,
+          toPointPrivateKey: intermediate.privateKey,
+        });
+        previousPoint = intermediate.point;
+      }
+
+      // Dispatch all operations as a batch
+      if (batchOps.length > 0) {
+        dispatchBatchOperations(batchOps);
+      }
+    },
+    [dispatchBatchOperations, onError]
+  );
+
   const [calculatorDisplay, setCalculatorDisplay] = useState('');
-  const [pendingOperation, setPendingOperation] = useState<
-    'multiply' | 'divide' | 'add' | 'subtract' | null
-  >(null);
-  const [lastOperationType, setLastOperationType] = useState<
-    'multiply' | 'divide' | 'add' | 'subtract' | null
-  >(null);
+  const [pendingOperation, setPendingOperation] = useState<OperationType | null>(null);
+  const [lastOperationType, setLastOperationType] = useState<OperationType | null>(null);
   const [hexMode, setHexMode] = useState(false);
   const [currentAddress, setCurrentAddress] = useState<string>('');
   const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
@@ -207,11 +258,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
   // Forward declare the executeCalculatorOperation function reference
   const executeCalculatorOperationRef = useRef<
-    ((operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => void) | null
+    ((operation: OperationType, value: string) => void) | null
   >(null);
 
   const setCalculatorOperation = useCallback(
-    (operation: 'multiply' | 'divide' | 'add' | 'subtract') => {
+    (operation: OperationType) => {
       if (isLocked) return;
 
       // If there's a value in the display, set pending operation
@@ -240,10 +291,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
-        type: 'add',
+        type: OperationType.ADD,
         description: '+G',
         value: '1',
+        userCreated: true,
       };
 
       // Add to graph through Redux
@@ -270,10 +321,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
-        type: 'subtract',
+        type: OperationType.SUBTRACT,
         description: '-G',
         value: '1',
+        userCreated: true,
       };
 
       // Add to graph through Redux
@@ -294,16 +345,16 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     if (isLocked) return;
     try {
       onError(null);
-      const newPoint = pointMultiply(2n, currentPoint);
+      const newPoint = pointAdd(currentPoint, currentPoint);
       if (!isPointOnCurve(newPoint)) {
         onError('Result is not on the curve');
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: '×2',
         value: '2',
+        userCreated: true,
       };
 
       // Add to graph through Redux
@@ -324,19 +375,26 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     if (isLocked) return;
     try {
       onError(null);
-      const newPoint = pointDivide(2n, currentPoint);
+      const { result: newPoint, intermediates } = pointDivideWithIntermediates(
+        2n,
+        currentPoint,
+        currentPrivateKey
+      );
       if (!isPointOnCurve(newPoint)) {
         onError('Result is not on the curve');
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
-        type: 'divide',
+        type: OperationType.DIVIDE,
         description: '÷2',
         value: '2',
+        userCreated: true,
       };
 
-      // Add to graph through Redux
+      // Add intermediates to graph if any
+      addIntermediatesToGraph(intermediates, currentPoint);
+
+      // Add final operation to graph through Redux
       dispatchOperation({
         fromPoint: currentPoint,
         toPoint: newPoint,
@@ -348,7 +406,15 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
     } catch (error) {
       onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [currentPoint, dispatchOperation, onPointChange, onError, isLocked]);
+  }, [
+    currentPoint,
+    currentPrivateKey,
+    dispatchOperation,
+    addIntermediatesToGraph,
+    onPointChange,
+    onError,
+    isLocked,
+  ]);
 
   const quickNegate = useCallback(() => {
     if (isLocked) return;
@@ -360,10 +426,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         return;
       }
       const operation: Operation = {
-        id: `op_${Date.now()}`,
-        type: 'negate',
+        type: OperationType.NEGATE,
         description: '±',
         value: '',
+        userCreated: true,
       };
 
       // Add to graph through Redux
@@ -413,10 +479,10 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
 
       const newPoint = pointMultiply(scalar, generatorPoint);
       const operation: Operation = {
-        id: `op_${Date.now()}`,
-        type: 'multiply',
+        type: OperationType.MULTIPLY,
         description: `→ G×${calculatorDisplay}`,
         value: calculatorDisplay,
+        userCreated: true,
       };
 
       // For go here, we're going from G to the new point, so the fromPoint should be G
@@ -444,7 +510,7 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
   ]);
 
   const executeCalculatorOperation = useCallback(
-    (operation: 'multiply' | 'divide' | 'add' | 'subtract', value: string) => {
+    (operation: OperationType, value: string) => {
       if (isLocked) return;
       try {
         onError(null);
@@ -480,19 +546,33 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         }
 
         let newPoint: ECPoint;
+        let steps: IntermediatePoint[] = [];
         let description: string;
 
-        const differencePoint = pointMultiply(scalar, generatorPoint);
-        if (operation === 'multiply') {
-          newPoint = pointMultiply(scalar, currentPoint);
+        if (operation === OperationType.MULTIPLY) {
+          const { result, intermediates } = pointMultiplyWithIntermediates(
+            scalar,
+            currentPoint,
+            currentPrivateKey
+          );
+          newPoint = result;
+          steps = intermediates;
           description = `×${value}`;
-        } else if (operation === 'divide') {
-          newPoint = pointDivide(scalar, currentPoint);
+        } else if (operation === OperationType.DIVIDE) {
+          const { result, intermediates } = pointDivideWithIntermediates(
+            scalar,
+            currentPoint,
+            currentPrivateKey
+          );
+          newPoint = result;
+          steps = intermediates;
           description = `÷${value}`;
-        } else if (operation === 'add') {
+        } else if (operation === OperationType.ADD) {
+          const differencePoint = pointMultiply(scalar, generatorPoint);
           newPoint = pointAdd(currentPoint, differencePoint);
           description = `+${value}`;
         } else {
+          const differencePoint = pointMultiply(scalar, generatorPoint);
           newPoint = pointSubtract(currentPoint, differencePoint);
           description = `-${value}`;
         }
@@ -501,22 +581,23 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           onError('Result is not on the curve');
           return;
         }
+        
+        // Add intermediates to graph if any
+        addIntermediatesToGraph(steps, currentPoint);
 
+        // Single operation, dispatch after batch so they all get propagate (only once though)
         const operationObj: Operation = {
-          id: `op_${Date.now()}`,
           type: operation,
-          point: operation === 'add' || operation === 'subtract' ? differencePoint : undefined,
           description,
           value,
+          userCreated: true,
         };
 
-        // Add to graph through Redux
         dispatchOperation({
           fromPoint: currentPoint,
           toPoint: newPoint,
           operation: operationObj,
         });
-
         onPointChange(newPoint, operationObj);
         // Keep the value in display for potential chaining
         setCalculatorDisplay(value);
@@ -527,7 +608,16 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         onError(`Operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [currentPoint, dispatchOperation, onPointChange, onError, isLocked, generatorPoint]
+    [
+      currentPoint,
+      currentPrivateKey,
+      dispatchOperation,
+      addIntermediatesToGraph,
+      onPointChange,
+      onError,
+      isLocked,
+      generatorPoint,
+    ]
   );
 
   // Assign the function to the ref so it can be called from setCalculatorOperation
@@ -578,19 +668,19 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         case 'x':
         case 'X':
           event.preventDefault();
-          setCalculatorOperation('multiply');
+          setCalculatorOperation(OperationType.MULTIPLY);
           break;
         case '/':
           event.preventDefault();
-          setCalculatorOperation('divide');
+          setCalculatorOperation(OperationType.DIVIDE);
           break;
         case '+':
           event.preventDefault();
-          setCalculatorOperation('add');
+          setCalculatorOperation(OperationType.ADD);
           break;
         case '-':
           event.preventDefault();
-          setCalculatorOperation('subtract');
+          setCalculatorOperation(OperationType.SUBTRACT);
           break;
         case 'Enter':
         case '=':
@@ -786,14 +876,14 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               B
             </button>
             <button
-              onClick={() => setCalculatorOperation('divide')}
-              className={`calc-button operator ${pendingOperation === 'divide' ? 'highlighted' : ''}`}
+              onClick={() => setCalculatorOperation(OperationType.DIVIDE)}
+              className={`calc-button operator ${pendingOperation === OperationType.DIVIDE ? 'highlighted' : ''}`}
             >
               ÷
             </button>
             <button
-              onClick={() => setCalculatorOperation('multiply')}
-              className={`calc-button operator ${pendingOperation === 'multiply' ? 'highlighted' : ''}`}
+              onClick={() => setCalculatorOperation(OperationType.MULTIPLY)}
+              className={`calc-button operator ${pendingOperation === OperationType.MULTIPLY ? 'highlighted' : ''}`}
             >
               ×
             </button>
@@ -819,14 +909,14 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
               D
             </button>
             <button
-              onClick={() => setCalculatorOperation('subtract')}
-              className={`calc-button operator ${pendingOperation === 'subtract' ? 'highlighted' : ''}`}
+              onClick={() => setCalculatorOperation(OperationType.SUBTRACT)}
+              className={`calc-button operator ${pendingOperation === OperationType.SUBTRACT ? 'highlighted' : ''}`}
             >
               -
             </button>
             <button
-              onClick={() => setCalculatorOperation('add')}
-              className={`calc-button operator ${pendingOperation === 'add' ? 'highlighted' : ''}`}
+              onClick={() => setCalculatorOperation(OperationType.ADD)}
+              className={`calc-button operator ${pendingOperation === OperationType.ADD ? 'highlighted' : ''}`}
             >
               +
             </button>
@@ -875,28 +965,54 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
             <button className="calc-button spacer"></button>
             <button
               onClick={() => {
-                // Generate a random number between 2 and CURVE_N
-                // Use crypto.getRandomValues for better randomness
-                const randomBytes = new Uint8Array(32);
-                crypto.getRandomValues(randomBytes);
+                if (isLocked) return;
+                try {
+                  onError(null);
 
-                // Convert to BigInt and ensure it's in the range [2, CURVE_N)
-                let randomBigInt = BigInt(
-                  '0x' +
-                    Array.from(randomBytes)
-                      .map(b => b.toString(16).padStart(2, '0'))
-                      .join('')
-                );
+                  // Generate a random number between 2 and CURVE_N
+                  // Use crypto.getRandomValues for better randomness
+                  const randomBytes = new Uint8Array(32);
+                  crypto.getRandomValues(randomBytes);
 
-                // Ensure the number is within the valid range
-                const range = CURVE_N - BigInt(2);
-                randomBigInt = (randomBigInt % range) + BigInt(2);
+                  // Convert to BigInt and ensure it's in the range [2, CURVE_N)
+                  let randomBigInt = BigInt(
+                    '0x' +
+                      Array.from(randomBytes)
+                        .map(b => b.toString(16).padStart(2, '0'))
+                        .join('')
+                  );
 
-                setHexMode(true);
-                setCalculatorDisplay('0x' + randomBigInt.toString(16).toUpperCase());
+                  // Ensure the number is within the valid range
+                  const range = CURVE_N - BigInt(2);
+                  randomBigInt = (randomBigInt % range) + BigInt(2);
+
+                  const randomHexString = '0x' + randomBigInt.toString(16).toUpperCase();
+
+                  // Calculate G × random scalar with intermediates
+                  const { result: newPoint, intermediates } = pointMultiplyWithIntermediates(
+                    randomBigInt,
+                    generatorPoint,
+                    1n // Generator point has private key 1
+                  );
+
+                  if (!isPointOnCurve(newPoint)) {
+                    onError('Random point is not on the curve');
+                    return;
+                  }
+
+                  // Add intermediates to graph
+                  addIntermediatesToGraph(intermediates, generatorPoint);
+                  // Set the display to the random value
+                  setHexMode(true);
+                  setCalculatorDisplay(randomHexString);
+                } catch (error) {
+                  onError(
+                    `Random generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                  );
+                }
               }}
               className="calc-button rand"
-              title="Generate random number"
+              title="Generate random number and add to graph"
             >
               rand
             </button>

@@ -1,9 +1,16 @@
+export enum OperationType {
+  MULTIPLY = 'multiply',
+  DIVIDE = 'divide',
+  ADD = 'add',
+  SUBTRACT = 'subtract',
+  NEGATE = 'negate',
+}
+
 export interface Operation {
-  id: string;
-  type: 'multiply' | 'divide' | 'add' | 'subtract' | 'negate';
+  type: OperationType;
   description: string;
   value: string;
-  point?: ECPoint;
+  userCreated?: boolean;
 }
 
 export interface GraphEdge {
@@ -11,8 +18,6 @@ export interface GraphEdge {
   fromNodeId: string;
   toNodeId: string;
   operation: Operation;
-  isBundled?: boolean;
-  bundleCount?: bigint;
 }
 
 export interface GraphNode {
@@ -27,8 +32,10 @@ export interface GraphNode {
 
 export interface PointGraph {
   nodes: Record<string, GraphNode>;
-  edges: Record<string, GraphEdge>;
+  edges: Record<string, GraphEdge[]>; // nodeId -> array of edges FROM this node
   pointToNodeId: Record<string, string>; // point hash -> node id for quick lookup
+  // X-coordinates for negated point detection
+  xCoordinates: Set<string>; // x coordinate strings for O(1) negation lookup
 }
 
 export interface SavedPoint {
@@ -43,4 +50,23 @@ export interface ECPoint {
   x: bigint;
   y: bigint;
   isInfinity?: boolean;
+}
+
+/**
+ * Intermediate point information for tracking double-and-add steps
+ */
+export interface IntermediatePoint {
+  point: ECPoint;
+  operation: Operation;
+  privateKey?: bigint;
+}
+
+/**
+ * Single operation to add to the graph
+ */
+export interface SingleOperationPayload {
+  fromPoint: ECPoint;
+  toPoint: ECPoint;
+  operation: Operation;
+  toPointPrivateKey?: bigint; // Pre-calculated private key for toPoint
 }

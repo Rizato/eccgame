@@ -1,18 +1,20 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { type ECPoint, type SavedPoint, type SingleOperationPayload } from '../../types/ecc';
 import { getP2PKHAddress } from '../../utils/crypto';
 import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
 import {
-  calculatePrivateKeyFromGraph,
-  ensureOperationInGraph,
-  createEmptyGraph,
-  addNode,
-} from '../../utils/graphOperations';
+  addCachedNode,
+  addCachedOperation,
+  getCachedGraph,
+  clearCachedGraph,
+  findCachedNodeByPoint,
+} from '../../utils/graphCache';
+import { calculatePrivateKeyFromGraph } from '../../utils/graphOperations';
 import { savePracticeState, loadPracticeState } from '../../utils/storage';
-import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
+import { processBatchOperations } from './utils/batchOperations';
 
 export interface PracticeCalculatorState {
   selectedPoint: ECPoint;
-  graph: PointGraph;
   generatorNodeId: string | null;
   challengeNodeId: string | null;
   error: string | null;
@@ -30,26 +32,25 @@ export interface PracticeCalculatorState {
 
 const generatorPoint = getGeneratorPoint();
 
-// Initialize graph with generator point
-const initializeGraph = (): { graph: PointGraph; generatorNodeId: string } => {
-  const graph = createEmptyGraph();
-  const generatorNode = addNode(graph, generatorPoint, {
+// Initialize cached graph with generator point
+const initializePracticeCachedGraph = (): string => {
+  const mode = 'practice';
+  clearCachedGraph(mode);
+  const generatorNode = addCachedNode(mode, generatorPoint, {
     id: 'practice_generator',
     label: 'Generator (G)',
     privateKey: 1n,
     isGenerator: true,
+    connectedToG: true,
   });
-  // Mark generator as connected to itself
-  generatorNode.connectedToG = true;
-  return { graph, generatorNodeId: generatorNode.id };
+  return generatorNode.id;
 };
 
-const { graph: initialGraph, generatorNodeId: initialGeneratorNodeId } = initializeGraph();
+const initialPracticeGeneratorNodeId = initializePracticeCachedGraph();
 
 const initialState: PracticeCalculatorState = {
   selectedPoint: generatorPoint,
-  graph: initialGraph,
-  generatorNodeId: initialGeneratorNodeId,
+  generatorNodeId: initialPracticeGeneratorNodeId,
   challengeNodeId: null,
   error: null,
   currentAddress: '',
@@ -135,7 +136,7 @@ const practiceCalculatorSlice = createSlice({
         }
       }
 
-      const challengeNode = addNode(state.graph, challengePoint, nodeOptions);
+      const challengeNode = addCachedNode('practice', challengePoint, nodeOptions);
       state.challengeNodeId = challengeNode.id;
     },
     clearCalculator: state => {
@@ -204,7 +205,7 @@ const practiceCalculatorSlice = createSlice({
         }
       }
 
-      const challengeNode = addNode(state.graph, challengePoint, nodeOptions);
+      const challengeNode = addCachedNode('practice', challengePoint, nodeOptions);
       state.challengeNodeId = challengeNode.id;
 
       // Don't clear saved points when switching to challenge
@@ -221,15 +222,14 @@ const practiceCalculatorSlice = createSlice({
     resetToGenerator: state => {
       state.selectedPoint = generatorPoint;
 
-      // Ensure generator node exists in graph (don't clear the graph, just ensure the node exists)
-      const generatorNode = addNode(state.graph, generatorPoint, {
-        id: 'generator',
+      // Ensure generator node exists in cached graph
+      const generatorNode = addCachedNode('practice', generatorPoint, {
+        id: 'practice_generator',
         label: 'Generator (G)',
         privateKey: 1n,
         isGenerator: true,
+        connectedToG: true,
       });
-      // Mark generator as connected to itself
-      generatorNode.connectedToG = true;
       state.generatorNodeId = generatorNode.id;
 
       // Don't clear saved points when switching to generator
@@ -242,10 +242,9 @@ const practiceCalculatorSlice = createSlice({
       state.showVictoryModal = false;
     },
     clearPracticeState: state => {
-      // Reset to initial state but keep the generator point
-      const { graph: resetGraph, generatorNodeId: resetGeneratorNodeId } = initializeGraph();
+      // Reset cached graph and state
+      const resetGeneratorNodeId = initializePracticeCachedGraph();
       state.selectedPoint = generatorPoint;
-      state.graph = resetGraph;
       state.generatorNodeId = resetGeneratorNodeId;
       state.challengeNodeId = null;
       state.error = null;
@@ -262,13 +261,8 @@ const practiceCalculatorSlice = createSlice({
     savePoint: (state, action: PayloadAction<{ label?: string }>) => {
       const { label } = action.payload;
 
-      // Find the current point's private key from the graph
-      const currentNode = Object.values(state.graph.nodes).find(
-        node =>
-          node.point.x === state.selectedPoint.x &&
-          node.point.y === state.selectedPoint.y &&
-          node.point.isInfinity === state.selectedPoint.isInfinity
-      );
+      // Find the current point's private key from the cached graph
+      const currentNode = findCachedNodeByPoint('practice', state.selectedPoint);
 
       const savedPoint: SavedPoint = {
         id: `saved_${Date.now()}`,
@@ -284,8 +278,8 @@ const practiceCalculatorSlice = createSlice({
       const savedPoint = action.payload;
       state.selectedPoint = savedPoint.point;
 
-      // Add the saved point to the graph if it doesn't exist, including its private key
-      const node = addNode(state.graph, savedPoint.point, {
+      // Add the saved point to the cached graph if it doesn't exist, including its private key
+      const node = addCachedNode('practice', savedPoint.point, {
         id: savedPoint.id,
         label: savedPoint.label,
         privateKey: savedPoint.privateKey,
@@ -293,7 +287,8 @@ const practiceCalculatorSlice = createSlice({
 
       // If the saved point doesn't have a private key, try to calculate it from the graph
       if (!node.privateKey) {
-        const calculatedKey = calculatePrivateKeyFromGraph(node.point, state.graph);
+        const graph = getCachedGraph('practice');
+        const calculatedKey = calculatePrivateKeyFromGraph(node.point, graph);
         if (calculatedKey) {
           node.privateKey = calculatedKey;
         }
@@ -317,7 +312,8 @@ const practiceCalculatorSlice = createSlice({
     checkWinCondition: state => {
       // Win condition: challenge node is connected to generator (has connectedToG property)
       if (state.challengeNodeId && state.generatorNodeId) {
-        const challengeNode = state.graph.nodes[state.challengeNodeId];
+        const graph = getCachedGraph('practice');
+        const challengeNode = graph.nodes[state.challengeNodeId];
 
         if (challengeNode?.connectedToG && !state.hasWon) {
           state.hasWon = true;
@@ -325,19 +321,16 @@ const practiceCalculatorSlice = createSlice({
         }
       }
     },
-    addOperationToGraph: (
-      state,
-      action: PayloadAction<{
-        fromPoint: ECPoint;
-        toPoint: ECPoint;
-        operation: Operation;
-      }>
-    ) => {
+    addOperationToGraph: (state, action: PayloadAction<SingleOperationPayload>) => {
       const { fromPoint, toPoint, operation } = action.payload;
-      ensureOperationInGraph(state.graph, fromPoint, toPoint, operation);
-
+      addCachedOperation('practice', fromPoint, toPoint, operation);
       // Update selected point to the result
       state.selectedPoint = toPoint;
+    },
+    addBatchOperationsToGraph: (_state, action: PayloadAction<SingleOperationPayload[]>) => {
+      const operations = action.payload;
+      const graph = getCachedGraph('practice');
+      processBatchOperations(graph, operations, 'practice');
     },
     saveState: state => {
       // Save current state to localStorage
@@ -380,6 +373,7 @@ export const {
   unsaveSavedPoint,
   checkWinCondition,
   addOperationToGraph,
+  addBatchOperationsToGraph,
   saveState,
   loadState,
 } = practiceCalculatorSlice.actions;

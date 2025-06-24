@@ -1,18 +1,20 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { type ECPoint, type SavedPoint, type SingleOperationPayload } from '../../types/ecc';
 import { getP2PKHAddress } from '../../utils/crypto';
 import { getGeneratorPoint, pointToPublicKey, publicKeyToPoint } from '../../utils/ecc';
 import {
-  createEmptyGraph,
-  addNode,
-  calculatePrivateKeyFromGraph,
-  ensureOperationInGraph,
-} from '../../utils/graphOperations';
+  addCachedNode,
+  addCachedOperation,
+  getCachedGraph,
+  clearCachedGraph,
+  findCachedNodeByPoint,
+} from '../../utils/graphCache';
+import { calculatePrivateKeyFromGraph } from '../../utils/graphOperations';
 import { saveDailyState, loadDailyState } from '../../utils/storage';
-import type { ECPoint, Operation, SavedPoint, PointGraph } from '../../types/ecc';
+import { processBatchOperations } from './utils/batchOperations';
 
 export interface DailyCalculatorState {
   selectedPoint: ECPoint;
-  graph: PointGraph;
   generatorNodeId: string | null;
   challengeNodeId: string | null;
   error: string | null;
@@ -30,25 +32,24 @@ export interface DailyCalculatorState {
 
 const generatorPoint = getGeneratorPoint();
 
-// Initialize graph with generator point
-const initializeGraph = (): { graph: PointGraph; generatorNodeId: string } => {
-  const graph = createEmptyGraph();
-  const generatorNode = addNode(graph, generatorPoint, {
+// Initialize cached graph with generator point
+const initializeCachedGraph = (): string => {
+  const mode = 'daily';
+  clearCachedGraph(mode);
+  const generatorNode = addCachedNode(mode, generatorPoint, {
     id: 'daily_generator',
     label: 'Generator (G)',
     privateKey: 1n,
     isGenerator: true,
+    connectedToG: true,
   });
-  // Mark generator as connected to itself
-  generatorNode.connectedToG = true;
-  return { graph, generatorNodeId: generatorNode.id };
+  return generatorNode.id;
 };
 
-const { graph: initialGraph, generatorNodeId: initialGeneratorNodeId } = initializeGraph();
+const initialGeneratorNodeId = initializeCachedGraph();
 
 const initialState: DailyCalculatorState = {
   selectedPoint: generatorPoint,
-  graph: initialGraph,
   generatorNodeId: initialGeneratorNodeId,
   challengeNodeId: null,
   error: null,
@@ -108,8 +109,8 @@ const dailyCalculatorSlice = createSlice({
       const challengePoint = publicKeyToPoint(action.payload);
       // Keep selectedPoint as generator point G, don't change to challenge point
 
-      // Add challenge node to graph
-      const challengeNode = addNode(state.graph, challengePoint, {
+      // Add challenge node to cached graph
+      const challengeNode = addCachedNode('daily', challengePoint, {
         id: 'daily_challenge',
         label: 'Challenge Point',
         isChallenge: true,
@@ -125,8 +126,8 @@ const dailyCalculatorSlice = createSlice({
       const challengePoint = publicKeyToPoint(publicKey);
       // Keep selectedPoint as generator point G, don't change to challenge point
 
-      // Add challenge node to graph with known private key
-      const challengeNode = addNode(state.graph, challengePoint, {
+      // Add challenge node to cached graph with known private key
+      const challengeNode = addCachedNode('daily', challengePoint, {
         id: 'daily_challenge',
         label: 'Challenge Point',
         privateKey: BigInt('0x' + privateKey),
@@ -176,8 +177,8 @@ const dailyCalculatorSlice = createSlice({
       const challengePoint = publicKeyToPoint(challengePublicKey);
       state.selectedPoint = challengePoint;
 
-      // Ensure challenge node exists in graph (don't clear the graph, just ensure the node exists)
-      const challengeNode = addNode(state.graph, challengePoint, {
+      // Ensure challenge node exists in cached graph
+      const challengeNode = addCachedNode('daily', challengePoint, {
         id: 'daily_challenge',
         label: 'Challenge Point',
         isChallenge: true,
@@ -202,8 +203,8 @@ const dailyCalculatorSlice = createSlice({
       const challengePoint = publicKeyToPoint(publicKey);
       state.selectedPoint = challengePoint;
 
-      // Ensure challenge node exists in graph with known private key
-      const challengeNode = addNode(state.graph, challengePoint, {
+      // Ensure challenge node exists in cached graph with known private key
+      const challengeNode = addCachedNode('daily', challengePoint, {
         id: 'daily_challenge',
         label: 'Challenge Point',
         privateKey: BigInt('0x' + privateKey),
@@ -224,15 +225,14 @@ const dailyCalculatorSlice = createSlice({
     resetToGenerator: state => {
       state.selectedPoint = generatorPoint;
 
-      // Ensure generator node exists in graph (don't clear the graph, just ensure the node exists)
-      const generatorNode = addNode(state.graph, generatorPoint, {
+      // Ensure generator node exists in cached graph
+      const generatorNode = addCachedNode('daily', generatorPoint, {
         id: 'generator',
         label: 'Generator (G)',
         privateKey: 1n,
         isGenerator: true,
+        connectedToG: true,
       });
-      // Mark generator as connected to itself
-      generatorNode.connectedToG = true;
       state.generatorNodeId = generatorNode.id;
 
       // Don't clear saved points when switching to generator
@@ -247,13 +247,8 @@ const dailyCalculatorSlice = createSlice({
     savePoint: (state, action: PayloadAction<{ label?: string }>) => {
       const { label } = action.payload;
 
-      // Find the current point's private key from the graph
-      const currentNode = Object.values(state.graph.nodes).find(
-        node =>
-          node.point.x === state.selectedPoint.x &&
-          node.point.y === state.selectedPoint.y &&
-          node.point.isInfinity === state.selectedPoint.isInfinity
-      );
+      // Find the current point's private key from the cached graph
+      const currentNode = findCachedNodeByPoint('daily', state.selectedPoint);
 
       const savedPoint: SavedPoint = {
         id: `saved_${Date.now()}`,
@@ -269,8 +264,8 @@ const dailyCalculatorSlice = createSlice({
       const savedPoint = action.payload;
       state.selectedPoint = savedPoint.point;
 
-      // Add the saved point to the graph if it doesn't exist, including its private key
-      const node = addNode(state.graph, savedPoint.point, {
+      // Add the saved point to the cached graph if it doesn't exist, including its private key
+      const node = addCachedNode('daily', savedPoint.point, {
         id: savedPoint.id,
         label: savedPoint.label,
         privateKey: savedPoint.privateKey,
@@ -278,7 +273,8 @@ const dailyCalculatorSlice = createSlice({
 
       // If the saved point doesn't have a private key, try to calculate it from the graph
       if (!node.privateKey) {
-        const calculatedKey = calculatePrivateKeyFromGraph(node.point, state.graph);
+        const graph = getCachedGraph('daily');
+        const calculatedKey = calculatePrivateKeyFromGraph(node.point, graph);
         if (calculatedKey) {
           node.privateKey = calculatedKey;
         }
@@ -300,26 +296,25 @@ const dailyCalculatorSlice = createSlice({
     checkWinCondition: state => {
       // Win condition: challenge node is connected to generator (has connectedToG property)
       if (state.challengeNodeId && state.generatorNodeId) {
-        const challengeNode = state.graph.nodes[state.challengeNodeId];
+        const graph = getCachedGraph('daily');
+        const challengeNode = graph.nodes[state.challengeNodeId];
         if (challengeNode?.connectedToG && !state.hasWon) {
           state.hasWon = true;
           state.showVictoryModal = true;
         }
       }
     },
-    addOperationToGraph: (
-      state,
-      action: PayloadAction<{
-        fromPoint: ECPoint;
-        toPoint: ECPoint;
-        operation: Operation;
-      }>
-    ) => {
+    addOperationToGraph: (state, action: PayloadAction<SingleOperationPayload>) => {
+      // Single operation: use cached graph processing
       const { fromPoint, toPoint, operation } = action.payload;
-      ensureOperationInGraph(state.graph, fromPoint, toPoint, operation);
-
+      addCachedOperation('daily', fromPoint, toPoint, operation);
       // Update selected point to the result
       state.selectedPoint = toPoint;
+    },
+    addBatchOperationsToGraph: (_state, action: PayloadAction<SingleOperationPayload[]>) => {
+      const operations = action.payload;
+      const graph = getCachedGraph('daily');
+      processBatchOperations(graph, operations, 'daily');
     },
     saveState: state => {
       // Save current state to localStorage
@@ -360,6 +355,7 @@ export const {
   loadSavedPoint,
   checkWinCondition,
   addOperationToGraph,
+  addBatchOperationsToGraph,
   saveState,
   loadState,
 } = dailyCalculatorSlice.actions;

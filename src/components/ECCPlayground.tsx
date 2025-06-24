@@ -47,8 +47,8 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     hasWon,
     showVictoryModal,
     savedPoints,
-    graph,
     setCurrentPoint,
+    graph,
     setError,
     setShowVictoryModal,
     resetToChallenge,
@@ -56,11 +56,11 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     savePoint,
     loadSavedPoint,
   } = calculator;
-
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
   const [signature, setSignature] = useState<string>('');
+  const [totalOperationCount, setTotalOperationCount] = useState<number>(0);
 
   const calculatorDisplayRef = useRef<((value: string) => void) | null>(null);
   const generatorPoint = getGeneratorPoint();
@@ -97,12 +97,28 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     }
   }, [hasWon, victoryPrivateKey]);
 
-  // Calculate total number of operations by summing all bundled edges
-  const totalOperationCount = useMemo(() => {
-    return Object.values(graph.edges).reduce((total, edge) => {
-      return total + (edge.bundleCount ? Number(edge.bundleCount) : 1);
-    }, 0);
-  }, [graph]);
+  // Calculate total number of user-created operations (excluding system-generated intermediates)
+  useEffect(() => {
+    let total = 0;
+    const seenEdgeIds = new Set<string>();
+
+    // Iterate through all nodes' edge lists
+    for (const edgeList of Object.values(graph.edges)) {
+      for (const edge of edgeList) {
+        // Only count operations that were created by the user
+        // Use edge ID to avoid double counting since we have bidirectional edges
+        if (edge.operation.userCreated && !seenEdgeIds.has(edge.id)) {
+          total += 1;
+          seenEdgeIds.add(edge.id);
+
+          // Also add the reverse edge ID to avoid counting the reverse direction
+          const reverseEdgeId = `${edge.toNodeId}_to_${edge.fromNodeId}_by_operation_${edge.operation.type}_${edge.operation.value}`;
+          seenEdgeIds.add(reverseEdgeId);
+        }
+      }
+    }
+    setTotalOperationCount(total / 2);
+  }, [graph, hasWon]);
 
   // Note: Removed automatic reset to generator when challenge changes
   // to preserve current point state when switching between modes

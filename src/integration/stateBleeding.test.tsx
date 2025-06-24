@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { switchGameMode } from '../store/slices/gameSlice';
+import { OperationType } from '../types/ecc';
 import { getGeneratorPoint, hexToBigint, pointMultiply } from '../utils/ecc';
 import { createTestStore, type TestStore } from '../utils/testUtils';
 
@@ -37,7 +38,7 @@ describe('State Bleeding Integration Tests', () => {
         toPoint: practiceInDaily,
         operation: {
           id: 'attempt-exploit',
-          type: 'multiply',
+          type: OperationType.MULTIPLY,
           description: 'Attempt exploit',
           value: scalar.toString(),
         },

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { OperationType } from '../../types/ecc';
 import { getGeneratorPoint, pointMultiply, pointNegate } from '../../utils/ecc';
+import { getCachedGraph } from '../../utils/graphCache';
 import { createTestStore } from '../../utils/testUtils';
 import { addOperationToGraph, resetToChallenge } from './eccCalculatorSlice';
 import { switchGameMode } from './gameSlice';
@@ -27,10 +29,9 @@ describe('State Persistence with switchGameMode', () => {
     );
 
     // Get the practice mode state
-    let state = store.getState() as RootState;
-    const practiceNodeCount = Object.keys(state.practiceCalculator.graph.nodes).length;
-    const practiceGeneratorId = state.practiceCalculator.generatorNodeId;
-    const practiceChallengeId = state.practiceCalculator.challengeNodeId;
+    const practiceNodeCount = Object.keys(getCachedGraph('practice').nodes).length;
+    const practiceGeneratorId = (store.getState() as RootState).practiceCalculator.generatorNodeId;
+    const practiceChallengeId = (store.getState() as RootState).practiceCalculator.challengeNodeId;
 
     expect(practiceGeneratorId).toBeTruthy();
     expect(practiceChallengeId).toBeTruthy();
@@ -44,18 +45,16 @@ describe('State Persistence with switchGameMode', () => {
       resetToChallenge('03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6')
     );
 
-    state = store.getState() as RootState;
-    const dailyNodeCount = Object.keys(state.dailyCalculator.graph.nodes).length;
+    const dailyNodeCount = Object.keys(getCachedGraph('daily').nodes).length;
     expect(dailyNodeCount).toBeGreaterThan(1);
 
     // Switch back to practice mode - state should be restored
     store.dispatch(switchGameMode('practice'));
 
-    state = store.getState() as RootState;
-    const restoredPracticeNodeCount = Object.keys(state.practiceCalculator.graph.nodes).length;
+    const restoredPracticeNodeCount = Object.keys(getCachedGraph('practice').nodes).length;
     expect(restoredPracticeNodeCount).toBe(practiceNodeCount);
-    expect(state.practiceCalculator.generatorNodeId).toBe(practiceGeneratorId);
-    expect(state.practiceCalculator.challengeNodeId).toBe(practiceChallengeId);
+    expect((store.getState() as RootState).practiceCalculator.generatorNodeId).toBe(practiceGeneratorId);
+    expect((store.getState() as RootState).practiceCalculator.challengeNodeId).toBe(practiceChallengeId);
   });
 
   it('should maintain separate graph states between modes', () => {
@@ -78,17 +77,15 @@ describe('State Persistence with switchGameMode', () => {
         fromPoint: generatorPoint,
         toPoint: doubledPoint,
         operation: {
-          id: 'test',
-          type: 'multiply',
+          type: OperationType.MULTIPLY,
           description: 'double edge',
           value: '2',
         },
       })
     );
 
-    let state = store.getState() as RootState;
-    const practiceNodeCount = Object.keys(state.practiceCalculator.graph.nodes).length;
-    expect(practiceNodeCount).toBe(3); // generator, challenge, and new node
+    const practiceNodeCount = Object.keys(getCachedGraph('practice').nodes).length;
+    expect(practiceNodeCount).toBe(3); // generator, challenge, doubled node (negation might not be automatic in this context)
 
     // Switch to daily mode
     store.dispatch(switchGameMode('daily'));
@@ -96,8 +93,7 @@ describe('State Persistence with switchGameMode', () => {
       resetToChallenge('03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6')
     );
 
-    state = store.getState() as RootState;
-    const dailyNodeCount = Object.keys(state.dailyCalculator.graph.nodes).length;
+    const dailyNodeCount = Object.keys(getCachedGraph('daily').nodes).length;
     expect(dailyNodeCount).toBe(2); // only generator and challenge
 
     // Add nodes in daily mode
@@ -108,29 +104,26 @@ describe('State Persistence with switchGameMode', () => {
         fromPoint: dailyGeneratorPoint,
         toPoint: negatedPoint,
         operation: {
-          id: 'test',
-          type: 'negate',
+          type: OperationType.NEGATE,
           description: 'negate point',
           value: '1',
         },
       })
     );
 
-    state = store.getState() as RootState;
-    const newDailyNodeCount = Object.keys(state.dailyCalculator.graph.nodes).length;
+    const newDailyNodeCount = Object.keys(getCachedGraph('daily').nodes).length;
     expect(newDailyNodeCount).toBe(3);
 
     // Switch back to practice - state should be preserved
     store.dispatch(switchGameMode('practice'));
-    state = store.getState() as RootState;
-    const practiceNodeCountAfter = Object.keys(state.practiceCalculator.graph.nodes).length;
+
+    const practiceNodeCountAfter = Object.keys(getCachedGraph('practice').nodes).length;
     expect(practiceNodeCountAfter).toBe(practiceNodeCount);
 
     // Node IDs should be different between modes when they have different challenges
-    const practiceNodeIds = Object.keys(state.practiceCalculator.graph.nodes);
+    const practiceNodeIds = Object.keys(getCachedGraph('practice').nodes);
     store.dispatch(switchGameMode('daily'));
-    state = store.getState() as RootState;
-    const dailyNodeIds = Object.keys(state.dailyCalculator.graph.nodes);
+    const dailyNodeIds = Object.keys(getCachedGraph('daily').nodes);
 
     // Graphs should be independent
     expect(practiceNodeIds.length).toBe(3);
