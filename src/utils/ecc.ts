@@ -154,17 +154,15 @@ export function scalarMultiplyWithIntermediates(
     };
   }
 
-  // Use elliptic.js for the final result to ensure correctness
-  const ecPoint = pointToElliptic(point);
-  const finalResult = ecPoint.mul(scalar);
-  const result = ellipticToPoint(finalResult);
-
-  // Generate intermediates using proper double-and-add algorithm
+  // Use proper double-and-add algorithm for both result and intermediates
   const intermediates: IntermediatePoint[] = [];
   const binaryScalar = scalar.toString(2);
 
   // Track private keys if we have a starting private key
   const shouldTrackPrivateKey = startingPrivateKey !== undefined;
+
+  // Convert to elliptic.js points for operations
+  const ecPoint = pointToElliptic(point);
 
   // Initialize with point at infinity
   let currentPoint = ec.curve.point(null, null); // Point at infinity
@@ -217,6 +215,9 @@ export function scalarMultiplyWithIntermediates(
       });
     }
   }
+
+  // The final result is the last point from our double-and-add algorithm
+  const result = ellipticToPoint(currentPoint);
 
   return { result, intermediates };
 }

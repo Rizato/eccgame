@@ -340,11 +340,25 @@ export function calculatePrivateKeyFromGraph(
   const node = findNodeByPoint(graph, point);
 
   if (!node) {
+    // Special case: if this is the generator point and not in graph, assume private key 1
+    const generator = getGeneratorPoint();
+    if (!point.isInfinity && point.x === generator.x && point.y === generator.y) {
+      return 1n;
+    }
     return undefined;
   }
 
   // If we already have the private key stored, return it
-  return node.privateKey;
+  if (node.privateKey !== undefined) {
+    return node.privateKey;
+  }
+
+  // Special case: if this is a generator node but doesn't have private key set, it should be 1
+  if (node.isGenerator) {
+    return 1n;
+  }
+
+  return undefined;
 }
 
 /**
