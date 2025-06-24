@@ -119,17 +119,119 @@ export function pointMultiply(scalar: bigint, point: ECPoint): ECPoint {
 }
 
 /**
- * Scalar multiplication with intermediate points for graph tracking
- * Returns result and intermediates
+ * Double-and-add algorithm that returns intermediate points
+ * Optimized to use elliptic.js points internally to avoid conversion overhead
  */
-export function pointMultiplyWithIntermediates(
+export function scalarMultiplyWithIntermediates(
   scalar: bigint,
   point: ECPoint,
   startingPrivateKey?: bigint
 ): { result: ECPoint; intermediates: IntermediatePoint[] } {
-  return doubleAndAddWithIntermediates(scalar, point, startingPrivateKey);
+  if (scalar === 0n || point.isInfinity) {
+    return {
+      result: { x: 0n, y: 0n, isInfinity: true },
+      intermediates: [],
+    };
+  }
+
+  if (scalar === 1n) {
+    return { result: point, intermediates: [] };
+  }
+
+  // Handle negative scalars
+  if (scalar < 0n) {
+    const negated = pointNegate(point);
+    return scalarMultiplyWithIntermediates(-scalar, negated, startingPrivateKey);
+  }
+
+  scalar = scalar % CURVE_N;
+  if (scalar === 0n) {
+    return {
+      result: { x: 0n, y: 0n, isInfinity: true },
+      intermediates: [],
+    };
+  }
+
+  // Use elliptic.js for the final result
+  const ecPoint = pointToElliptic(point);
+  const resultPoint = ecPoint.mul(scalar);
+  const result = ellipticToPoint(resultPoint);
+
+  // Only track private keys if the point is the generator
+  const generator = getGeneratorPoint();
+  const isGenerator = point.x === generator.x && point.y === generator.y && !point.isInfinity;
+
+  const bits = scalar.toString(2);
+  let accElliptic: any = null;
+  let accPrivateKey: bigint | undefined = isGenerator ? startingPrivateKey : undefined;
+  let addendElliptic = pointToElliptic(point);
+  let addendPrivateKey = isGenerator ? startingPrivateKey : undefined;
+  const intermediates: IntermediatePoint[] = [];
+
+  let foundFirstOne = false;
+  for (let i = 0; i < bits.length; ++i) {
+    const bit = bits[i];
+    if (!foundFirstOne) {
+      if (bit === '1') {
+        accElliptic = addendElliptic;
+        accPrivateKey = isGenerator ? addendPrivateKey : undefined;
+        intermediates.push({
+          point: ellipticToPoint(accElliptic),
+          operation: {
+            type: OperationType.ADD,
+            description: 'Set',
+            value: 'init',
+            userCreated: false,
+          },
+          privateKey: accPrivateKey,
+        });
+        foundFirstOne = true;
+      }
+      continue;
+    }
+    // For all bits after the first set bit
+    // Double
+    accElliptic = accElliptic.dbl();
+    if (isGenerator && accPrivateKey !== undefined) {
+      accPrivateKey = (accPrivateKey * 2n) % CURVE_N;
+    } else {
+      accPrivateKey = undefined;
+    }
+    intermediates.push({
+      point: ellipticToPoint(accElliptic),
+      operation: {
+        type: OperationType.MULTIPLY,
+        description: 'Double',
+        value: '2',
+        userCreated: false,
+      },
+      privateKey: accPrivateKey,
+    });
+    // If bit is set, add
+    if (bit === '1') {
+      accElliptic = accElliptic.add(addendElliptic);
+      if (isGenerator && accPrivateKey !== undefined && addendPrivateKey !== undefined) {
+        accPrivateKey = (accPrivateKey + addendPrivateKey) % CURVE_N;
+      } else {
+        accPrivateKey = undefined;
+      }
+      intermediates.push({
+        point: ellipticToPoint(accElliptic),
+        operation: {
+          type: OperationType.ADD,
+          description: 'Add',
+          value: '1',
+          userCreated: false,
+        },
+        privateKey: accPrivateKey,
+      });
+    }
+  }
+
+  return { result, intermediates };
 }
 
+// Alias for backward compatibility
 /**
  * Scalar division using double-and-add algorithm via modular inverse
  * Returns just the result point
@@ -163,7 +265,7 @@ export function pointDivideWithIntermediates(
   const inverse = modInverse(scalar, CURVE_N);
 
   // Use pointMultiply with the inverse
-  return pointMultiplyWithIntermediates(inverse, point, startingPrivateKey);
+  return scalarMultiplyWithIntermediates(inverse, point, startingPrivateKey);
 }
 
 /**
@@ -256,125 +358,16 @@ function extendedGcd(a: bigint, b: bigint): { gcd: bigint; x: bigint; y: bigint 
   return { gcd: old_r, x: old_s, y: old_t };
 }
 
-/**
- * Double-and-add algorithm for scalar multiplication
- * Calls doubleAndAddWithIntermediates and drops the intermediates
- */
+// Update all references in this file
 export function doubleAndAdd(scalar: bigint, point: ECPoint): ECPoint {
-  const { result } = doubleAndAddWithIntermediates(scalar, point);
+  const { result } = scalarMultiplyWithIntermediates(scalar, point);
   return result;
 }
 
-/**
- * Double-and-add algorithm that returns intermediate points
- * Optimized to use elliptic.js points internally to avoid conversion overhead
- */
-export function doubleAndAddWithIntermediates(
+export function pointMultiplyWithIntermediates(
   scalar: bigint,
   point: ECPoint,
   startingPrivateKey?: bigint
 ): { result: ECPoint; intermediates: IntermediatePoint[] } {
-  if (scalar === 0n || point.isInfinity) {
-    return {
-      result: { x: 0n, y: 0n, isInfinity: true },
-      intermediates: [],
-    };
-  }
-
-  if (scalar === 1n) {
-    return { result: point, intermediates: [] };
-  }
-
-  // Handle negative scalars
-  if (scalar < 0n) {
-    const negated = pointNegate(point);
-    return doubleAndAddWithIntermediates(-scalar, negated);
-  }
-
-  // Reduce scalar modulo curve order
-  scalar = scalar % CURVE_N;
-
-  if (scalar === 0n) {
-    return {
-      result: { x: 0n, y: 0n, isInfinity: true },
-      intermediates: [],
-    };
-  }
-
-  // Convert to elliptic.js points once at the beginning
-  let currentElliptic = pointToElliptic(point);
-  const originalElliptic = pointToElliptic(point);
-
-  // Track private key if we have the starting private key
-  let currentPrivateKey = startingPrivateKey;
-
-  // Pre-allocate arrays for batch processing
-  const binaryScalar = scalar.toString(2);
-  const rounds = binaryScalar.length - 1;
-  const oneCount = (binaryScalar.match(/1/g) || []).length;
-  const expectedIntermediates = rounds + (oneCount - 1);
-
-  const ellipticPoints: any[] = new Array(expectedIntermediates);
-  const operations: any[] = new Array(expectedIntermediates);
-  const privateKeys: (bigint | undefined)[] = new Array(expectedIntermediates);
-
-  let intermediateIndex = 0;
-
-  for (let i = rounds; i >= 1; i--) {
-    // Double the current point (using elliptic.js directly)
-    currentElliptic = currentElliptic.add(currentElliptic);
-
-    // Double the private key if we're tracking it
-    if (currentPrivateKey !== undefined) {
-      currentPrivateKey = (currentPrivateKey * 2n) % CURVE_N;
-    }
-
-    // Store in pre-allocated arrays
-    ellipticPoints[intermediateIndex] = currentElliptic;
-    operations[intermediateIndex] = {
-      type: OperationType.MULTIPLY,
-      description: 'Double',
-      value: '2',
-      userCreated: false,
-    };
-    privateKeys[intermediateIndex] = currentPrivateKey;
-    intermediateIndex++;
-
-    // Check if bit i-1 is set
-    if ((scalar >> BigInt(i - 1)) & 1n) {
-      // Add the original point (using elliptic.js directly)
-      currentElliptic = currentElliptic.add(originalElliptic);
-
-      // Add the original private key if we're tracking it
-      if (currentPrivateKey !== undefined && startingPrivateKey !== undefined) {
-        currentPrivateKey = (currentPrivateKey + startingPrivateKey) % CURVE_N;
-      }
-
-      // Store in pre-allocated arrays
-      ellipticPoints[intermediateIndex] = currentElliptic;
-      operations[intermediateIndex] = {
-        type: OperationType.ADD,
-        description: 'Add',
-        value: '1',
-        userCreated: false,
-      };
-      privateKeys[intermediateIndex] = currentPrivateKey;
-      intermediateIndex++;
-    }
-  }
-
-  // Batch convert all elliptic.js points to ECPoints
-  const intermediates: IntermediatePoint[] = new Array(intermediateIndex);
-  for (let i = 0; i < intermediateIndex; i++) {
-    intermediates[i] = {
-      point: ellipticToPoint(ellipticPoints[i]),
-      operation: operations[i],
-      privateKey: privateKeys[i],
-    };
-  }
-
-  // Convert final result back to ECPoint
-  const finalResult = ellipticToPoint(currentElliptic);
-
-  return { result: finalResult, intermediates };
+  return scalarMultiplyWithIntermediates(scalar, point, startingPrivateKey);
 }

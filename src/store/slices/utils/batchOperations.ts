@@ -1,11 +1,8 @@
 import {
-  OperationType,
   type PointGraph,
   type SingleOperationPayload,
-  type Operation,
   type GraphEdge,
 } from '../../../types/ecc';
-import { pointNegate } from '../../../utils/ecc';
 import { findNodeByPoint, addNode, reverseOperation } from '../../../utils/graphOperations';
 
 /**
@@ -72,46 +69,6 @@ export function processBatchOperations(
         operation: reversedOp,
       };
       graph.edges[toNode.id].push(reverseEdge);
-    }
-
-    // Add negation without propagation
-    const negatedPoint = pointNegate(toPoint);
-    let negatedNode = findNodeByPoint(graph, negatedPoint);
-    if (!negatedNode) {
-      negatedNode = addNode(graph, negatedPoint, { label: 'Negated', connectedToG });
-    }
-
-    // Initialize edge array for negated node
-    if (!graph.edges[negatedNode.id]) {
-      graph.edges[negatedNode.id] = [];
-    }
-
-    // Add negation edge
-    const negateOp: Operation = {
-      type: OperationType.NEGATE,
-      description: '±',
-      value: '',
-      userCreated: false,
-    };
-    const negateEdgeId = `${toNode.id}_to_${negatedNode.id}_by_operation_${negateOp.type}_${negateOp.value}`;
-    if (!graph.edges[toNode.id].find(e => e.id === negateEdgeId)) {
-      const negateEdge: GraphEdge = {
-        id: negateEdgeId,
-        fromNodeId: toNode.id,
-        toNodeId: negatedNode.id,
-        operation: negateOp,
-      };
-      graph.edges[toNode.id].push(negateEdge);
-
-      // Add reverse negation edge (negate is its own inverse)
-      const reverseNegateEdgeId = `${negatedNode.id}_to_${toNode.id}_by_operation_${negateOp.type}_${negateOp.value}`;
-      const reverseNegateEdge: GraphEdge = {
-        id: reverseNegateEdgeId,
-        fromNodeId: negatedNode.id,
-        toNodeId: toNode.id,
-        operation: negateOp,
-      };
-      graph.edges[negatedNode.id].push(reverseNegateEdge);
     }
   }
 }

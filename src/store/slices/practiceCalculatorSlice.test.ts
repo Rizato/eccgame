@@ -1,18 +1,21 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { OperationType } from '../../types/ecc';
-import { getGeneratorPoint, pointMultiply, pointNegate } from '../../utils/ecc';
+import { getGeneratorPoint, pointMultiply, pointNegate, publicKeyToPoint, pointToPublicKey } from '../../utils/ecc';
 import { getCachedGraph, clearCachedGraph } from '../../utils/graphCache';
 import dailyCalculatorReducer from './eccCalculatorSlice';
 import gameReducer from './gameSlice';
 import practiceCalculatorReducer, {
   addOperationToGraph,
   clearPracticeState,
+  setChallengeWithPrivateKey,
+  resetToGenerator,
 } from './practiceCalculatorSlice';
 import practiceModeReducer from './practiceModeSlice';
 import themeReducer from './themeSlice';
 import uiReducer from './uiSlice';
 import type { GraphNode, GraphEdge } from '../../types/ecc';
+import { createTestStore, type TestStore } from '../../utils/testUtils';
 
 describe('PracticeCalculatorSlice Force Multiplication', () => {
   let store: ReturnType<typeof configureStore>;
@@ -208,5 +211,51 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
       // Note: Automatic negation may not be working as expected in this context
       // expect(negateEdge?.operation.userCreated).toBe(false);
     });
+  });
+});
+
+describe('Practice Mode Goal Point Generation', () => {
+  let store: TestStore;
+
+  beforeEach(() => {
+    store = createTestStore();
+    store.dispatch(resetToGenerator());
+  });
+
+  it('should land on the challenge point when multiplying generator by challenge private key', () => {
+    // Simulate a practice challenge
+    const privateKey = 42n;
+    const generator = getGeneratorPoint();
+    const challengePoint = pointMultiply(privateKey, generator);
+    const publicKeyHex = pointToPublicKey(challengePoint);
+    const privateKeyHex = privateKey.toString(16);
+
+    // Set the challenge in the calculator
+    store.dispatch(
+      setChallengeWithPrivateKey({
+        publicKey: publicKeyHex,
+        privateKey: privateKeyHex,
+      })
+    );
+
+    // Check that the challenge node exists and has the correct private key
+    const graph = getCachedGraph('practice');
+    const challengeNode = Object.values(graph.nodes).find(
+      node => node.label === 'Challenge Point'
+    );
+    expect(challengeNode).toBeDefined();
+    expect(challengeNode?.privateKey).toBe(privateKey);
+
+    // Check that the generator node has private key 1
+    const generatorNode = Object.values(graph.nodes).find(
+      node => node.label === 'Generator (G)'
+    );
+    expect(generatorNode).toBeDefined();
+    expect(generatorNode?.privateKey).toBe(1n);
+
+    // Check that multiplying the generator by the challenge private key lands on the challenge point
+    const calculatedPoint = pointMultiply(privateKey, generator);
+    expect(calculatedPoint.x).toBe(challengePoint.x);
+    expect(calculatedPoint.y).toBe(challengePoint.y);
   });
 });

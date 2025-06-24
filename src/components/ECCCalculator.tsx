@@ -549,7 +549,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
         let steps: IntermediatePoint[] = [];
         let description: string;
 
-        const differencePoint = pointMultiply(scalar, generatorPoint);
         if (operation === OperationType.MULTIPLY) {
           const { result, intermediates } = pointMultiplyWithIntermediates(
             scalar,
@@ -569,9 +568,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           steps = intermediates;
           description = `÷${value}`;
         } else if (operation === OperationType.ADD) {
+          const differencePoint = pointMultiply(scalar, generatorPoint);
           newPoint = pointAdd(currentPoint, differencePoint);
           description = `+${value}`;
         } else {
+          const differencePoint = pointMultiply(scalar, generatorPoint);
           newPoint = pointSubtract(currentPoint, differencePoint);
           description = `-${value}`;
         }
@@ -580,7 +581,11 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           onError('Result is not on the curve');
           return;
         }
+        
+        // Add intermediates to graph if any
+        addIntermediatesToGraph(steps, currentPoint);
 
+        // Single operation, dispatch after batch so they all get propagate (only once though)
         const operationObj: Operation = {
           type: operation,
           description,
@@ -588,10 +593,6 @@ const ECCCalculator: React.FC<ECCCalculatorProps> = ({
           userCreated: true,
         };
 
-        // Add intermediates to graph if any
-        addIntermediatesToGraph(steps, currentPoint);
-
-        // Single operation, dispatch after batch so they all get propagate (only once though)
         dispatchOperation({
           fromPoint: currentPoint,
           toPoint: newPoint,
