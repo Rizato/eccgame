@@ -1,8 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { OperationType } from '../../types/ecc';
-import { getGeneratorPoint, pointMultiply, pointNegate, publicKeyToPoint, pointToPublicKey } from '../../utils/ecc';
+import { getGeneratorPoint, pointMultiply, pointNegate, pointToPublicKey } from '../../utils/ecc';
 import { getCachedGraph, clearCachedGraph } from '../../utils/graphCache';
+import { createTestStore, type TestStore } from '../../utils/testUtils';
 import dailyCalculatorReducer from './eccCalculatorSlice';
 import gameReducer from './gameSlice';
 import practiceCalculatorReducer, {
@@ -15,7 +16,6 @@ import practiceModeReducer from './practiceModeSlice';
 import themeReducer from './themeSlice';
 import uiReducer from './uiSlice';
 import type { GraphNode, GraphEdge } from '../../types/ecc';
-import { createTestStore, type TestStore } from '../../utils/testUtils';
 
 describe('PracticeCalculatorSlice Force Multiplication', () => {
   let store: ReturnType<typeof configureStore>;

@@ -152,82 +152,69 @@ export function scalarMultiplyWithIntermediates(
     };
   }
 
-  // Use elliptic.js for the final result
+  // Convert to elliptic.js points for internal operations
   const ecPoint = pointToElliptic(point);
-  const resultPoint = ecPoint.mul(scalar);
-  const result = ellipticToPoint(resultPoint);
-
-  // Only track private keys if the point is the generator
-  const generator = getGeneratorPoint();
-  const isGenerator = point.x === generator.x && point.y === generator.y && !point.isInfinity;
-
-  const bits = scalar.toString(2);
-  let accElliptic: any = null;
-  let accPrivateKey: bigint | undefined = isGenerator ? startingPrivateKey : undefined;
-  let addendElliptic = pointToElliptic(point);
-  let addendPrivateKey = isGenerator ? startingPrivateKey : undefined;
+  
+  // Initialize accumulator and addend
+  const addendElliptic = ecPoint;
+  const addendPrivateKey = startingPrivateKey;
+  
+  // Use elliptic.js for the final result to ensure correctness
+  const finalResult = ecPoint.mul(scalar);
+  const result = ellipticToPoint(finalResult);
+  
+  // Generate intermediates using elliptic.js operations
   const intermediates: IntermediatePoint[] = [];
-
-  let foundFirstOne = false;
-  for (let i = 0; i < bits.length; ++i) {
-    const bit = bits[i];
-    if (!foundFirstOne) {
-      if (bit === '1') {
-        accElliptic = addendElliptic;
-        accPrivateKey = isGenerator ? addendPrivateKey : undefined;
-        intermediates.push({
-          point: ellipticToPoint(accElliptic),
-          operation: {
-            type: OperationType.ADD,
-            description: 'Set',
-            value: 'init',
-            userCreated: false,
-          },
-          privateKey: accPrivateKey,
-        });
-        foundFirstOne = true;
+  const binaryScalar = scalar.toString(2);
+  
+  // Only track private keys if the point is the generator
+  const shouldTrackPrivateKey = point.x === getGeneratorPoint().x && point.y === getGeneratorPoint().y;
+  
+  let currentPrivateKey = startingPrivateKey;
+  let currentPoint = ecPoint;
+  
+  for (let i = 0; i < binaryScalar.length; i++) {
+    const bit = binaryScalar[i];
+    
+    if (i > 0) {
+      // Double the current point
+      currentPoint = currentPoint.dbl();
+      if (shouldTrackPrivateKey && currentPrivateKey !== undefined) {
+        currentPrivateKey = (currentPrivateKey * 2n) % CURVE_N;
       }
-      continue;
-    }
-    // For all bits after the first set bit
-    // Double
-    accElliptic = accElliptic.dbl();
-    if (isGenerator && accPrivateKey !== undefined) {
-      accPrivateKey = (accPrivateKey * 2n) % CURVE_N;
-    } else {
-      accPrivateKey = undefined;
-    }
-    intermediates.push({
-      point: ellipticToPoint(accElliptic),
-      operation: {
-        type: OperationType.MULTIPLY,
-        description: 'Double',
-        value: '2',
-        userCreated: false,
-      },
-      privateKey: accPrivateKey,
-    });
-    // If bit is set, add
-    if (bit === '1') {
-      accElliptic = accElliptic.add(addendElliptic);
-      if (isGenerator && accPrivateKey !== undefined && addendPrivateKey !== undefined) {
-        accPrivateKey = (accPrivateKey + addendPrivateKey) % CURVE_N;
-      } else {
-        accPrivateKey = undefined;
-      }
+      
       intermediates.push({
-        point: ellipticToPoint(accElliptic),
+        point: ellipticToPoint(currentPoint),
+        operation: {
+          type: OperationType.MULTIPLY,
+          description: 'Double',
+          value: '',
+          userCreated: false,
+        },
+        privateKey: shouldTrackPrivateKey ? currentPrivateKey : undefined,
+      });
+    }
+    
+    if (bit === '1') {
+      // Add the original point
+      currentPoint = currentPoint.add(addendElliptic);
+      if (shouldTrackPrivateKey && currentPrivateKey !== undefined && addendPrivateKey !== undefined) {
+        currentPrivateKey = (currentPrivateKey + addendPrivateKey) % CURVE_N;
+      }
+      
+      intermediates.push({
+        point: ellipticToPoint(currentPoint),
         operation: {
           type: OperationType.ADD,
           description: 'Add',
-          value: '1',
+          value: '',
           userCreated: false,
         },
-        privateKey: accPrivateKey,
+        privateKey: shouldTrackPrivateKey ? currentPrivateKey : undefined,
       });
     }
   }
-
+  
   return { result, intermediates };
 }
 

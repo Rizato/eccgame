@@ -36,7 +36,7 @@ export function processBatchOperations(
         mode,
       });
     } else if (toPointPrivateKey !== undefined && toNode.privateKey === undefined) {
-      // Update existing node with pre-calculated private key
+      // Update existing node  with pre-calculated private key
       toNode.privateKey = toPointPrivateKey;
     }
 

@@ -4,7 +4,7 @@ import {
   ensureOperationInGraph,
   clearNodeCounter,
 } from './graphOperations';
-import type { PointGraph, ECPoint, GraphNode, Operation } from '../types/ecc';
+import type { PointGraph, ECPoint, GraphNode, Operation, GraphEdge } from '../types/ecc';
 
 /**
  * High-performance graph cache that operates outside Redux state
@@ -14,7 +14,7 @@ class GraphCache {
   private graphs = new Map<string, PointGraph>();
   private nodeMap = new Map<string, Map<string, GraphNode>>();
   private pointMap = new Map<string, Map<string, string>>();
-  private edgeMap = new Map<string, Map<string, any[]>>();
+  private edgeMap = new Map<string, Map<string, GraphEdge[]>>();
 
   /**
    * Get or create a graph for the given mode
@@ -46,7 +46,7 @@ class GraphCache {
   /**
    * Add a node with Map optimization
    */
-  addNode(mode: string, point: ECPoint, options: any = {}): GraphNode {
+  addNode(mode: string, point: ECPoint, options: Record<string, unknown> = {}): GraphNode {
     const graph = this.getGraph(mode);
     const nodeMap = this.nodeMap.get(mode)!;
     const pointMap = this.pointMap.get(mode)!;
@@ -152,7 +152,7 @@ export function getCachedGraph(mode: string): PointGraph {
   return graphCache.getGraph(mode);
 }
 
-export function addCachedNode(mode: string, point: ECPoint, options: any = {}): GraphNode {
+export function addCachedNode(mode: string, point: ECPoint, options: Record<string, unknown> = {}): GraphNode {
   return graphCache.addNode(mode, point, options);
 }
 

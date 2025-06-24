@@ -365,7 +365,6 @@ describe('ECC utilities', () => {
       expect(result.y).toBe(expectedPoint.y);
 
       // Check that intermediates have correct private keys
-      let currentPrivateKey = startingPrivateKey;
       for (const intermediate of intermediates) {
         if (intermediate.privateKey !== undefined) {
           // Verify this intermediate point matches its private key
@@ -390,7 +389,11 @@ describe('ECC utilities', () => {
       expect(intermediates1).toHaveLength(0);
 
       // Test negative scalar
-      const { result: resultNeg, intermediates: intermediatesNeg } = pointMultiplyWithIntermediates(-3n, generator);
+      const { result: resultNeg, intermediates: _intermediatesNeg } = pointMultiplyWithIntermediates(
+        -3n, 
+        generator, 
+        2n
+      );
       const expectedNeg = pointNegate(pointMultiply(3n, generator));
       expect(resultNeg.x).toBe(expectedNeg.x);
       expect(resultNeg.y).toBe(expectedNeg.y);
@@ -403,11 +406,11 @@ describe('ECC utilities', () => {
       const scalar = 7n;
       const inverse = modInverse(scalar, CURVE_N);
 
-      const { result: divideResult, intermediates: divideIntermediates } = pointDivideWithIntermediates(
+      const { result: divideResult, intermediates: _divideIntermediates } = pointDivideWithIntermediates(
         scalar, 
         generator
       );
-      const { result: multiplyResult, intermediates: multiplyIntermediates } = pointMultiplyWithIntermediates(
+      const { result: multiplyResult, intermediates: _multiplyIntermediates } = pointMultiplyWithIntermediates(
         inverse, 
         generator
       );
@@ -436,7 +439,7 @@ describe('ECC utilities', () => {
       const startingPrivateKey = 15n;
       const divisor = 3n;
 
-      const { result, intermediates } = pointDivideWithIntermediates(
+      const { result, intermediates: _intermediates } = pointDivideWithIntermediates(
         divisor, 
         generator, 
         startingPrivateKey
@@ -734,7 +737,7 @@ describe('ECC utilities', () => {
       expect(intermediates0).toHaveLength(0);
       
       // Test negative scalar
-      const { result: resultNeg, intermediates: intermediatesNeg } = scalarMultiplyWithIntermediates(
+      const { result: resultNeg, intermediates: _intermediatesNeg } = scalarMultiplyWithIntermediates(
         -3n, 
         generator, 
         2n
@@ -805,7 +808,7 @@ describe('ECC utilities', () => {
       const startingPrivateKey = 1n;
       
       // Test: G * 3 * 4 = G * 12
-      const { result: step1, intermediates: intermediates1 } = scalarMultiplyWithIntermediates(
+      const { result: step1, intermediates: _intermediates1 } = scalarMultiplyWithIntermediates(
         3n, 
         generator, 
         startingPrivateKey

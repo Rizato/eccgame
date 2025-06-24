@@ -10,6 +10,7 @@ import {
 import { getCachedGraph } from '../utils/graphCache';
 import { createTestStore } from '../utils/testUtils';
 import ECCCalculator from './ECCCalculator';
+import type { GraphNode, GraphEdge } from '../types/ecc';
 
 // Mock the crypto module to avoid async issues in tests
 vi.mock('../utils/crypto', () => ({
@@ -346,7 +347,7 @@ describe('ECCCalculator', () => {
       // Verify that all intermediate points from the algorithm exist in the graph
       for (const intermediate of intermediates) {
         const foundNode = graphNodes.find(
-          (node: any) => node.point.x === intermediate.point.x && node.point.y === intermediate.point.y
+          (node: GraphNode) => node.point.x === intermediate.point.x && node.point.y === intermediate.point.y
         );
         expect(foundNode).toBeDefined();
       }
@@ -354,7 +355,7 @@ describe('ECCCalculator', () => {
       // Verify final result exists
       const finalResult = pointMultiply(scalar, generatorPoint);
       const finalNode = graphNodes.find(
-        (node: any) => node.point.x === finalResult.x && node.point.y === finalResult.y
+        (node: GraphNode) => node.point.x === finalResult.x && node.point.y === finalResult.y
       );
       expect(finalNode).toBeDefined();
     });
@@ -402,9 +403,9 @@ describe('ECCCalculator', () => {
       // Should have both 2G and G in the graph
       const twoG = pointMultiply(2n, generatorPoint);
       const generatorNode = graphNodes.find(
-        (node: any) => node.point.x === generatorPoint.x && node.point.y === generatorPoint.y
+        (node: GraphNode) => node.point.x === generatorPoint.x && node.point.y === generatorPoint.y
       );
-      const twoGNode = graphNodes.find((node: any) => node.point.x === twoG.x && node.point.y === twoG.y);
+      const twoGNode = graphNodes.find((node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y);
 
       expect(generatorNode).toBeDefined();
       expect(twoGNode).toBeDefined();
@@ -441,9 +442,9 @@ describe('ECCCalculator', () => {
       // Verify we have generator and 2G
       const twoG = pointMultiply(2n, generatorPoint);
       const generatorNode = graphNodes.find(
-        (node: any) => node.point.x === generatorPoint.x && node.point.y === generatorPoint.y
+        (node: GraphNode) => node.point.x === generatorPoint.x && node.point.y === generatorPoint.y
       );
-      const twoGNode = graphNodes.find((node: any) => node.point.x === twoG.x && node.point.y === twoG.y);
+      const twoGNode = graphNodes.find((node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y);
 
       expect(generatorNode).toBeDefined();
       expect(twoGNode).toBeDefined();
@@ -489,7 +490,7 @@ describe('ECCCalculator', () => {
       expect(allEdges.length).toBeGreaterThan(1);
 
       // All intermediate edges should be marked as system-generated
-      const systemEdges = allEdges.filter((edge: any) => edge.operation.userCreated === false);
+      const systemEdges = allEdges.filter((edge: GraphEdge) => edge.operation.userCreated === false);
       
       expect(systemEdges.length).toBeGreaterThan(0);
     });
