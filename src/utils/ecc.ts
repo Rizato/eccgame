@@ -113,8 +113,10 @@ export function pointSubtract(p1: ECPoint, p2: ECPoint): ECPoint {
  * Returns just the result point
  */
 export function pointMultiply(scalar: bigint, point: ECPoint): ECPoint {
-  const ec = pointToElliptic(point);
-  const result = ec.mul(scalar);
+  const ecPoint = pointToElliptic(point);
+  // Ensure scalar is properly normalized
+  scalar = ((scalar % CURVE_N) + CURVE_N) % CURVE_N;
+  const result = ecPoint.mul(scalar.toString(16));
   return ellipticToPoint(result);
 }
 
@@ -152,37 +154,34 @@ export function scalarMultiplyWithIntermediates(
     };
   }
 
-  // Convert to elliptic.js points for internal operations
-  const ecPoint = pointToElliptic(point);
-  
-  // Initialize accumulator and addend
-  const addendElliptic = ecPoint;
-  const addendPrivateKey = startingPrivateKey;
-  
   // Use elliptic.js for the final result to ensure correctness
+  const ecPoint = pointToElliptic(point);
   const finalResult = ecPoint.mul(scalar);
   const result = ellipticToPoint(finalResult);
-  
-  // Generate intermediates using elliptic.js operations
+
+  // Generate intermediates using proper double-and-add algorithm
   const intermediates: IntermediatePoint[] = [];
   const binaryScalar = scalar.toString(2);
-  
-  // Only track private keys if the point is the generator
-  const shouldTrackPrivateKey = point.x === getGeneratorPoint().x && point.y === getGeneratorPoint().y;
-  
-  let currentPrivateKey = startingPrivateKey;
-  let currentPoint = ecPoint;
-  
+
+  // Track private keys if we have a starting private key
+  const shouldTrackPrivateKey = startingPrivateKey !== undefined;
+
+  // Initialize with point at infinity
+  let currentPoint = ec.curve.point(null, null); // Point at infinity
+  let currentPrivateKey =
+    shouldTrackPrivateKey && startingPrivateKey !== undefined ? 0n : undefined;
+
+  // Process bits from most significant to least significant
   for (let i = 0; i < binaryScalar.length; i++) {
     const bit = binaryScalar[i];
-    
+
     if (i > 0) {
-      // Double the current point
+      // Double the current point (except for the first bit)
       currentPoint = currentPoint.dbl();
       if (shouldTrackPrivateKey && currentPrivateKey !== undefined) {
         currentPrivateKey = (currentPrivateKey * 2n) % CURVE_N;
       }
-      
+
       intermediates.push({
         point: ellipticToPoint(currentPoint),
         operation: {
@@ -194,14 +193,18 @@ export function scalarMultiplyWithIntermediates(
         privateKey: shouldTrackPrivateKey ? currentPrivateKey : undefined,
       });
     }
-    
+
     if (bit === '1') {
       // Add the original point
-      currentPoint = currentPoint.add(addendElliptic);
-      if (shouldTrackPrivateKey && currentPrivateKey !== undefined && addendPrivateKey !== undefined) {
-        currentPrivateKey = (currentPrivateKey + addendPrivateKey) % CURVE_N;
+      currentPoint = currentPoint.add(ecPoint);
+      if (
+        shouldTrackPrivateKey &&
+        currentPrivateKey !== undefined &&
+        startingPrivateKey !== undefined
+      ) {
+        currentPrivateKey = (currentPrivateKey + startingPrivateKey) % CURVE_N;
       }
-      
+
       intermediates.push({
         point: ellipticToPoint(currentPoint),
         operation: {
@@ -214,7 +217,7 @@ export function scalarMultiplyWithIntermediates(
       });
     }
   }
-  
+
   return { result, intermediates };
 }
 

@@ -1,3 +1,4 @@
+import { ec as EC } from 'elliptic';
 import { describe, expect, it } from 'vitest';
 import {
   CURVE_N,
@@ -16,6 +17,8 @@ import {
   pointDivide,
   pointDivideWithIntermediates,
 } from './ecc';
+
+const ec = new EC('secp256k1');
 
 describe('ECC utilities', () => {
   describe('Constants', () => {
@@ -130,12 +133,9 @@ describe('ECC utilities', () => {
       const scalar = CURVE_N - 1n;
       const result = pointMultiply(scalar, getGeneratorPoint());
       expect(result.isInfinity).toBe(false);
-      // Use the actual output from elliptic.js as the expected value
-      expect(result).toEqual({
-        x: 45412695986550839614588515436767134844524641957770820091206519184340576032445n,
-        y: 82088334651107045501754259737151367733053683538691580894965539942803011007907n,
-        isInfinity: false,
-      });
+      // (N-1)*G should equal -G
+      const negatedG = pointNegate(getGeneratorPoint());
+      expect(result).toEqual(negatedG);
     });
   });
 
@@ -312,12 +312,9 @@ describe('ECC utilities', () => {
 
       const { result, intermediates } = pointMultiplyWithIntermediates(scalar, generator);
 
-      // Use the actual output from elliptic.js as the expected value
-      expect(result).toEqual({
-        x: 72488970228380509287422715226575535698893157273063074627791787432852706183111n,
-        y: 62070622898698443831883535403436258712770888294397026493185421712108624767191n,
-        isInfinity: false,
-      });
+      // Verify result matches pointMultiply
+      const expected = pointMultiply(scalar, generator);
+      expect(result).toEqual(expected);
       expect(intermediates.length).toBeGreaterThan(0);
 
       // Each intermediate should have point and operation info
@@ -338,7 +335,7 @@ describe('ECC utilities', () => {
       for (const scalar of testScalars) {
         const { result } = pointMultiplyWithIntermediates(scalar, generator);
         const expected = pointMultiply(scalar, generator);
-        
+
         expect(result.x).toBe(expected.x);
         expect(result.y).toBe(expected.y);
         expect(result.isInfinity).toBe(expected.isInfinity);
@@ -351,26 +348,26 @@ describe('ECC utilities', () => {
       const scalar = 3n;
 
       const { result, intermediates } = pointMultiplyWithIntermediates(
-        scalar, 
-        generator, 
+        scalar,
+        generator,
         startingPrivateKey
       );
 
       // The final private key should be startingPrivateKey * scalar
       const expectedPrivateKey = (startingPrivateKey * scalar) % CURVE_N;
-      
-      // Verify the final point matches the expected private key
-      const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-      expect(result.x).toBe(expectedPoint.x);
-      expect(result.y).toBe(expectedPoint.y);
+
+      // Verify the final point matches the expected private key using elliptic.js
+      const ecResult = ec.g.mul(expectedPrivateKey.toString(16));
+      expect(result.x).toBe(BigInt('0x' + ecResult.getX().toString(16)));
+      expect(result.y).toBe(BigInt('0x' + ecResult.getY().toString(16)));
 
       // Check that intermediates have correct private keys
       for (const intermediate of intermediates) {
         if (intermediate.privateKey !== undefined) {
-          // Verify this intermediate point matches its private key
-          const intermediatePoint = pointMultiply(intermediate.privateKey, generator);
-          expect(intermediate.point.x).toBe(intermediatePoint.x);
-          expect(intermediate.point.y).toBe(intermediatePoint.y);
+          // Verify this intermediate point matches its private key using elliptic.js
+          const ecIntermediate = ec.g.mul(intermediate.privateKey.toString(16));
+          expect(intermediate.point.x).toBe(BigInt('0x' + ecIntermediate.getX().toString(16)));
+          expect(intermediate.point.y).toBe(BigInt('0x' + ecIntermediate.getY().toString(16)));
         }
       }
     });
@@ -379,24 +376,28 @@ describe('ECC utilities', () => {
       const generator = getGeneratorPoint();
 
       // Test scalar 0
-      const { result: result0, intermediates: intermediates0 } = pointMultiplyWithIntermediates(0n, generator);
+      const { result: result0, intermediates: intermediates0 } = pointMultiplyWithIntermediates(
+        0n,
+        generator
+      );
       expect(result0.isInfinity).toBe(true);
       expect(intermediates0).toHaveLength(0);
 
       // Test scalar 1
-      const { result: result1, intermediates: intermediates1 } = pointMultiplyWithIntermediates(1n, generator);
+      const { result: result1, intermediates: intermediates1 } = pointMultiplyWithIntermediates(
+        1n,
+        generator
+      );
       expect(result1).toEqual(generator);
       expect(intermediates1).toHaveLength(0);
 
       // Test negative scalar
-      const { result: resultNeg, intermediates: _intermediatesNeg } = pointMultiplyWithIntermediates(
-        -3n, 
-        generator, 
-        2n
-      );
-      const expectedNeg = pointNegate(pointMultiply(3n, generator));
-      expect(resultNeg.x).toBe(expectedNeg.x);
-      expect(resultNeg.y).toBe(expectedNeg.y);
+      const { result: resultNeg, intermediates: _intermediatesNeg } =
+        pointMultiplyWithIntermediates(-3n, generator, 2n);
+      const ecThreeG = ec.g.mul('3');
+      const ecNegThreeG = ecThreeG.neg();
+      expect(resultNeg.x).toBe(BigInt('0x' + ecNegThreeG.getX().toString(16)));
+      expect(resultNeg.y).toBe(BigInt('0x' + ecNegThreeG.getY().toString(16)));
     });
   });
 
@@ -406,14 +407,10 @@ describe('ECC utilities', () => {
       const scalar = 7n;
       const inverse = modInverse(scalar, CURVE_N);
 
-      const { result: divideResult, intermediates: _divideIntermediates } = pointDivideWithIntermediates(
-        scalar, 
-        generator
-      );
-      const { result: multiplyResult, intermediates: _multiplyIntermediates } = pointMultiplyWithIntermediates(
-        inverse, 
-        generator
-      );
+      const { result: divideResult, intermediates: _divideIntermediates } =
+        pointDivideWithIntermediates(scalar, generator);
+      const { result: multiplyResult, intermediates: _multiplyIntermediates } =
+        pointMultiplyWithIntermediates(inverse, generator);
 
       expect(divideResult.x).toBe(multiplyResult.x);
       expect(divideResult.y).toBe(multiplyResult.y);
@@ -427,7 +424,7 @@ describe('ECC utilities', () => {
       for (const divisor of testDivisors) {
         const { result } = pointDivideWithIntermediates(divisor, generator);
         const expected = pointDivide(divisor, generator);
-        
+
         expect(result.x).toBe(expected.x);
         expect(result.y).toBe(expected.y);
         expect(result.isInfinity).toBe(expected.isInfinity);
@@ -440,19 +437,19 @@ describe('ECC utilities', () => {
       const divisor = 3n;
 
       const { result, intermediates: _intermediates } = pointDivideWithIntermediates(
-        divisor, 
-        generator, 
+        divisor,
+        generator,
         startingPrivateKey
       );
 
       // The final private key should be startingPrivateKey / divisor (using modular inverse)
       const inverse = modInverse(divisor, CURVE_N);
       const expectedPrivateKey = (startingPrivateKey * inverse) % CURVE_N;
-      
-      // Verify the final point matches the expected private key
-      const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-      expect(result.x).toBe(expectedPoint.x);
-      expect(result.y).toBe(expectedPoint.y);
+
+      // Verify the final point matches the expected private key using elliptic.js
+      const ecResult = ec.g.mul(expectedPrivateKey.toString(16));
+      expect(result.x).toBe(BigInt('0x' + ecResult.getX().toString(16)));
+      expect(result.y).toBe(BigInt('0x' + ecResult.getY().toString(16)));
     });
 
     it('should throw error for division by zero', () => {
@@ -466,10 +463,10 @@ describe('ECC utilities', () => {
 
       // First multiply by scalar
       const { result: multiplied } = pointMultiplyWithIntermediates(scalar, generator);
-      
+
       // Then divide by the same scalar
       const { result: divided } = pointDivideWithIntermediates(scalar, multiplied);
-      
+
       // Should get back to the original point
       expect(divided.x).toBe(generator.x);
       expect(divided.y).toBe(generator.y);
@@ -495,7 +492,7 @@ describe('ECC utilities', () => {
       for (const testCase of testCases) {
         const { result } = pointMultiplyWithIntermediates(testCase.scalar, generator);
         const expected = pointMultiply(testCase.scalar, generator);
-        
+
         expect(result.x).toBe(expected.x);
         expect(result.y).toBe(expected.y);
         expect(result.isInfinity).toBe(expected.isInfinity);
@@ -520,7 +517,7 @@ describe('ECC utilities', () => {
       for (const testCase of testCases) {
         const { result } = pointDivideWithIntermediates(testCase.scalar, generator);
         const expected = pointDivide(testCase.scalar, generator);
-        
+
         expect(result.x).toBe(expected.x);
         expect(result.y).toBe(expected.y);
         expect(result.isInfinity).toBe(expected.isInfinity);
@@ -529,30 +526,30 @@ describe('ECC utilities', () => {
 
     it('should verify complex operation chains produce correct results', () => {
       const generator = getGeneratorPoint();
-      
+
       // Test: G * 3 * 5 / 2 = G * 7.5 (which should be G * (15/2 mod N))
       const { result: step1 } = pointMultiplyWithIntermediates(3n, generator);
       const { result: step2 } = pointMultiplyWithIntermediates(5n, step1);
       const { result: final } = pointDivideWithIntermediates(2n, step2);
-      
+
       // Calculate expected: G * (3 * 5 / 2) = G * (15 / 2) = G * (15 * modInverse(2))
       const expectedScalar = (15n * modInverse(2n, CURVE_N)) % CURVE_N;
-      const expected = pointMultiply(expectedScalar, generator);
-      
-      expect(final.x).toBe(expected.x);
-      expect(final.y).toBe(expected.y);
+      const ecExpected = ec.g.mul(expectedScalar.toString(16));
+
+      expect(final.x).toBe(BigInt('0x' + ecExpected.getX().toString(16)));
+      expect(final.y).toBe(BigInt('0x' + ecExpected.getY().toString(16)));
     });
 
     it('should verify operations from non-generator points', () => {
       const generator = getGeneratorPoint();
       const point3G = pointMultiply(3n, generator); // Start from 3G
-      
+
       // Test: 3G * 4 = 12G
       const { result: multiplied } = pointMultiplyWithIntermediates(4n, point3G);
       const expected12G = pointMultiply(12n, generator);
       expect(multiplied.x).toBe(expected12G.x);
       expect(multiplied.y).toBe(expected12G.y);
-      
+
       // Test: 12G / 3 = 4G
       const { result: divided } = pointDivideWithIntermediates(3n, multiplied);
       const expected4G = pointMultiply(4n, generator);
@@ -563,21 +560,21 @@ describe('ECC utilities', () => {
     it('should verify private key propagation through intermediates', () => {
       const generator = getGeneratorPoint();
       const startingPrivateKey = 5n;
-      
+
       // Test: 5G * 3 = 15G
       const { result, intermediates } = pointMultiplyWithIntermediates(
-        3n, 
-        generator, 
+        3n,
+        generator,
         startingPrivateKey
       );
-      
+
       // Final private key should be 5 * 3 = 15
       const expectedPrivateKey = 15n;
       const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-      
+
       expect(result.x).toBe(expectedPoint.x);
       expect(result.y).toBe(expectedPoint.y);
-      
+
       // Check that all intermediates with private keys are correct
       for (const intermediate of intermediates) {
         if (intermediate.privateKey !== undefined) {
@@ -591,10 +588,10 @@ describe('ECC utilities', () => {
     it('should verify large scalar operations', () => {
       const generator = getGeneratorPoint();
       const largeScalar = CURVE_N - 1n;
-      
+
       const { result } = pointMultiplyWithIntermediates(largeScalar, generator);
       const expected = pointMultiply(largeScalar, generator);
-      
+
       expect(result.x).toBe(expected.x);
       expect(result.y).toBe(expected.y);
       expect(result.isInfinity).toBe(expected.isInfinity);
@@ -603,12 +600,12 @@ describe('ECC utilities', () => {
     it('should verify that multiplication and division are inverse operations', () => {
       const generator = getGeneratorPoint();
       const testScalars = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n];
-      
+
       for (const scalar of testScalars) {
         // Test: G * scalar / scalar = G
         const { result: multiplied } = pointMultiplyWithIntermediates(scalar, generator);
         const { result: final } = pointDivideWithIntermediates(scalar, multiplied);
-        
+
         expect(final.x).toBe(generator.x);
         expect(final.y).toBe(generator.y);
         expect(final.isInfinity).toBe(generator.isInfinity);
@@ -620,20 +617,20 @@ describe('ECC utilities', () => {
     it('should track private key correctly when starting from G', () => {
       const generator = getGeneratorPoint();
       const scalar = 5n;
-      
+
       const { result, intermediates } = scalarMultiplyWithIntermediates(
-        scalar, 
-        generator, 
+        scalar,
+        generator,
         1n // starting private key for G
       );
-      
+
       // The final private key should be 1 * 5 = 5
       const expectedPrivateKey = 5n;
       const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-      
+
       expect(result.x).toBe(expectedPoint.x);
       expect(result.y).toBe(expectedPoint.y);
-      
+
       // Verify that the final intermediate has the correct private key
       if (intermediates.length > 0) {
         const lastIntermediate = intermediates[intermediates.length - 1];
@@ -645,20 +642,20 @@ describe('ECC utilities', () => {
       const generator = getGeneratorPoint();
       const point3G = pointMultiply(3n, generator); // 3G
       const scalar = 4n;
-      
+
       const { result, intermediates } = scalarMultiplyWithIntermediates(
-        scalar, 
-        point3G, 
+        scalar,
+        point3G,
         3n // starting private key for 3G
       );
-      
+
       // The final private key should be 3 * 4 = 12
       const expectedPrivateKey = 12n;
       const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-      
+
       expect(result.x).toBe(expectedPoint.x);
       expect(result.y).toBe(expectedPoint.y);
-      
+
       // Verify that the final intermediate has the correct private key
       if (intermediates.length > 0) {
         const lastIntermediate = intermediates[intermediates.length - 1];
@@ -669,18 +666,18 @@ describe('ECC utilities', () => {
     it('should handle private key tracking without starting private key', () => {
       const generator = getGeneratorPoint();
       const scalar = 7n;
-      
+
       const { result, intermediates } = scalarMultiplyWithIntermediates(
-        scalar, 
+        scalar,
         generator
         // No starting private key
       );
-      
+
       // Should still produce correct result
       const expectedPoint = pointMultiply(scalar, generator);
       expect(result.x).toBe(expectedPoint.x);
       expect(result.y).toBe(expectedPoint.y);
-      
+
       // But intermediates should not have private keys
       for (const intermediate of intermediates) {
         expect(intermediate.privateKey).toBeUndefined();
@@ -691,20 +688,20 @@ describe('ECC utilities', () => {
       const generator = getGeneratorPoint();
       const scalar = 6n; // Binary: 110, should have intermediates
       const startingPrivateKey = 2n;
-      
+
       const { result, intermediates } = scalarMultiplyWithIntermediates(
-        scalar, 
-        generator, 
+        scalar,
+        generator,
         startingPrivateKey
       );
-      
+
       // Final private key should be 2 * 6 = 12
       const expectedPrivateKey = 12n;
       const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-      
+
       expect(result.x).toBe(expectedPoint.x);
       expect(result.y).toBe(expectedPoint.y);
-      
+
       // Check that all intermediates with private keys are correct
       for (const intermediate of intermediates) {
         if (intermediate.privateKey !== undefined) {
@@ -717,34 +714,32 @@ describe('ECC utilities', () => {
 
     it('should handle edge cases for private key tracking', () => {
       const generator = getGeneratorPoint();
-      
+
       // Test scalar 1
       const { result: result1, intermediates: intermediates1 } = scalarMultiplyWithIntermediates(
-        1n, 
-        generator, 
+        1n,
+        generator,
         5n
       );
       expect(result1).toEqual(generator);
       expect(intermediates1).toHaveLength(0);
-      
+
       // Test scalar 0
       const { result: result0, intermediates: intermediates0 } = scalarMultiplyWithIntermediates(
-        0n, 
-        generator, 
+        0n,
+        generator,
         5n
       );
       expect(result0.isInfinity).toBe(true);
       expect(intermediates0).toHaveLength(0);
-      
+
       // Test negative scalar
-      const { result: resultNeg, intermediates: _intermediatesNeg } = scalarMultiplyWithIntermediates(
-        -3n, 
-        generator, 
-        2n
-      );
-      const expectedNeg = pointNegate(pointMultiply(3n, generator));
-      expect(resultNeg.x).toBe(expectedNeg.x);
-      expect(resultNeg.y).toBe(expectedNeg.y);
+      const { result: resultNeg, intermediates: _intermediatesNeg } =
+        scalarMultiplyWithIntermediates(-3n, generator, 2n);
+      const ecThreeG = ec.g.mul('3');
+      const ecNegThreeG = ecThreeG.neg();
+      expect(resultNeg.x).toBe(BigInt('0x' + ecNegThreeG.getX().toString(16)));
+      expect(resultNeg.y).toBe(BigInt('0x' + ecNegThreeG.getY().toString(16)));
     });
 
     it('should verify private key tracking matches elliptic.js results', () => {
@@ -756,19 +751,19 @@ describe('ECC utilities', () => {
         { scalar: 7n, startingKey: 3n, expectedKey: 21n },
         { scalar: 11n, startingKey: 1n, expectedKey: 11n },
       ];
-      
+
       for (const testCase of testCases) {
         const { result, intermediates } = scalarMultiplyWithIntermediates(
-          testCase.scalar, 
-          generator, 
+          testCase.scalar,
+          generator,
           testCase.startingKey
         );
-        
+
         // Verify final result matches elliptic.js
-        const expectedPoint = pointMultiply(testCase.expectedKey, generator);
-        expect(result.x).toBe(expectedPoint.x);
-        expect(result.y).toBe(expectedPoint.y);
-        
+        const ecResult = ec.g.mul(testCase.expectedKey.toString(16));
+        expect(result.x).toBe(BigInt('0x' + ecResult.getX().toString(16)));
+        expect(result.y).toBe(BigInt('0x' + ecResult.getY().toString(16)));
+
         // Verify final private key is correct
         if (intermediates.length > 0) {
           const lastIntermediate = intermediates[intermediates.length - 1];
@@ -781,21 +776,21 @@ describe('ECC utilities', () => {
       const generator = getGeneratorPoint();
       const divisor = 3n;
       const startingPrivateKey = 15n;
-      
+
       const { result, intermediates } = pointDivideWithIntermediates(
-        divisor, 
-        generator, 
+        divisor,
+        generator,
         startingPrivateKey
       );
-      
+
       // The final private key should be 15 / 3 = 5 (using modular inverse)
       const inverse = modInverse(divisor, CURVE_N);
       const expectedPrivateKey = (startingPrivateKey * inverse) % CURVE_N;
       const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-      
+
       expect(result.x).toBe(expectedPoint.x);
       expect(result.y).toBe(expectedPoint.y);
-      
+
       // Verify that the final intermediate has the correct private key
       if (intermediates.length > 0) {
         const lastIntermediate = intermediates[intermediates.length - 1];
@@ -806,27 +801,27 @@ describe('ECC utilities', () => {
     it('should verify private key tracking for complex operation chains', () => {
       const generator = getGeneratorPoint();
       const startingPrivateKey = 1n;
-      
+
       // Test: G * 3 * 4 = G * 12
       const { result: step1, intermediates: _intermediates1 } = scalarMultiplyWithIntermediates(
-        3n, 
-        generator, 
+        3n,
+        generator,
         startingPrivateKey
       );
-      
+
       const { result: final, intermediates: intermediates2 } = scalarMultiplyWithIntermediates(
-        4n, 
-        step1, 
+        4n,
+        step1,
         3n // private key of step1 result
       );
-      
+
       // Final private key should be 1 * 3 * 4 = 12
       const expectedPrivateKey = 12n;
       const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-      
+
       expect(final.x).toBe(expectedPoint.x);
       expect(final.y).toBe(expectedPoint.y);
-      
+
       // Verify final intermediate has correct private key
       if (intermediates2.length > 0) {
         const lastIntermediate = intermediates2[intermediates2.length - 1];
@@ -838,25 +833,25 @@ describe('ECC utilities', () => {
   describe('Debug Tests - Simple Cases', () => {
     it('should demonstrate the bug in scalarMultiplyWithIntermediates', () => {
       const generator = getGeneratorPoint();
-      
+
       // Test with scalar 2 - this should be simple
       const { result: result2 } = scalarMultiplyWithIntermediates(2n, generator);
       const expected2 = pointMultiply(2n, generator);
-      
+
       console.log('Scalar 2:');
       console.log('Expected:', expected2.x.toString(16));
       console.log('Got:     ', result2.x.toString(16));
       console.log('Match:   ', result2.x === expected2.x);
-      
+
       // Test with scalar 3
       const { result: result3 } = scalarMultiplyWithIntermediates(3n, generator);
       const expected3 = pointMultiply(3n, generator);
-      
+
       console.log('Scalar 3:');
       console.log('Expected:', expected3.x.toString(16));
       console.log('Got:     ', result3.x.toString(16));
       console.log('Match:   ', result3.x === expected3.x);
-      
+
       // The results should match, but they don't
       expect(result2.x).toBe(expected2.x);
       expect(result3.x).toBe(expected3.x);
@@ -865,25 +860,27 @@ describe('ECC utilities', () => {
     it('should show what the algorithm is actually doing', () => {
       const generator = getGeneratorPoint();
       const scalar = 2n;
-      
+
       // Let's trace through what the current algorithm does
       const binaryScalar = scalar.toString(2); // "10"
       const rounds = binaryScalar.length - 1; // 1
-      
+
       console.log('Binary scalar:', binaryScalar);
       console.log('Rounds:', rounds);
-      
+
       // The current algorithm starts with the original point and doubles it
       // This is wrong - it should start with infinity and build up
-      
+
       const { result, intermediates } = scalarMultiplyWithIntermediates(scalar, generator);
-      
+
       console.log('Intermediates:', intermediates.length);
       for (let i = 0; i < intermediates.length; i++) {
         const intermediate = intermediates[i];
-        console.log(`  ${i}: ${intermediate.operation.description} -> (${intermediate.point.x.toString(16).slice(0, 16)}...)`);
+        console.log(
+          `  ${i}: ${intermediate.operation.description} -> (${intermediate.point.x.toString(16).slice(0, 16)}...)`
+        );
       }
-      
+
       // This should be 2G, but it's not
       const expected = pointMultiply(2n, generator);
       expect(result.x).toBe(expected.x);
@@ -906,6 +903,28 @@ describe('ECC utilities', () => {
       console.log('Expected:', expected.x.toString(16), expected.y.toString(16));
       expect(result.x).toBe(expected.x);
       expect(result.y).toBe(expected.y);
+    });
+
+    it('should debug division issue', () => {
+      const generator = getGeneratorPoint();
+      const scalar = 7n;
+
+      // Multiply by 7
+      const multiplied = pointMultiply(scalar, generator);
+      console.log('7G x:', multiplied.x.toString(16));
+
+      // Divide by 7
+      const divided = pointDivide(scalar, multiplied);
+      console.log('7G/7 x:', divided.x.toString(16));
+      console.log('G x:', generator.x.toString(16));
+
+      // Check with elliptic.js
+      const ecSevenG = ec.g.mul('7');
+      const inv7 = modInverse(7n, CURVE_N);
+      const ecDivided = ecSevenG.mul(inv7.toString(16));
+      console.log('Elliptic 7G/7 x:', ecDivided.getX().toString(16));
+
+      expect(divided.x).toBe(generator.x);
     });
   });
 });
