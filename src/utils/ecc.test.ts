@@ -343,23 +343,29 @@ describe('ECC utilities', () => {
     });
 
     it('should handle private key tracking correctly', () => {
-      const generator = getGeneratorPoint();
       const startingPrivateKey = 5n;
       const scalar = 3n;
 
+      // Create a point that has private key 5 (i.e., 5G)
+      const point = pointMultiply(startingPrivateKey, getGeneratorPoint());
+
       const { result, intermediates } = pointMultiplyWithIntermediates(
         scalar,
-        generator,
+        point,
         startingPrivateKey
       );
 
-      // The final private key should be startingPrivateKey * scalar
+      // The result should be scalar * point = 3 * (5G) = 15G
       const expectedPrivateKey = (startingPrivateKey * scalar) % CURVE_N;
+      const expectedPoint = ec.g.mul(expectedPrivateKey.toString(16));
+      expect(result.x).toBe(BigInt('0x' + expectedPoint.getX().toString(16)));
+      expect(result.y).toBe(BigInt('0x' + expectedPoint.getY().toString(16)));
 
-      // Verify the final point matches the expected private key using elliptic.js
-      const ecResult = ec.g.mul(expectedPrivateKey.toString(16));
-      expect(result.x).toBe(BigInt('0x' + ecResult.getX().toString(16)));
-      expect(result.y).toBe(BigInt('0x' + ecResult.getY().toString(16)));
+      // Check that the last intermediate has the correct private key
+      if (intermediates.length > 0) {
+        const lastIntermediate = intermediates[intermediates.length - 1];
+        expect(lastIntermediate.privateKey).toBe(expectedPrivateKey);
+      }
 
       // Check that intermediates have correct private keys
       for (const intermediate of intermediates) {
@@ -432,17 +438,19 @@ describe('ECC utilities', () => {
     });
 
     it('should handle private key tracking for division', () => {
-      const generator = getGeneratorPoint();
       const startingPrivateKey = 15n;
       const divisor = 3n;
 
+      // Create a point that has private key 15 (i.e., 15G)
+      const point = pointMultiply(startingPrivateKey, getGeneratorPoint());
+
       const { result, intermediates: _intermediates } = pointDivideWithIntermediates(
         divisor,
-        generator,
+        point,
         startingPrivateKey
       );
 
-      // The final private key should be startingPrivateKey / divisor (using modular inverse)
+      // The final private key should be startingPrivateKey / divisor = 15 / 3 = 5
       const inverse = modInverse(divisor, CURVE_N);
       const expectedPrivateKey = (startingPrivateKey * inverse) % CURVE_N;
 
@@ -561,19 +569,21 @@ describe('ECC utilities', () => {
       const generator = getGeneratorPoint();
       const startingPrivateKey = 5n;
 
-      // Test: 5G * 3 = 15G
+      // Create a point that has private key 5 (i.e., 5G)
+      const point = pointMultiply(startingPrivateKey, generator);
+
+      // Test: (5G) * 3 with starting private key 5
       const { result, intermediates } = pointMultiplyWithIntermediates(
         3n,
-        generator,
+        point,
         startingPrivateKey
       );
 
-      // Final private key should be 5 * 3 = 15
+      // Result should be 3 * (5G) = 15G
       const expectedPrivateKey = 15n;
-      const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-
-      expect(result.x).toBe(expectedPoint.x);
-      expect(result.y).toBe(expectedPoint.y);
+      const expected15G = pointMultiply(expectedPrivateKey, generator);
+      expect(result.x).toBe(expected15G.x);
+      expect(result.y).toBe(expected15G.y);
 
       // Check that all intermediates with private keys are correct
       for (const intermediate of intermediates) {
@@ -649,12 +659,13 @@ describe('ECC utilities', () => {
         3n // starting private key for 3G
       );
 
+      // The result should be 4 * point3G = 4 * 3G = 12G
+      const expected12G = pointMultiply(12n, generator);
+      expect(result.x).toBe(expected12G.x);
+      expect(result.y).toBe(expected12G.y);
+
       // The final private key should be 3 * 4 = 12
       const expectedPrivateKey = 12n;
-      const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-
-      expect(result.x).toBe(expectedPoint.x);
-      expect(result.y).toBe(expectedPoint.y);
 
       // Verify that the final intermediate has the correct private key
       if (intermediates.length > 0) {
@@ -689,18 +700,20 @@ describe('ECC utilities', () => {
       const scalar = 6n; // Binary: 110, should have intermediates
       const startingPrivateKey = 2n;
 
+      // Create a point that has private key 2 (i.e., 2G)
+      const point = pointMultiply(startingPrivateKey, generator);
+
       const { result, intermediates } = scalarMultiplyWithIntermediates(
         scalar,
-        generator,
+        point,
         startingPrivateKey
       );
 
-      // Final private key should be 2 * 6 = 12
+      // Result should be 6 * (2G) = 12G
       const expectedPrivateKey = 12n;
-      const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-
-      expect(result.x).toBe(expectedPoint.x);
-      expect(result.y).toBe(expectedPoint.y);
+      const expected12G = pointMultiply(expectedPrivateKey, generator);
+      expect(result.x).toBe(expected12G.x);
+      expect(result.y).toBe(expected12G.y);
 
       // Check that all intermediates with private keys are correct
       for (const intermediate of intermediates) {
@@ -759,8 +772,8 @@ describe('ECC utilities', () => {
           testCase.startingKey
         );
 
-        // Verify final result matches elliptic.js
-        const ecResult = ec.g.mul(testCase.expectedKey.toString(16));
+        // Verify final result is scalar * G
+        const ecResult = ec.g.mul(testCase.scalar.toString(16));
         expect(result.x).toBe(BigInt('0x' + ecResult.getX().toString(16)));
         expect(result.y).toBe(BigInt('0x' + ecResult.getY().toString(16)));
 
@@ -783,13 +796,14 @@ describe('ECC utilities', () => {
         startingPrivateKey
       );
 
-      // The final private key should be 15 / 3 = 5 (using modular inverse)
+      // The result should be G / 3
       const inverse = modInverse(divisor, CURVE_N);
-      const expectedPrivateKey = (startingPrivateKey * inverse) % CURVE_N;
-      const expectedPoint = pointMultiply(expectedPrivateKey, generator);
-
+      const expectedPoint = pointMultiply(inverse, generator);
       expect(result.x).toBe(expectedPoint.x);
       expect(result.y).toBe(expectedPoint.y);
+
+      // The final private key should be 15 / 3 = 5 (using modular inverse)
+      const expectedPrivateKey = (startingPrivateKey * inverse) % CURVE_N;
 
       // Verify that the final intermediate has the correct private key
       if (intermediates.length > 0) {

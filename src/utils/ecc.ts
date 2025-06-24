@@ -123,6 +123,8 @@ export function pointMultiply(scalar: bigint, point: ECPoint): ECPoint {
 /**
  * Double-and-add algorithm that returns intermediate points
  * Optimized to use elliptic.js points internally to avoid conversion overhead
+ *
+ * if startingPrivateKey is provided, it must be the private key for the given point
  */
 export function scalarMultiplyWithIntermediates(
   scalar: bigint,
@@ -158,16 +160,14 @@ export function scalarMultiplyWithIntermediates(
   const intermediates: IntermediatePoint[] = [];
   const binaryScalar = scalar.toString(2);
 
-  // Track private keys if we have a starting private key
-  const shouldTrackPrivateKey = startingPrivateKey !== undefined;
-
   // Convert to elliptic.js points for operations
   const ecPoint = pointToElliptic(point);
 
   // Initialize with point at infinity
   let currentPoint = ec.curve.point(null, null); // Point at infinity
-  let currentPrivateKey =
-    shouldTrackPrivateKey && startingPrivateKey !== undefined ? 0n : undefined;
+
+  // Track the corresponding private key
+  let currentPrivateKey = startingPrivateKey !== undefined ? 0n : undefined;
 
   // Process bits from most significant to least significant
   for (let i = 0; i < binaryScalar.length; i++) {
@@ -176,7 +176,7 @@ export function scalarMultiplyWithIntermediates(
     if (i > 0) {
       // Double the current point (except for the first bit)
       currentPoint = currentPoint.dbl();
-      if (shouldTrackPrivateKey && currentPrivateKey !== undefined) {
+      if (currentPrivateKey !== undefined && startingPrivateKey !== undefined) {
         currentPrivateKey = (currentPrivateKey * 2n) % CURVE_N;
       }
 
@@ -188,18 +188,14 @@ export function scalarMultiplyWithIntermediates(
           value: '',
           userCreated: false,
         },
-        privateKey: shouldTrackPrivateKey ? currentPrivateKey : undefined,
+        privateKey: currentPrivateKey,
       });
     }
 
     if (bit === '1') {
       // Add the original point
       currentPoint = currentPoint.add(ecPoint);
-      if (
-        shouldTrackPrivateKey &&
-        currentPrivateKey !== undefined &&
-        startingPrivateKey !== undefined
-      ) {
+      if (currentPrivateKey !== undefined && startingPrivateKey !== undefined) {
         currentPrivateKey = (currentPrivateKey + startingPrivateKey) % CURVE_N;
       }
 
@@ -211,7 +207,7 @@ export function scalarMultiplyWithIntermediates(
           value: '',
           userCreated: false,
         },
-        privateKey: shouldTrackPrivateKey ? currentPrivateKey : undefined,
+        privateKey: currentPrivateKey,
       });
     }
   }

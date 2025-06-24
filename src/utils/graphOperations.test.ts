@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { OperationType } from '../types/ecc';
+import { processBatchOperations } from '../store/slices/utils/batchOperations.ts';
+import { OperationType, type SingleOperationPayload } from '../types/ecc';
 import {
   CURVE_N,
   getGeneratorPoint,
@@ -283,27 +284,21 @@ describe('Graph Operations', () => {
       });
 
       const scalar = 5n; // Binary: 101, will produce intermediates
-      const { result, intermediates } = pointMultiplyWithIntermediates(scalar, generatorPoint);
+      const { intermediates } = pointMultiplyWithIntermediates(scalar, generatorPoint, 1n);
 
       // Simulate adding all intermediates to the graph like ECCCalculator would
-      let currentPoint = generatorPoint;
+      let previousPoint = generatorPoint;
+      const batchOps: SingleOperationPayload[] = [];
       for (const intermediate of intermediates) {
-        ensureOperationInGraph(graph, currentPoint, intermediate.point, intermediate.operation);
-        currentPoint = intermediate.point;
-      }
-
-      // Add final result if different from last intermediate
-      if (
-        intermediates.length > 0 &&
-        (result.x !== currentPoint.x || result.y !== currentPoint.y)
-      ) {
-        ensureOperationInGraph(graph, currentPoint, result, {
-          type: OperationType.MULTIPLY,
-          description: 'Final',
-          value: '1',
-          userCreated: false,
+        batchOps.push({
+          fromPoint: previousPoint,
+          toPoint: intermediate.point,
+          operation: intermediate.operation,
+          toPointPrivateKey: intermediate.privateKey,
         });
+        previousPoint = intermediate.point;
       }
+      processBatchOperations(graph, batchOps);
 
       // Should have more nodes than just generator and final result
       const nodeCount = Object.keys(graph.nodes).length;
@@ -356,14 +351,21 @@ describe('Graph Operations', () => {
 
       // Use a larger scalar to get more intermediates
       const scalar = 13n; // Binary: 1101, will produce several intermediates
-      const { result, intermediates } = pointMultiplyWithIntermediates(scalar, generatorPoint);
+      const { result, intermediates } = pointMultiplyWithIntermediates(scalar, generatorPoint, 1n);
 
       // Add all intermediates to the graph
       let previousPoint = generatorPoint;
+      const batchOps: SingleOperationPayload[] = [];
       for (const intermediate of intermediates) {
-        ensureOperationInGraph(graph, previousPoint, intermediate.point, intermediate.operation);
+        batchOps.push({
+          fromPoint: previousPoint,
+          toPoint: intermediate.point,
+          operation: intermediate.operation,
+          toPointPrivateKey: intermediate.privateKey,
+        });
         previousPoint = intermediate.point;
       }
+      processBatchOperations(graph, batchOps);
 
       // Final result should have the correct private key
       const finalNode = Object.values(graph.nodes).find(
@@ -403,14 +405,19 @@ describe('Graph Operations', () => {
       // Force multiplication that adds intermediates for same operation
       const { intermediates } = pointMultiplyWithIntermediates(3n, generatorPoint);
 
-      let currentPoint = generatorPoint;
+      // Add all intermediates to the graph
+      let previousPoint = generatorPoint;
+      const batchOps: SingleOperationPayload[] = [];
       for (const intermediate of intermediates) {
-        ensureOperationInGraph(graph, currentPoint, intermediate.point, {
-          ...intermediate.operation,
-          userCreated: false,
+        batchOps.push({
+          fromPoint: previousPoint,
+          toPoint: intermediate.point,
+          operation: intermediate.operation,
+          toPointPrivateKey: intermediate.privateKey,
         });
-        currentPoint = intermediate.point;
+        previousPoint = intermediate.point;
       }
+      processBatchOperations(graph, batchOps);
 
       // Should have multiple edges between same points for different operations
       const edgeCount = Object.keys(graph.edges).length;
