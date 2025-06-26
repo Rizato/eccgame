@@ -20,6 +20,11 @@ export interface GraphEdge {
   operation: Operation;
 }
 
+export interface EdgeListNode {
+  val: GraphEdge;
+  next: EdgeListNode | null;
+}
+
 export interface GraphNode {
   id: string;
   point: ECPoint;
@@ -32,7 +37,7 @@ export interface GraphNode {
 
 export interface PointGraph {
   nodes: Record<string, GraphNode>;
-  edges: Record<string, GraphEdge[]>; // nodeId -> array of edges FROM this node
+  edges: Record<string, EdgeListNode | null>; // nodeId -> linked list head of edges FROM this node
   pointToNodeId: Record<string, string>; // point hash -> node id for quick lookup
   // X-coordinates for negated point detection
   xCoordinates: Set<string>; // x coordinate strings for O(1) negation lookup
