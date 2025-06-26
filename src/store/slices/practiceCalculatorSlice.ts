@@ -28,6 +28,7 @@ export interface PracticeCalculatorState {
   savedPoints: SavedPoint[];
   challengePublicKey: string;
   practicePrivateKey: string;
+  userOperationCount: number;
 }
 
 const generatorPoint = getGeneratorPoint();
@@ -63,6 +64,7 @@ const initialState: PracticeCalculatorState = {
   savedPoints: [],
   challengePublicKey: '',
   practicePrivateKey: '',
+  userOperationCount: 0,
 };
 
 // Async thunk for calculating current address
@@ -209,13 +211,6 @@ const practiceCalculatorSlice = createSlice({
       state.challengeNodeId = challengeNode.id;
 
       // Don't clear saved points when switching to challenge
-      state.error = null;
-      state.calculatorDisplay = '';
-      state.pendingOperation = null;
-      state.hexMode = false;
-      state.lastOperationValue = null;
-      state.hasWon = false;
-      state.showVictoryModal = false;
       state.challengePublicKey = publicKey;
       state.practicePrivateKey = privateKey;
     },
@@ -231,15 +226,6 @@ const practiceCalculatorSlice = createSlice({
         connectedToG: true,
       });
       state.generatorNodeId = generatorNode.id;
-
-      // Don't clear saved points when switching to generator
-      state.error = null;
-      state.calculatorDisplay = '';
-      state.pendingOperation = null;
-      state.hexMode = false;
-      state.lastOperationValue = null;
-      state.hasWon = false;
-      state.showVictoryModal = false;
     },
     clearPracticeState: state => {
       // Reset cached graph and state
@@ -256,6 +242,7 @@ const practiceCalculatorSlice = createSlice({
       state.hasWon = false;
       state.showVictoryModal = false;
       state.savedPoints = [];
+      state.userOperationCount = 0;
       // Keep challengePublicKey and practicePrivateKey as they'll be set by the new wallet
     },
     savePoint: (state, action: PayloadAction<{ label?: string }>) => {
@@ -326,11 +313,20 @@ const practiceCalculatorSlice = createSlice({
       addCachedOperation('practice', fromPoint, toPoint, operation);
       // Update selected point to the result
       state.selectedPoint = toPoint;
+      // Increment operation count if this is a user-created operation
+      if (operation.userCreated) {
+        state.userOperationCount += 1;
+      }
     },
-    addBatchOperationsToGraph: (_state, action: PayloadAction<SingleOperationPayload[]>) => {
+    addBatchOperationsToGraph: (state, action: PayloadAction<SingleOperationPayload[]>) => {
       const operations = action.payload;
       const graph = getCachedGraph('practice');
       processBatchOperations(graph, operations, 'practice');
+      // Count user-created operations in the batch
+      const userOperationCount = operations.filter(op => op.operation.userCreated).length;
+      if (userOperationCount > 0) {
+        state.userOperationCount += userOperationCount;
+      }
     },
     saveState: state => {
       // Save current state to localStorage

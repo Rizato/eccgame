@@ -28,6 +28,7 @@ export interface DailyCalculatorState {
   savedPoints: SavedPoint[];
   challengePublicKey: string;
   shouldSubmitSolution: boolean;
+  userOperationCount: number;
 }
 
 const generatorPoint = getGeneratorPoint();
@@ -63,6 +64,7 @@ const initialState: DailyCalculatorState = {
   savedPoints: [],
   challengePublicKey: '',
   shouldSubmitSolution: false,
+  userOperationCount: 0,
 };
 
 export const calculateDailyCurrentAddress = createAsyncThunk(
@@ -184,15 +186,6 @@ const dailyCalculatorSlice = createSlice({
         isChallenge: true,
       });
       state.challengeNodeId = challengeNode.id;
-
-      // Don't clear saved points when switching to challenge
-      state.error = null;
-      state.calculatorDisplay = '';
-      state.pendingOperation = null;
-      state.hexMode = false;
-      state.lastOperationValue = null;
-      state.hasWon = false;
-      state.showVictoryModal = false;
       state.challengePublicKey = challengePublicKey;
     },
     resetToChallengeWithPrivateKey: (
@@ -211,15 +204,6 @@ const dailyCalculatorSlice = createSlice({
         isChallenge: true,
       });
       state.challengeNodeId = challengeNode.id;
-
-      // Don't clear saved points when switching to challenge
-      state.error = null;
-      state.calculatorDisplay = '';
-      state.pendingOperation = null;
-      state.hexMode = false;
-      state.lastOperationValue = null;
-      state.hasWon = false;
-      state.showVictoryModal = false;
       state.challengePublicKey = publicKey;
     },
     resetToGenerator: state => {
@@ -310,11 +294,20 @@ const dailyCalculatorSlice = createSlice({
       addCachedOperation('daily', fromPoint, toPoint, operation);
       // Update selected point to the result
       state.selectedPoint = toPoint;
+      // Increment operation count if this is a user-created operation
+      if (operation.userCreated) {
+        state.userOperationCount += 1;
+      }
     },
-    addBatchOperationsToGraph: (_state, action: PayloadAction<SingleOperationPayload[]>) => {
+    addBatchOperationsToGraph: (state, action: PayloadAction<SingleOperationPayload[]>) => {
       const operations = action.payload;
       const graph = getCachedGraph('daily');
       processBatchOperations(graph, operations, 'daily');
+      // Count user-created operations in the batch
+      const userOperationCount = operations.filter(op => op.operation.userCreated).length;
+      if (userOperationCount > 0) {
+        state.userOperationCount += userOperationCount;
+      }
     },
     saveState: state => {
       // Save current state to localStorage

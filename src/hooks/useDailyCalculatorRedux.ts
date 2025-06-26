@@ -59,6 +59,7 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
     showVictoryModal: dailyState.showVictoryModal,
     savedPoints: dailyState.savedPoints,
     shouldSubmitSolution: dailyState.shouldSubmitSolution,
+    userOperationCount: dailyState.userOperationCount,
     // Actions
     setCurrentPoint: (point: ECPoint) => dispatch(setSelectedPoint(point)),
     setError: (error: string | null) => dispatch(setError(error)),
