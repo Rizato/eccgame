@@ -11,7 +11,11 @@ describe('Private Key Optimization', () => {
     const startingPrivateKey = 42n;
 
     // Test pointMultiplyWithIntermediates with private key
-    const { result: _result, intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
+    const { result: _result, intermediates } = pointMultiplyWithIntermediates(
+      scalar,
+      G,
+      startingPrivateKey
+    );
 
     expect(intermediates.length).toBeGreaterThan(0);
 
@@ -35,7 +39,11 @@ describe('Private Key Optimization', () => {
     const startingPrivateKey = 21n;
 
     // Test pointDivideWithIntermediates with private key
-    const { result: _result, intermediates } = pointDivideWithIntermediates(scalar, G, startingPrivateKey);
+    const { result: _result, intermediates } = pointDivideWithIntermediates(
+      scalar,
+      G,
+      startingPrivateKey
+    );
 
     expect(intermediates.length).toBeGreaterThan(0);
 
@@ -68,7 +76,11 @@ describe('Private Key Optimization', () => {
     const startingPrivateKey = 100n;
 
     // Get intermediates with private keys
-    const { result: _result, intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
+    const { result: _result, intermediates } = pointMultiplyWithIntermediates(
+      scalar,
+      G,
+      startingPrivateKey
+    );
 
     // Create batch operations
     const operations = [];
@@ -103,19 +115,19 @@ describe('Private Key Optimization', () => {
     // Check that all intermediate nodes have the correct private keys
     for (const operation of operations) {
       const pointHash = `${operation.toPoint.x.toString(16)}_${operation.toPoint.y.toString(16)}`;
-      const nodeId = graph.pointToNodeId[pointHash];
+      const nodeId = graph.pointToNodeId.get(pointHash);
       console.log(`Looking for point hash: ${pointHash}, found nodeId: ${nodeId}`);
 
       if (nodeId) {
-        const node = graph.nodes[nodeId];
+        const node = graph.nodes.get(nodeId);
         console.log(
-          `Node ${nodeId} private key: ${node.privateKey}, expected: ${operation.toPointPrivateKey}`
+          `Node ${nodeId} private key: ${node?.privateKey}, expected: ${operation.toPointPrivateKey}`
         );
         expect(node).toBeDefined();
-        expect(node.privateKey).toBe(operation.toPointPrivateKey);
+        expect(node?.privateKey).toBe(operation.toPointPrivateKey);
       } else {
         console.log(`Node not found for point hash: ${pointHash}`);
-        console.log(`Available point hashes:`, Object.keys(graph.pointToNodeId));
+        console.log(`Available point hashes:`, Array.from(graph.pointToNodeId.keys()));
       }
     }
   });
@@ -126,7 +138,11 @@ describe('Private Key Optimization', () => {
     const startingPrivateKey = 1n; // Generator private key
 
     const start = performance.now();
-    const { result: _result, intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
+    const { result: _result, intermediates } = pointMultiplyWithIntermediates(
+      scalar,
+      G,
+      startingPrivateKey
+    );
     const end = performance.now();
 
     console.log(`Large scalar (${scalar}) with private key calculation: ${end - start}ms`);
@@ -144,6 +160,10 @@ describe('Private Key Optimization', () => {
     const G = getGeneratorPoint();
     const startingPrivateKey = 1n;
 
-    const { result: _result, intermediates: _intermediates } = pointMultiplyWithIntermediates(scalar, G, startingPrivateKey);
+    const { result: _result, intermediates: _intermediates } = pointMultiplyWithIntermediates(
+      scalar,
+      G,
+      startingPrivateKey
+    );
   });
 });

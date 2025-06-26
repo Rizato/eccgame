@@ -338,7 +338,7 @@ describe('ECCCalculator', () => {
 
       // The graph should contain the intermediate points
       const graph = getCachedGraph('daily');
-      const graphNodes = Object.values(graph.nodes);
+      const graphNodes = Array.from(graph.nodes.values());
 
       // Should have at least: generator + final result + intermediates + negated points
       // Each operation adds its result point + negated point, plus intermediates
@@ -347,7 +347,8 @@ describe('ECCCalculator', () => {
       // Verify that all intermediate points from the algorithm exist in the graph
       for (const intermediate of intermediates) {
         const foundNode = graphNodes.find(
-          (node: GraphNode) => node.point.x === intermediate.point.x && node.point.y === intermediate.point.y
+          (node: GraphNode) =>
+            node.point.x === intermediate.point.x && node.point.y === intermediate.point.y
         );
         expect(foundNode).toBeDefined();
       }
@@ -395,7 +396,7 @@ describe('ECCCalculator', () => {
       });
 
       const graph = getCachedGraph('daily');
-      const graphNodes = Object.values(graph.nodes);
+      const graphNodes = Array.from(graph.nodes.values());
 
       // Should have multiple nodes from both operations and their intermediates
       expect(graphNodes.length).toBeGreaterThan(2);
@@ -405,7 +406,9 @@ describe('ECCCalculator', () => {
       const generatorNode = graphNodes.find(
         (node: GraphNode) => node.point.x === generatorPoint.x && node.point.y === generatorPoint.y
       );
-      const twoGNode = graphNodes.find((node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y);
+      const twoGNode = graphNodes.find(
+        (node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y
+      );
 
       expect(generatorNode).toBeDefined();
       expect(twoGNode).toBeDefined();
@@ -433,7 +436,7 @@ describe('ECCCalculator', () => {
       });
 
       const graph = getCachedGraph('daily');
-      const graphNodes = Object.values(graph.nodes);
+      const graphNodes = Array.from(graph.nodes.values());
 
       // Quick operations may still generate some nodes, but should be reasonable
       // The exact count may vary based on implementation
@@ -444,7 +447,9 @@ describe('ECCCalculator', () => {
       const generatorNode = graphNodes.find(
         (node: GraphNode) => node.point.x === generatorPoint.x && node.point.y === generatorPoint.y
       );
-      const twoGNode = graphNodes.find((node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y);
+      const twoGNode = graphNodes.find(
+        (node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y
+      );
 
       expect(generatorNode).toBeDefined();
       expect(twoGNode).toBeDefined();
@@ -482,16 +487,25 @@ describe('ECCCalculator', () => {
       });
 
       const graph = getCachedGraph('daily');
-      
+
       // Flatten all edges from the graph
-      const allEdges = Object.values(graph.edges).flat();
+      const allEdges: GraphEdge[] = [];
+      Array.from(graph.edges.values()).forEach(edgeHead => {
+        let current = edgeHead;
+        while (current !== null) {
+          allEdges.push(current.val);
+          current = current.next;
+        }
+      });
 
       // Should have edges connecting intermediate points
       expect(allEdges.length).toBeGreaterThan(1);
 
       // All intermediate edges should be marked as system-generated
-      const systemEdges = allEdges.filter((edge: GraphEdge) => edge.operation.userCreated === false);
-      
+      const systemEdges = allEdges.filter(
+        (edge: GraphEdge) => edge.operation.userCreated === false
+      );
+
       expect(systemEdges.length).toBeGreaterThan(0);
     });
   });

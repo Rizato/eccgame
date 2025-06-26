@@ -59,14 +59,21 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
       const graph = getCachedGraph('practice');
 
       // Should have nodes for fromPoint, toPoint, and negated toPoint
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
       expect(nodes).toHaveLength(2); // G, 2G (automatic negation may not be working as expected)
 
       // Check that negated point exists
       // (negatedNode variable removed to fix linter error)
 
       // Should have edges: G -> 2G (multiply) and potentially other edges
-      const edges = Object.values(graph.edges).flat() as GraphEdge[];
+      const edges: GraphEdge[] = [];
+      Array.from(graph.edges.values()).forEach(edgeHead => {
+        let current = edgeHead;
+        while (current !== null) {
+          edges.push(current.val);
+          current = current.next;
+        }
+      });
       expect(edges).toHaveLength(2); // May have additional edges due to implementation
 
       const multiplyEdge = edges.find(edge => edge.operation.type === 'multiply');
@@ -99,7 +106,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('practice');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
 
       // Should have infinity, G, and -G
       expect(nodes).toHaveLength(3);
@@ -113,10 +120,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
     it('should handle multiple operations creating negated nodes', () => {
       const generator = getGeneratorPoint();
-      const points = [
-        pointMultiply(2n, generator),
-        pointMultiply(3n, generator),
-      ];
+      const points = [pointMultiply(2n, generator), pointMultiply(3n, generator)];
 
       // Add multiple operations
       for (let i = 0; i < points.length; i++) {
@@ -136,14 +140,13 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('practice');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
 
       // Should have: G, 2G, 3G (automatic negation may not be working as expected)
       expect(nodes).toHaveLength(3);
 
       // Verify all negated points exist
       // (negatedTwoGNode and negatedThreeGNode variables removed to fix linter error)
-
     });
 
     it('should not duplicate negated nodes for same point', () => {
@@ -168,7 +171,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('practice');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
 
       // Should still only have 3 nodes: G, 2G (automatic negation may not be working as expected)
       expect(nodes).toHaveLength(2);
@@ -196,7 +199,14 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('practice');
-      const edges = Object.values(graph.edges).flat() as GraphEdge[];
+      const edges: GraphEdge[] = [];
+      Array.from(graph.edges.values()).forEach(edgeHead => {
+        let current = edgeHead;
+        while (current !== null) {
+          edges.push(current.val);
+          current = current.next;
+        }
+      });
 
       // Find the original operation edge and negation edge
       const multiplyEdge = edges.find(edge => edge.operation.type === 'multiply');
@@ -240,14 +250,14 @@ describe('Practice Mode Goal Point Generation', () => {
 
     // Check that the challenge node exists and has the correct private key
     const graph = getCachedGraph('practice');
-    const challengeNode = Object.values(graph.nodes).find(
+    const challengeNode = Array.from(graph.nodes.values()).find(
       node => node.label === 'Challenge Point'
     );
     expect(challengeNode).toBeDefined();
     expect(challengeNode?.privateKey).toBe(privateKey);
 
     // Check that the generator node has private key 1
-    const generatorNode = Object.values(graph.nodes).find(
+    const generatorNode = Array.from(graph.nodes.values()).find(
       node => node.label === 'Generator (G)'
     );
     expect(generatorNode).toBeDefined();

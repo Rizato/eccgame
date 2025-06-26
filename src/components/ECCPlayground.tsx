@@ -55,12 +55,12 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     resetToGenerator,
     savePoint,
     loadSavedPoint,
+    userOperationCount,
   } = calculator;
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
   const [signature, setSignature] = useState<string>('');
-  const [totalOperationCount, setTotalOperationCount] = useState<number>(0);
 
   const calculatorDisplayRef = useRef<((value: string) => void) | null>(null);
   const generatorPoint = getGeneratorPoint();
@@ -96,29 +96,6 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       calculateSignature(victoryPrivateKey);
     }
   }, [hasWon, victoryPrivateKey]);
-
-  // Calculate total number of user-created operations (excluding system-generated intermediates)
-  useEffect(() => {
-    let total = 0;
-    const seenEdgeIds = new Set<string>();
-
-    // Iterate through all nodes' edge lists
-    for (const edgeList of Object.values(graph.edges)) {
-      for (const edge of edgeList) {
-        // Only count operations that were created by the user
-        // Use edge ID to avoid double counting since we have bidirectional edges
-        if (edge.operation.userCreated && !seenEdgeIds.has(edge.id)) {
-          total += 1;
-          seenEdgeIds.add(edge.id);
-
-          // Also add the reverse edge ID to avoid counting the reverse direction
-          const reverseEdgeId = `${edge.toNodeId}_to_${edge.fromNodeId}_by_operation_${edge.operation.type}_${edge.operation.value}`;
-          seenEdgeIds.add(reverseEdgeId);
-        }
-      }
-    }
-    setTotalOperationCount(total / 2);
-  }, [graph, hasWon]);
 
   // Note: Removed automatic reset to generator when challenge changes
   // to preserve current point state when switching between modes
@@ -208,7 +185,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
             challengePublicKey={challenge.public_key}
             challengeAddress={challenge.p2pkh_address}
             onPointClick={handlePointClick}
-            operationCount={totalOperationCount}
+            operationCount={userOperationCount}
           />
 
           {/* Calculator Section */}
@@ -274,6 +251,9 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         practicePrivateKey={practicePrivateKey}
         point={modalPoint}
         onLoadPoint={loadPoint}
+        isCurrentPoint={
+          modalPoint ? modalPoint.x === currentPoint.x && modalPoint.y === currentPoint.y : false
+        }
         onCopyPrivateKeyToCalculator={(privateKey: string) => {
           if (calculatorDisplayRef.current) {
             calculatorDisplayRef.current(privateKey);
@@ -313,7 +293,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           setShowVictoryModal(false);
         }}
         savedPoints={savedPoints}
-        operationCount={totalOperationCount}
+        operationCount={userOperationCount}
         victoryPrivateKey={victoryPrivateKey ? '0x' + victoryPrivateKey.toString(16) : ''}
         signature={signature}
         isPracticeMode={isPracticeMode}

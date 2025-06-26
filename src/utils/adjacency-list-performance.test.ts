@@ -24,18 +24,18 @@ describe('Adjacency List Performance', () => {
     addEdge(graph, nodeG.id, node2G.id, operation);
 
     // Check forward edge
-    expect(graph.edges[nodeG.id]).toBeDefined();
-    expect(graph.edges[nodeG.id].length).toBe(1);
-    expect(graph.edges[nodeG.id][0].fromNodeId).toBe(nodeG.id);
-    expect(graph.edges[nodeG.id][0].toNodeId).toBe(node2G.id);
-    expect(graph.edges[nodeG.id][0].operation.type).toBe(OperationType.MULTIPLY);
+    expect(graph.edges.get(nodeG.id)).toBeDefined();
+    expect(graph.edges.get(nodeG.id)).not.toBe(null);
+    expect(graph.edges.get(nodeG.id)!.val.fromNodeId).toBe(nodeG.id);
+    expect(graph.edges.get(nodeG.id)!.val.toNodeId).toBe(node2G.id);
+    expect(graph.edges.get(nodeG.id)!.val.operation.type).toBe(OperationType.MULTIPLY);
 
     // Check reverse edge
-    expect(graph.edges[node2G.id]).toBeDefined();
-    expect(graph.edges[node2G.id].length).toBe(1);
-    expect(graph.edges[node2G.id][0].fromNodeId).toBe(node2G.id);
-    expect(graph.edges[node2G.id][0].toNodeId).toBe(nodeG.id);
-    expect(graph.edges[node2G.id][0].operation.type).toBe(OperationType.DIVIDE);
+    expect(graph.edges.get(node2G.id)).toBeDefined();
+    expect(graph.edges.get(node2G.id)).not.toBe(null);
+    expect(graph.edges.get(node2G.id)!.val.fromNodeId).toBe(node2G.id);
+    expect(graph.edges.get(node2G.id)!.val.toNodeId).toBe(nodeG.id);
+    expect(graph.edges.get(node2G.id)!.val.operation.type).toBe(OperationType.DIVIDE);
   });
 
   it('should efficiently get all connected edges', () => {
@@ -104,11 +104,11 @@ describe('Adjacency List Performance', () => {
     addEdge(graph, nodeG.id, node2G.id, operation1);
     addEdge(graph, nodeG.id, node2G.id, operation2);
 
-    // Should still only have 1 edge each direction
-    expect(graph.edges[nodeG.id].length).toBe(1);
-    expect(graph.edges[node2G.id].length).toBe(1);
+    // Should still only have 1 edge each direction (no second node in linked list)
+    expect(graph.edges.get(nodeG.id)!.next).toBe(null);
+    expect(graph.edges.get(node2G.id)!.next).toBe(null);
 
     // userCreated should be sticky (true)
-    expect(graph.edges[nodeG.id][0].operation.userCreated).toBe(true);
+    expect(graph.edges.get(nodeG.id)!.val.operation.userCreated).toBe(true);
   });
 });

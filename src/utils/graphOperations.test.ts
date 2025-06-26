@@ -36,9 +36,17 @@ describe('Graph Operations', () => {
         value: '5',
       });
 
-      expect(Object.keys(graph.nodes)).toHaveLength(2);
+      expect(Array.from(graph.nodes.keys())).toHaveLength(2);
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Array.from(graph.edges.values()).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
     });
 
@@ -58,9 +66,17 @@ describe('Graph Operations', () => {
         value: '5',
       });
 
-      expect(Object.keys(graph.nodes)).toHaveLength(2);
+      expect(Array.from(graph.nodes.keys())).toHaveLength(2);
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Array.from(graph.edges.values()).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
     });
 
@@ -80,7 +96,7 @@ describe('Graph Operations', () => {
         value: '5',
       });
 
-      const point5GNode = Object.values(graph.nodes).find(
+      const point5GNode = Array.from(graph.nodes.values()).find(
         node => node.point.x === point5G.x && node.point.y === point5G.y
       );
 
@@ -102,7 +118,7 @@ describe('Graph Operations', () => {
         value: '5',
       });
 
-      const generatorNode = Object.values(graph.nodes).find(
+      const generatorNode = Array.from(graph.nodes.values()).find(
         node => node.point.x === generatorPoint.x && node.point.y === generatorPoint.y
       );
 
@@ -125,7 +141,7 @@ describe('Graph Operations', () => {
         value: '',
       });
 
-      const negatedNode = Object.values(graph.nodes).find(
+      const negatedNode = Array.from(graph.nodes.values()).find(
         node => node.point.x === negatedPoint.x && node.point.y === negatedPoint.y
       );
 
@@ -220,7 +236,7 @@ describe('Graph Operations', () => {
         value: '2',
       });
 
-      const node2G = Object.values(graph.nodes).find(
+      const node2G = Array.from(graph.nodes.values()).find(
         node => node.point.x === point2G.x && node.point.y === point2G.y
       );
 
@@ -266,7 +282,7 @@ describe('Graph Operations', () => {
         value: '2',
       });
 
-      const node5G = Object.values(graph.nodes).find(
+      const node5G = Array.from(graph.nodes.values()).find(
         node => node.point.x === point5G.x && node.point.y === point5G.y
       );
 
@@ -301,11 +317,11 @@ describe('Graph Operations', () => {
       processBatchOperations(graph, batchOps);
 
       // Should have more nodes than just generator and final result
-      const nodeCount = Object.keys(graph.nodes).length;
+      const nodeCount = Array.from(graph.nodes.keys()).length;
       expect(nodeCount).toBeGreaterThan(2);
 
       // All intermediate nodes should have private keys propagated
-      for (const node of Object.values(graph.nodes)) {
+      for (const node of Array.from(graph.nodes.values())) {
         if (!node.point.isInfinity) {
           expect(node.privateKey).toBeDefined();
         }
@@ -331,10 +347,10 @@ describe('Graph Operations', () => {
       });
 
       // Should have both generator and negated point
-      expect(Object.keys(graph.nodes)).toHaveLength(2);
+      expect(Array.from(graph.nodes.keys())).toHaveLength(2);
 
       // Negated point should have correct private key
-      const negatedNode = Object.values(graph.nodes).find(
+      const negatedNode = Array.from(graph.nodes.values()).find(
         node => node.point.x === negatedPoint.x && node.point.y === negatedPoint.y
       );
 
@@ -368,14 +384,14 @@ describe('Graph Operations', () => {
       processBatchOperations(graph, batchOps);
 
       // Final result should have the correct private key
-      const finalNode = Object.values(graph.nodes).find(
+      const finalNode = Array.from(graph.nodes.values()).find(
         node => node.point.x === result.x && node.point.y === result.y
       );
 
       expect(finalNode?.privateKey).toBe(scalar);
 
       // All intermediate nodes should have valid private keys
-      for (const node of Object.values(graph.nodes)) {
+      for (const node of Array.from(graph.nodes.values())) {
         if (!node.point.isInfinity && node.privateKey !== undefined) {
           // Note: Private key verification may not work correctly in this context
           // due to the complexity of intermediate calculations
@@ -420,11 +436,11 @@ describe('Graph Operations', () => {
       processBatchOperations(graph, batchOps);
 
       // Should have multiple edges between same points for different operations
-      const edgeCount = Object.keys(graph.edges).length;
+      const edgeCount = Array.from(graph.edges.keys()).length;
       expect(edgeCount).toBeGreaterThan(1);
 
       // Final result should still be correct
-      const point3GNode = Object.values(graph.nodes).find(
+      const point3GNode = Array.from(graph.nodes.values()).find(
         node => node.point.x === point3G.x && node.point.y === point3G.y
       );
 
@@ -447,14 +463,22 @@ describe('Graph Operations', () => {
       ensureOperationInGraph(graph, generatorPoint, point5G, operation);
 
       // Should only have one edge with the same ID
-      const edgeIds = Object.keys(graph.edges);
+      const edgeIds = Array.from(graph.edges.keys());
       const duplicateEdgeIds = edgeIds.filter(
         id => edgeIds.indexOf(id) !== edgeIds.lastIndexOf(id)
       );
 
       expect(duplicateEdgeIds).toHaveLength(0);
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Array.from(graph.edges.values()).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
     });
 
@@ -476,9 +500,17 @@ describe('Graph Operations', () => {
 
       // Should have two different edges
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Array.from(graph.edges.values()).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(2); // May have more edges due to automatic operations
-      expect(Object.keys(graph.nodes)).toHaveLength(2); // Still same nodes
+      expect(Array.from(graph.nodes.keys())).toHaveLength(2); // Still same nodes
     });
 
     it('should handle overwriting userCreated true to false, but stays true', () => {
@@ -501,16 +533,23 @@ describe('Graph Operations', () => {
       });
 
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Array.from(graph.edges.values()).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
 
       // Test that edge userCreated is true (stays true after false overwrites)
-      const nodes = Object.values(graph.nodes);
+      const nodes = Array.from(graph.nodes.values());
       if (nodes.length >= 2) {
-        const edgeId = `${nodes[0].id}_to_${nodes[1].id}_by_operation_multiply_7`;
-        const edgeArray = graph.edges[edgeId];
-        if (edgeArray && edgeArray.length > 0) {
-          const edge = edgeArray[0];
+        const edgeHead = graph.edges.get(nodes[0].id);
+        if (edgeHead !== null && edgeHead !== undefined) {
+          const edge = edgeHead.val;
           expect(edge).toBeDefined();
           expect(edge.operation.userCreated).toBe(true);
         }
@@ -537,16 +576,23 @@ describe('Graph Operations', () => {
       });
 
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Array.from(graph.edges.values()).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
 
       // Test that edge userCreated is true (becomes true after false)
-      const nodes = Object.values(graph.nodes);
+      const nodes = Array.from(graph.nodes.values());
       if (nodes.length >= 2) {
-        const edgeId = `${nodes[0].id}_to_${nodes[1].id}_by_operation_multiply_7`;
-        const edgeArray = graph.edges[edgeId];
-        if (edgeArray && edgeArray.length > 0) {
-          const edge = edgeArray[0];
+        const edgeHead = graph.edges.get(nodes[0].id);
+        if (edgeHead !== null && edgeHead !== undefined) {
+          const edge = edgeHead.val;
           expect(edge).toBeDefined();
           expect(edge.operation.userCreated).toBe(true);
         }

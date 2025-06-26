@@ -2,8 +2,14 @@ import {
   type PointGraph,
   type SingleOperationPayload,
   type GraphEdge,
+  type EdgeListNode,
 } from '../../../types/ecc';
-import { findNodeByPoint, addNode, reverseOperation } from '../../../utils/graphOperations';
+import {
+  findNodeByPoint,
+  addNode,
+  reverseOperation,
+  findEdgeInList,
+} from '../../../utils/graphOperations';
 
 /**
  * Process batch operations with optimized BFS calls
@@ -40,24 +46,33 @@ export function processBatchOperations(
       toNode.privateKey = toPointPrivateKey;
     }
 
-    // Initialize edge arrays if they don't exist
-    if (!graph.edges[fromNode.id]) {
-      graph.edges[fromNode.id] = [];
+    // Initialize edge lists if they don't exist
+    if (!graph.edges.has(fromNode.id)) {
+      graph.edges.set(fromNode.id, null);
     }
-    if (!graph.edges[toNode.id]) {
-      graph.edges[toNode.id] = [];
+    if (!graph.edges.has(toNode.id)) {
+      graph.edges.set(toNode.id, null);
     }
 
     // Add forward edge
     const edgeId = `${fromNode.id}_to_${toNode.id}_by_operation_${operation.type}_${operation.value}`;
-    if (!graph.edges[fromNode.id].find(e => e.id === edgeId)) {
+    const edgeHead = graph.edges.get(fromNode.id) || null;
+    const existingEdge = findEdgeInList(edgeHead, edgeId);
+
+    if (!existingEdge) {
       const forwardEdge: GraphEdge = {
         id: edgeId,
         fromNodeId: fromNode.id,
         toNodeId: toNode.id,
         operation,
       };
-      graph.edges[fromNode.id].push(forwardEdge);
+
+      // Prepend to linked list for O(1) insertion
+      const newForwardNode: EdgeListNode = {
+        val: forwardEdge,
+        next: graph.edges.get(fromNode.id) || null,
+      };
+      graph.edges.set(fromNode.id, newForwardNode);
 
       // Add reverse edge
       const reversedOp = reverseOperation(operation);
@@ -68,7 +83,13 @@ export function processBatchOperations(
         toNodeId: fromNode.id,
         operation: reversedOp,
       };
-      graph.edges[toNode.id].push(reverseEdge);
+
+      // Prepend to linked list for O(1) insertion
+      const newReverseNode: EdgeListNode = {
+        val: reverseEdge,
+        next: graph.edges.get(toNode.id) || null,
+      };
+      graph.edges.set(toNode.id, newReverseNode);
     }
   }
 }

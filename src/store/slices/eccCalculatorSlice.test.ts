@@ -57,14 +57,21 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
       const graph = getCachedGraph('daily');
 
       // Should have nodes for fromPoint, toPoint, and negated toPoint
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
       expect(nodes).toHaveLength(2); // G, 3G (automatic negation may not be working as expected)
 
       // Check that negated point exists
       // (negatedNode variable removed to fix linter error)
 
       // Should have edges: G -> 3G (multiply) and potentially other edges
-      const edges = Object.values(graph.edges).flat() as GraphEdge[];
+      const edges: GraphEdge[] = [];
+      Array.from(graph.edges.values()).forEach(edgeHead => {
+        let current = edgeHead;
+        while (current !== null) {
+          edges.push(current.val);
+          current = current.next;
+        }
+      });
       expect(edges).toHaveLength(2); // May have additional edges due to implementation
 
       const multiplyEdge = edges.find(edge => edge.operation.type === 'multiply');
@@ -102,7 +109,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('daily');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
 
       // Should have: G, challenge, result (automatic negation may not be working as expected)
       expect(nodes).toHaveLength(3);
@@ -146,7 +153,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('daily');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
 
       // Should have: G, 5G, 3G (automatic negation may not be working as expected)
       expect(nodes.length).toBeGreaterThanOrEqual(3);
@@ -181,8 +188,15 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('daily');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
-      const edges = Object.values(graph.edges).flat() as GraphEdge[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
+      const edges: GraphEdge[] = [];
+      Array.from(graph.edges.values()).forEach(edgeHead => {
+        let current = edgeHead;
+        while (current !== null) {
+          edges.push(current.val);
+          current = current.next;
+        }
+      });
 
       // Should have G + 3 points (automatic negation may not be working as expected)
       expect(nodes).toHaveLength(4);
@@ -229,7 +243,7 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('daily');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
 
       // Should have: G, 2G (automatic negation may not be working as expected)
       expect(nodes.length).toBeGreaterThanOrEqual(2);

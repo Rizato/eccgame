@@ -91,7 +91,6 @@
     min-width: auto;
     width: 95vw;
     max-width: 95vw;
-    padding: var(--spacing);
   }
 
   .form-field input {

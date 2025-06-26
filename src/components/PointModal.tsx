@@ -30,6 +30,8 @@ interface ModalProps {
   onLoadPoint?: (point: ECPoint) => void;
   // Calculator integration
   onCopyPrivateKeyToCalculator?: (privateKey: string) => void;
+  // UI state
+  isCurrentPoint?: boolean;
 }
 
 interface ModalItemProps {
@@ -51,6 +53,7 @@ export const Modal: React.FC<ModalProps> = ({
   point,
   onLoadPoint,
   onCopyPrivateKeyToCalculator,
+  isCurrentPoint = false,
 }) => {
   const dispatch = useAppDispatch();
   const privateKeyDisplayMode = useAppSelector(state => state.ui.privateKeyDisplayMode);
@@ -331,8 +334,8 @@ export const Modal: React.FC<ModalProps> = ({
 
             {/* Action Buttons */}
             <div className="modal-actions">
-              {/* Use as Current Point button for all points */}
-              {onLoadPoint && point && (
+              {/* Use as Current Point button for all points - hide for current point */}
+              {onLoadPoint && point && !isCurrentPoint && (
                 <button
                   className="action-button primary"
                   onClick={() => {
