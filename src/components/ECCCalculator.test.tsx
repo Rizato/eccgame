@@ -347,7 +347,8 @@ describe('ECCCalculator', () => {
       // Verify that all intermediate points from the algorithm exist in the graph
       for (const intermediate of intermediates) {
         const foundNode = graphNodes.find(
-          (node: GraphNode) => node.point.x === intermediate.point.x && node.point.y === intermediate.point.y
+          (node: GraphNode) =>
+            node.point.x === intermediate.point.x && node.point.y === intermediate.point.y
         );
         expect(foundNode).toBeDefined();
       }
@@ -405,7 +406,9 @@ describe('ECCCalculator', () => {
       const generatorNode = graphNodes.find(
         (node: GraphNode) => node.point.x === generatorPoint.x && node.point.y === generatorPoint.y
       );
-      const twoGNode = graphNodes.find((node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y);
+      const twoGNode = graphNodes.find(
+        (node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y
+      );
 
       expect(generatorNode).toBeDefined();
       expect(twoGNode).toBeDefined();
@@ -444,7 +447,9 @@ describe('ECCCalculator', () => {
       const generatorNode = graphNodes.find(
         (node: GraphNode) => node.point.x === generatorPoint.x && node.point.y === generatorPoint.y
       );
-      const twoGNode = graphNodes.find((node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y);
+      const twoGNode = graphNodes.find(
+        (node: GraphNode) => node.point.x === twoG.x && node.point.y === twoG.y
+      );
 
       expect(generatorNode).toBeDefined();
       expect(twoGNode).toBeDefined();
@@ -482,16 +487,25 @@ describe('ECCCalculator', () => {
       });
 
       const graph = getCachedGraph('daily');
-      
+
       // Flatten all edges from the graph
-      const allEdges = Object.values(graph.edges).flat();
+      const allEdges: GraphEdge[] = [];
+      Object.values(graph.edges).forEach(edgeHead => {
+        let current = edgeHead;
+        while (current !== null) {
+          allEdges.push(current.val);
+          current = current.next;
+        }
+      });
 
       // Should have edges connecting intermediate points
       expect(allEdges.length).toBeGreaterThan(1);
 
       // All intermediate edges should be marked as system-generated
-      const systemEdges = allEdges.filter((edge: GraphEdge) => edge.operation.userCreated === false);
-      
+      const systemEdges = allEdges.filter(
+        (edge: GraphEdge) => edge.operation.userCreated === false
+      );
+
       expect(systemEdges.length).toBeGreaterThan(0);
     });
   });

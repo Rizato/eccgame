@@ -64,7 +64,14 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
       // (negatedNode variable removed to fix linter error)
 
       // Should have edges: G -> 3G (multiply) and potentially other edges
-      const edges = Object.values(graph.edges).flat() as GraphEdge[];
+      const edges: GraphEdge[] = [];
+      Object.values(graph.edges).forEach(edgeHead => {
+        let current = edgeHead;
+        while (current !== null) {
+          edges.push(current.val);
+          current = current.next;
+        }
+      });
       expect(edges).toHaveLength(2); // May have additional edges due to implementation
 
       const multiplyEdge = edges.find(edge => edge.operation.type === 'multiply');
@@ -182,7 +189,14 @@ describe('DailyCalculatorSlice Force Multiplication', () => {
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('daily');
       const nodes = Object.values(graph.nodes) as GraphNode[];
-      const edges = Object.values(graph.edges).flat() as GraphEdge[];
+      const edges: GraphEdge[] = [];
+      Object.values(graph.edges).forEach(edgeHead => {
+        let current = edgeHead;
+        while (current !== null) {
+          edges.push(current.val);
+          current = current.next;
+        }
+      });
 
       // Should have G + 3 points (automatic negation may not be working as expected)
       expect(nodes).toHaveLength(4);

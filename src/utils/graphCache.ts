@@ -104,9 +104,15 @@ class GraphCache {
       pointMap.set(pointHash, nodeId);
     }
 
-    // Sync edges
-    for (const [nodeId, edges] of Object.entries(graph.edges)) {
-      edgeMap.set(nodeId, edges);
+    // Sync edges - convert linked lists to arrays for cache compatibility
+    for (const [nodeId, edgeHead] of Object.entries(graph.edges)) {
+      const edgeArray: GraphEdge[] = [];
+      let current = edgeHead;
+      while (current !== null) {
+        edgeArray.push(current.val);
+        current = current.next;
+      }
+      edgeMap.set(nodeId, edgeArray);
     }
   }
 }

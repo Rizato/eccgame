@@ -38,7 +38,15 @@ describe('Graph Operations', () => {
 
       expect(Object.keys(graph.nodes)).toHaveLength(2);
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Object.values(graph.edges).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
     });
 
@@ -60,7 +68,15 @@ describe('Graph Operations', () => {
 
       expect(Object.keys(graph.nodes)).toHaveLength(2);
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Object.values(graph.edges).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
     });
 
@@ -454,7 +470,15 @@ describe('Graph Operations', () => {
 
       expect(duplicateEdgeIds).toHaveLength(0);
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Object.values(graph.edges).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
     });
 
@@ -476,7 +500,15 @@ describe('Graph Operations', () => {
 
       // Should have two different edges
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Object.values(graph.edges).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(2); // May have more edges due to automatic operations
       expect(Object.keys(graph.nodes)).toHaveLength(2); // Still same nodes
     });
@@ -501,16 +533,23 @@ describe('Graph Operations', () => {
       });
 
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Object.values(graph.edges).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
 
       // Test that edge userCreated is true (stays true after false overwrites)
       const nodes = Object.values(graph.nodes);
       if (nodes.length >= 2) {
-        const edgeId = `${nodes[0].id}_to_${nodes[1].id}_by_operation_multiply_7`;
-        const edgeArray = graph.edges[edgeId];
-        if (edgeArray && edgeArray.length > 0) {
-          const edge = edgeArray[0];
+        const edgeHead = graph.edges[nodes[0].id];
+        if (edgeHead !== null) {
+          const edge = edgeHead.val;
           expect(edge).toBeDefined();
           expect(edge.operation.userCreated).toBe(true);
         }
@@ -537,16 +576,23 @@ describe('Graph Operations', () => {
       });
 
       // Count total edges across all nodes
-      const totalEdges = Object.values(graph.edges).reduce((sum, edges) => sum + edges.length, 0);
+      const totalEdges = Object.values(graph.edges).reduce((sum, edgeHead) => {
+        let count = 0;
+        let current = edgeHead;
+        while (current !== null) {
+          count++;
+          current = current.next;
+        }
+        return sum + count;
+      }, 0);
       expect(totalEdges).toBeGreaterThanOrEqual(1); // May have more edges due to automatic operations
 
       // Test that edge userCreated is true (becomes true after false)
       const nodes = Object.values(graph.nodes);
       if (nodes.length >= 2) {
-        const edgeId = `${nodes[0].id}_to_${nodes[1].id}_by_operation_multiply_7`;
-        const edgeArray = graph.edges[edgeId];
-        if (edgeArray && edgeArray.length > 0) {
-          const edge = edgeArray[0];
+        const edgeHead = graph.edges[nodes[0].id];
+        if (edgeHead !== null) {
+          const edge = edgeHead.val;
           expect(edge).toBeDefined();
           expect(edge.operation.userCreated).toBe(true);
         }
