@@ -251,6 +251,9 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         practicePrivateKey={practicePrivateKey}
         point={modalPoint}
         onLoadPoint={loadPoint}
+        isCurrentPoint={
+          modalPoint ? modalPoint.x === currentPoint.x && modalPoint.y === currentPoint.y : false
+        }
         onCopyPrivateKeyToCalculator={(privateKey: string) => {
           if (calculatorDisplayRef.current) {
             calculatorDisplayRef.current(privateKey);
