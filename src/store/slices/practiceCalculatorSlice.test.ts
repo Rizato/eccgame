@@ -59,7 +59,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
       const graph = getCachedGraph('practice');
 
       // Should have nodes for fromPoint, toPoint, and negated toPoint
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
       expect(nodes).toHaveLength(2); // G, 2G (automatic negation may not be working as expected)
 
       // Check that negated point exists
@@ -67,7 +67,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
       // Should have edges: G -> 2G (multiply) and potentially other edges
       const edges: GraphEdge[] = [];
-      Object.values(graph.edges).forEach(edgeHead => {
+      Array.from(graph.edges.values()).forEach(edgeHead => {
         let current = edgeHead;
         while (current !== null) {
           edges.push(current.val);
@@ -106,7 +106,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('practice');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
 
       // Should have infinity, G, and -G
       expect(nodes).toHaveLength(3);
@@ -140,7 +140,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('practice');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
 
       // Should have: G, 2G, 3G (automatic negation may not be working as expected)
       expect(nodes).toHaveLength(3);
@@ -171,7 +171,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
 
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('practice');
-      const nodes = Object.values(graph.nodes) as GraphNode[];
+      const nodes = Array.from(graph.nodes.values()) as GraphNode[];
 
       // Should still only have 3 nodes: G, 2G (automatic negation may not be working as expected)
       expect(nodes).toHaveLength(2);
@@ -200,7 +200,7 @@ describe('PracticeCalculatorSlice Force Multiplication', () => {
       // Use cached graph instead of state.graph
       const graph = getCachedGraph('practice');
       const edges: GraphEdge[] = [];
-      Object.values(graph.edges).forEach(edgeHead => {
+      Array.from(graph.edges.values()).forEach(edgeHead => {
         let current = edgeHead;
         while (current !== null) {
           edges.push(current.val);
@@ -250,12 +250,16 @@ describe('Practice Mode Goal Point Generation', () => {
 
     // Check that the challenge node exists and has the correct private key
     const graph = getCachedGraph('practice');
-    const challengeNode = Object.values(graph.nodes).find(node => node.label === 'Challenge Point');
+    const challengeNode = Array.from(graph.nodes.values()).find(
+      node => node.label === 'Challenge Point'
+    );
     expect(challengeNode).toBeDefined();
     expect(challengeNode?.privateKey).toBe(privateKey);
 
     // Check that the generator node has private key 1
-    const generatorNode = Object.values(graph.nodes).find(node => node.label === 'Generator (G)');
+    const generatorNode = Array.from(graph.nodes.values()).find(
+      node => node.label === 'Generator (G)'
+    );
     expect(generatorNode).toBeDefined();
     expect(generatorNode?.privateKey).toBe(1n);
 

@@ -300,7 +300,7 @@ const practiceCalculatorSlice = createSlice({
       // Win condition: challenge node is connected to generator (has connectedToG property)
       if (state.challengeNodeId && state.generatorNodeId) {
         const graph = getCachedGraph('practice');
-        const challengeNode = graph.nodes[state.challengeNodeId];
+        const challengeNode = graph.nodes.get(state.challengeNodeId);
 
         if (challengeNode?.connectedToG && !state.hasWon) {
           state.hasWon = true;

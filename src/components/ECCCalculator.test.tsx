@@ -338,7 +338,7 @@ describe('ECCCalculator', () => {
 
       // The graph should contain the intermediate points
       const graph = getCachedGraph('daily');
-      const graphNodes = Object.values(graph.nodes);
+      const graphNodes = Array.from(graph.nodes.values());
 
       // Should have at least: generator + final result + intermediates + negated points
       // Each operation adds its result point + negated point, plus intermediates
@@ -396,7 +396,7 @@ describe('ECCCalculator', () => {
       });
 
       const graph = getCachedGraph('daily');
-      const graphNodes = Object.values(graph.nodes);
+      const graphNodes = Array.from(graph.nodes.values());
 
       // Should have multiple nodes from both operations and their intermediates
       expect(graphNodes.length).toBeGreaterThan(2);
@@ -436,7 +436,7 @@ describe('ECCCalculator', () => {
       });
 
       const graph = getCachedGraph('daily');
-      const graphNodes = Object.values(graph.nodes);
+      const graphNodes = Array.from(graph.nodes.values());
 
       // Quick operations may still generate some nodes, but should be reasonable
       // The exact count may vary based on implementation
@@ -490,7 +490,7 @@ describe('ECCCalculator', () => {
 
       // Flatten all edges from the graph
       const allEdges: GraphEdge[] = [];
-      Object.values(graph.edges).forEach(edgeHead => {
+      Array.from(graph.edges.values()).forEach(edgeHead => {
         let current = edgeHead;
         while (current !== null) {
           allEdges.push(current.val);

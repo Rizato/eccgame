@@ -36,9 +36,9 @@ export interface GraphNode {
 }
 
 export interface PointGraph {
-  nodes: Record<string, GraphNode>;
-  edges: Record<string, EdgeListNode | null>; // nodeId -> linked list head of edges FROM this node
-  pointToNodeId: Record<string, string>; // point hash -> node id for quick lookup
+  nodes: Map<string, GraphNode>;
+  edges: Map<string, EdgeListNode | null>; // nodeId -> linked list head of edges FROM this node
+  pointToNodeId: Map<string, string>; // point hash -> node id for quick lookup
   // X-coordinates for negated point detection
   xCoordinates: Set<string>; // x coordinate strings for O(1) negation lookup
 }

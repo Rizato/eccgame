@@ -29,7 +29,7 @@ describe('State Persistence with switchGameMode', () => {
     );
 
     // Get the practice mode state
-    const practiceNodeCount = Object.keys(getCachedGraph('practice').nodes).length;
+    const practiceNodeCount = getCachedGraph('practice').nodes.size;
     const practiceGeneratorId = (store.getState() as RootState).practiceCalculator.generatorNodeId;
     const practiceChallengeId = (store.getState() as RootState).practiceCalculator.challengeNodeId;
 
@@ -45,16 +45,20 @@ describe('State Persistence with switchGameMode', () => {
       resetToChallenge('03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6')
     );
 
-    const dailyNodeCount = Object.keys(getCachedGraph('daily').nodes).length;
+    const dailyNodeCount = getCachedGraph('daily').nodes.size;
     expect(dailyNodeCount).toBeGreaterThan(1);
 
     // Switch back to practice mode - state should be restored
     store.dispatch(switchGameMode('practice'));
 
-    const restoredPracticeNodeCount = Object.keys(getCachedGraph('practice').nodes).length;
+    const restoredPracticeNodeCount = getCachedGraph('practice').nodes.size;
     expect(restoredPracticeNodeCount).toBe(practiceNodeCount);
-    expect((store.getState() as RootState).practiceCalculator.generatorNodeId).toBe(practiceGeneratorId);
-    expect((store.getState() as RootState).practiceCalculator.challengeNodeId).toBe(practiceChallengeId);
+    expect((store.getState() as RootState).practiceCalculator.generatorNodeId).toBe(
+      practiceGeneratorId
+    );
+    expect((store.getState() as RootState).practiceCalculator.challengeNodeId).toBe(
+      practiceChallengeId
+    );
   });
 
   it('should maintain separate graph states between modes', () => {
@@ -84,7 +88,7 @@ describe('State Persistence with switchGameMode', () => {
       })
     );
 
-    const practiceNodeCount = Object.keys(getCachedGraph('practice').nodes).length;
+    const practiceNodeCount = getCachedGraph('practice').nodes.size;
     expect(practiceNodeCount).toBe(3); // generator, challenge, doubled node (negation might not be automatic in this context)
 
     // Switch to daily mode
@@ -93,7 +97,7 @@ describe('State Persistence with switchGameMode', () => {
       resetToChallenge('03678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb6')
     );
 
-    const dailyNodeCount = Object.keys(getCachedGraph('daily').nodes).length;
+    const dailyNodeCount = getCachedGraph('daily').nodes.size;
     expect(dailyNodeCount).toBe(2); // only generator and challenge
 
     // Add nodes in daily mode
@@ -111,19 +115,19 @@ describe('State Persistence with switchGameMode', () => {
       })
     );
 
-    const newDailyNodeCount = Object.keys(getCachedGraph('daily').nodes).length;
+    const newDailyNodeCount = getCachedGraph('daily').nodes.size;
     expect(newDailyNodeCount).toBe(3);
 
     // Switch back to practice - state should be preserved
     store.dispatch(switchGameMode('practice'));
 
-    const practiceNodeCountAfter = Object.keys(getCachedGraph('practice').nodes).length;
+    const practiceNodeCountAfter = getCachedGraph('practice').nodes.size;
     expect(practiceNodeCountAfter).toBe(practiceNodeCount);
 
     // Node IDs should be different between modes when they have different challenges
-    const practiceNodeIds = Object.keys(getCachedGraph('practice').nodes);
+    const practiceNodeIds = Array.from(getCachedGraph('practice').nodes.keys());
     store.dispatch(switchGameMode('daily'));
-    const dailyNodeIds = Object.keys(getCachedGraph('daily').nodes);
+    const dailyNodeIds = Array.from(getCachedGraph('daily').nodes.keys());
 
     // Graphs should be independent
     expect(practiceNodeIds.length).toBe(3);

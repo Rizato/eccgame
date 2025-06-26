@@ -87,9 +87,9 @@ export function clearNodeCounter(mode: string): void {
  */
 export function createEmptyGraph(): PointGraph {
   return {
-    nodes: {},
-    edges: {},
-    pointToNodeId: {},
+    nodes: new Map(),
+    edges: new Map(),
+    pointToNodeId: new Map(),
     xCoordinates: new Set(),
   };
 }
@@ -111,10 +111,10 @@ export function addNode(
   } = {}
 ): GraphNode {
   const pointHash = pointToHash(point);
-  const existingNodeId = graph.pointToNodeId[pointHash];
+  const existingNodeId = graph.pointToNodeId.get(pointHash);
 
   if (existingNodeId) {
-    const existingNode = graph.nodes[existingNodeId]!;
+    const existingNode = graph.nodes.get(existingNodeId)!;
     // Track if we need to propagate changes
     const needsPrivateKeyPropagation =
       (options.privateKey !== undefined && existingNode.privateKey === undefined) ||
@@ -162,11 +162,11 @@ export function addNode(
     connectedToG: options.isGenerator || options.connectedToG,
   };
 
-  graph.nodes[nodeId] = node;
-  if (!graph.edges[nodeId]) {
-    graph.edges[nodeId] = null;
+  graph.nodes.set(nodeId, node);
+  if (!graph.edges.has(nodeId)) {
+    graph.edges.set(nodeId, null);
   }
-  graph.pointToNodeId[pointHash] = nodeId;
+  graph.pointToNodeId.set(pointHash, nodeId);
 
   // Check if the negation of this node already exists and create edge if so
   // This enables automatic detection of negation relationships (like reaching -G)
@@ -190,15 +190,15 @@ export function addEdge(
   const edgeId = `${fromNodeId}_to_${toNodeId}_by_operation_${operation.type}_${operation.value}`;
 
   // Initialize edge lists if they don't exist
-  if (!graph.edges[fromNodeId]) {
-    graph.edges[fromNodeId] = null;
+  if (!graph.edges.has(fromNodeId)) {
+    graph.edges.set(fromNodeId, null);
   }
-  if (!graph.edges[toNodeId]) {
-    graph.edges[toNodeId] = null;
+  if (!graph.edges.has(toNodeId)) {
+    graph.edges.set(toNodeId, null);
   }
 
   // Check if forward edge already exists
-  let forwardEdge = findEdgeInList(graph.edges[fromNodeId], edgeId);
+  let forwardEdge = findEdgeInList(graph.edges.get(fromNodeId)!, edgeId);
   if (forwardEdge) {
     // Update userCreated flag to be sticky
     forwardEdge.operation.userCreated = forwardEdge.operation.userCreated || operation.userCreated;
@@ -212,7 +212,7 @@ export function addEdge(
     toNodeId,
     operation,
   };
-  graph.edges[fromNodeId] = addEdgeToList(graph.edges[fromNodeId], forwardEdge);
+  graph.edges.set(fromNodeId, addEdgeToList(graph.edges.get(fromNodeId)!, forwardEdge));
 
   // Create reverse edge with inverted operation
   const reversedOp = reverseOperation(operation);
@@ -225,8 +225,8 @@ export function addEdge(
   };
 
   // Only add reverse edge if it doesn't already exist
-  if (!findEdgeInList(graph.edges[toNodeId], reverseEdgeId)) {
-    graph.edges[toNodeId] = addEdgeToList(graph.edges[toNodeId], reverseEdge);
+  if (!findEdgeInList(graph.edges.get(toNodeId)!, reverseEdgeId)) {
+    graph.edges.set(toNodeId, addEdgeToList(graph.edges.get(toNodeId)!, reverseEdge));
   }
 
   return forwardEdge;
@@ -253,9 +253,9 @@ export function findNegatedPoint(graph: PointGraph, point: ECPoint): GraphNode |
   const negatedHash = pointToHash(negatedPoint);
 
   // Check if the negated point exists in the graph
-  const negatedNodeId = graph.pointToNodeId[negatedHash];
+  const negatedNodeId = graph.pointToNodeId.get(negatedHash);
   if (negatedNodeId) {
-    return graph.nodes[negatedNodeId];
+    return graph.nodes.get(negatedNodeId);
   }
 
   return undefined;
@@ -295,8 +295,8 @@ function checkAndCreateNegationEdge(graph: PointGraph, node: GraphNode): void {
  */
 export function findNodeByPoint(graph: PointGraph, point: ECPoint): GraphNode | undefined {
   const pointHash = pointToHash(point);
-  const nodeId = graph.pointToNodeId[pointHash];
-  return nodeId ? graph.nodes[nodeId] : undefined;
+  const nodeId = graph.pointToNodeId.get(pointHash);
+  return nodeId ? graph.nodes.get(nodeId) : undefined;
 }
 
 /**
@@ -321,7 +321,7 @@ export function getAllConnectedEdges(
   const connections: Array<{ edge: GraphEdge; direction: 'outgoing' | 'incoming' }> = [];
 
   // Iterate through linked list of edges from this node
-  let current = graph.edges[nodeId];
+  let current = graph.edges.get(nodeId) || null;
   while (current !== null) {
     const edge = current.val;
     // Since we store bidirectional edges, all edges from this node are "outgoing"
@@ -331,7 +331,7 @@ export function getAllConnectedEdges(
     } else {
       connections.push({ edge, direction: 'incoming' });
     }
-    current = current.next;
+    current = current!.next;
   }
 
   return connections;
@@ -517,15 +517,15 @@ function unifiedPropagation(graph: PointGraph, initialQueue: string[]): void {
     if (visited.has(currentNodeId)) continue;
     visited.add(currentNodeId);
 
-    const currentNode = graph.nodes[currentNodeId];
+    const currentNode = graph.nodes.get(currentNodeId);
     if (!currentNode) continue;
 
     // Iterate through linked list of edges from this node
-    let current = graph.edges[currentNodeId];
+    let current = graph.edges.get(currentNodeId) || null;
     while (current !== null) {
       const edge = current.val;
       const connectedNodeId = edge.toNodeId;
-      const connectedNode = graph.nodes[connectedNodeId];
+      const connectedNode = graph.nodes.get(connectedNodeId);
       if (!connectedNode || visited.has(connectedNodeId)) {
         current = current.next;
         continue;
@@ -556,7 +556,7 @@ function unifiedPropagation(graph: PointGraph, initialQueue: string[]): void {
       if (needsQueueing) {
         queue.push(connectedNodeId);
       }
-      current = current.next;
+      current = current!.next;
     }
   }
 }

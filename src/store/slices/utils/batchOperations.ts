@@ -47,16 +47,16 @@ export function processBatchOperations(
     }
 
     // Initialize edge lists if they don't exist
-    if (!graph.edges[fromNode.id]) {
-      graph.edges[fromNode.id] = null;
+    if (!graph.edges.has(fromNode.id)) {
+      graph.edges.set(fromNode.id, null);
     }
-    if (!graph.edges[toNode.id]) {
-      graph.edges[toNode.id] = null;
+    if (!graph.edges.has(toNode.id)) {
+      graph.edges.set(toNode.id, null);
     }
 
     // Add forward edge
     const edgeId = `${fromNode.id}_to_${toNode.id}_by_operation_${operation.type}_${operation.value}`;
-    const edgeHead = graph.edges[fromNode.id];
+    const edgeHead = graph.edges.get(fromNode.id) || null;
     const existingEdge = findEdgeInList(edgeHead, edgeId);
 
     if (!existingEdge) {
@@ -70,9 +70,9 @@ export function processBatchOperations(
       // Prepend to linked list for O(1) insertion
       const newForwardNode: EdgeListNode = {
         val: forwardEdge,
-        next: graph.edges[fromNode.id],
+        next: graph.edges.get(fromNode.id) || null,
       };
-      graph.edges[fromNode.id] = newForwardNode;
+      graph.edges.set(fromNode.id, newForwardNode);
 
       // Add reverse edge
       const reversedOp = reverseOperation(operation);
@@ -87,9 +87,9 @@ export function processBatchOperations(
       // Prepend to linked list for O(1) insertion
       const newReverseNode: EdgeListNode = {
         val: reverseEdge,
-        next: graph.edges[toNode.id],
+        next: graph.edges.get(toNode.id) || null,
       };
-      graph.edges[toNode.id] = newReverseNode;
+      graph.edges.set(toNode.id, newReverseNode);
     }
   }
 }
