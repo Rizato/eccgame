@@ -166,6 +166,7 @@
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 1rem;
+  touch-action: pinch-zoom;
 }
 
 .graph-border {
@@ -388,6 +389,7 @@
   height: min(80vh, 80vw);
   aspect-ratio: 1;
   flex-shrink: 0;
+  touch-action: pinch-zoom;
 }
 
 /* Mobile responsive */

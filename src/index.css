@@ -139,7 +139,7 @@ body {
   background: var(--surface);
   color: var(--text);
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+  touch-action: pan-y pan-x;
   min-width: 320px;
 }
 
