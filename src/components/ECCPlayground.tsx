@@ -9,6 +9,7 @@ import {
   calculateChallengePrivateKeyFromGraph,
   findNodeByPoint,
   calculatePrivateKeyFromGraph,
+  reverseOperation,
 } from '../utils/graphOperations';
 import ECCCalculator from './ECCCalculator';
 import ECCGraph from './ECCGraph';
@@ -112,12 +113,13 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
           seenEdgeIds.add(edge.id);
 
           // Also add the reverse edge ID to avoid counting the reverse direction
-          const reverseEdgeId = `${edge.toNodeId}_to_${edge.fromNodeId}_by_operation_${edge.operation.type}_${edge.operation.value}`;
+          const reversedOp = reverseOperation(edge.operation);
+          const reverseEdgeId = `${edge.toNodeId}_to_${edge.fromNodeId}_by_operation_${reversedOp.type}_${reversedOp.value}`;
           seenEdgeIds.add(reverseEdgeId);
         }
       }
     }
-    setTotalOperationCount(total / 2);
+    setTotalOperationCount(total);
   }, [graph, hasWon]);
 
   // Note: Removed automatic reset to generator when challenge changes
