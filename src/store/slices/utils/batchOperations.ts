@@ -46,6 +46,22 @@ export function processBatchOperations(
       toNode.privateKey = toPointPrivateKey;
     }
 
+    // Update connectedToG status if needed
+    if (connectedToG && !toNode.connectedToG) {
+      toNode.connectedToG = true;
+      // Check if this node is a challenge that just became connected
+      if (toNode.isChallenge) {
+        graph.connectedChallengeNodes.add(toNode.id);
+      }
+    }
+    if (connectedToG && !fromNode.connectedToG) {
+      fromNode.connectedToG = true;
+      // Check if this node is a challenge that just became connected
+      if (fromNode.isChallenge) {
+        graph.connectedChallengeNodes.add(fromNode.id);
+      }
+    }
+
     // Initialize edge lists if they don't exist
     if (!graph.edges.has(fromNode.id)) {
       graph.edges.set(fromNode.id, null);
