@@ -41,6 +41,7 @@ export interface PointGraph {
   pointToNodeId: Map<string, string>; // point hash -> node id for quick lookup
   // X-coordinates for negated point detection
   xCoordinates: Set<string>; // x coordinate strings for O(1) negation lookup
+  connectedChallengeNodes: Set<string>; // Set of challenge node IDs that are connected to G
 }
 
 export interface SavedPoint {

@@ -29,6 +29,7 @@ export interface DailyCalculatorState {
   challengePublicKey: string;
   shouldSubmitSolution: boolean;
   userOperationCount: number;
+  challengeNodeIds: string[];
 }
 
 const generatorPoint = getGeneratorPoint();
@@ -65,6 +66,7 @@ const initialState: DailyCalculatorState = {
   challengePublicKey: '',
   shouldSubmitSolution: false,
   userOperationCount: 0,
+  challengeNodeIds: [],
 };
 
 export const calculateDailyCurrentAddress = createAsyncThunk(
@@ -118,6 +120,23 @@ const dailyCalculatorSlice = createSlice({
         isChallenge: true,
       });
       state.challengeNodeId = challengeNode.id;
+    },
+    addMultipleChallenges: (
+      state,
+      action: PayloadAction<{ publicKey: string; tags: string[] }[]>
+    ) => {
+      const challenges = action.payload;
+      state.challengeNodeIds = [];
+
+      challenges.forEach((challenge, index) => {
+        const challengePoint = publicKeyToPoint(challenge.publicKey);
+        const challengeNode = addCachedNode('daily', challengePoint, {
+          id: `daily_challenge_${index}`,
+          label: `Challenge ${index + 1}`,
+          isChallenge: true,
+        });
+        state.challengeNodeIds.push(challengeNode.id);
+      });
     },
     setChallengeWithPrivateKey: (
       state,
@@ -277,17 +296,6 @@ const dailyCalculatorSlice = createSlice({
       // Remove from saved points
       state.savedPoints = state.savedPoints.filter(point => point.id !== pointId);
     },
-    checkWinCondition: state => {
-      // Win condition: challenge node is connected to generator (has connectedToG property)
-      if (state.challengeNodeId && state.generatorNodeId) {
-        const graph = getCachedGraph('daily');
-        const challengeNode = graph.nodes.get(state.challengeNodeId);
-        if (challengeNode?.connectedToG && !state.hasWon) {
-          state.hasWon = true;
-          state.showVictoryModal = true;
-        }
-      }
-    },
     addOperationToGraph: (state, action: PayloadAction<SingleOperationPayload>) => {
       // Single operation: use cached graph processing
       const { fromPoint, toPoint, operation } = action.payload;
@@ -298,6 +306,12 @@ const dailyCalculatorSlice = createSlice({
       if (operation.userCreated) {
         state.userOperationCount += 1;
       }
+      // Win condition: any challenge node is connected to generator (has connectedToG property)
+      const graph = getCachedGraph('daily');
+      if (graph.connectedChallengeNodes.size > 0 && !state.hasWon) {
+        state.hasWon = true;
+        state.showVictoryModal = true;
+      }
     },
     addBatchOperationsToGraph: (state, action: PayloadAction<SingleOperationPayload[]>) => {
       const operations = action.payload;
@@ -307,6 +321,11 @@ const dailyCalculatorSlice = createSlice({
       const userOperationCount = operations.filter(op => op.operation.userCreated).length;
       if (userOperationCount > 0) {
         state.userOperationCount += userOperationCount;
+      }
+      // Check if any challenge nodes got connected
+      if (graph.connectedChallengeNodes.size > 0 && !state.hasWon) {
+        state.hasWon = true;
+        state.showVictoryModal = true;
       }
     },
     saveState: state => {
@@ -339,6 +358,7 @@ export const {
   setShowVictoryModal,
   setPendingOperation,
   setChallengePublicKey,
+  addMultipleChallenges,
   clearCalculator,
   addToCalculator,
   backspaceCalculator,
@@ -346,7 +366,6 @@ export const {
   resetToGenerator,
   savePoint,
   loadSavedPoint,
-  checkWinCondition,
   addOperationToGraph,
   addBatchOperationsToGraph,
   saveState,

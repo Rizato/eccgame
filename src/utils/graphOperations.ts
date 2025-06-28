@@ -91,6 +91,7 @@ export function createEmptyGraph(): PointGraph {
     edges: new Map(),
     pointToNodeId: new Map(),
     xCoordinates: new Set(),
+    connectedChallengeNodes: new Set(),
   };
 }
 
@@ -142,6 +143,11 @@ export function addNode(
       existingNode.connectedToG = existingNode.connectedToG || options.connectedToG;
     }
 
+    // Check if this node became a connected challenge node
+    if (existingNode.isChallenge && existingNode.connectedToG) {
+      graph.connectedChallengeNodes.add(existingNodeId);
+    }
+
     // If we just set a private key, propagate it to connected nodes
     if (needsPrivateKeyPropagation) {
       unifiedPropagation(graph, [existingNodeId]);
@@ -167,6 +173,11 @@ export function addNode(
     graph.edges.set(nodeId, null);
   }
   graph.pointToNodeId.set(pointHash, nodeId);
+
+  // If this is a challenge node that's connected to G, add it to the set
+  if (node.isChallenge && node.connectedToG) {
+    graph.connectedChallengeNodes.add(nodeId);
+  }
 
   // Check if the negation of this node already exists and create edge if so
   // This enables automatic detection of negation relationships (like reaching -G)
@@ -471,6 +482,14 @@ function propagateIfNeeded(
   toNode.connectedToG = toNode.connectedToG || fromNode.connectedToG;
   fromNode.connectedToG = toNode.connectedToG || fromNode.connectedToG;
 
+  // Check if challenge nodes just became connected
+  if (toNode.connectedToG && !toConnected && toNode.isChallenge) {
+    graph.connectedChallengeNodes.add(toNode.id);
+  }
+  if (fromNode.connectedToG && !fromConnected && fromNode.isChallenge) {
+    graph.connectedChallengeNodes.add(fromNode.id);
+  }
+
   // Queue up if the connected state changed
   let queueFrom = fromNode.connectedToG && !fromConnected;
   let queueTo = toNode.connectedToG && !toConnected;
@@ -535,6 +554,10 @@ function unifiedPropagation(graph: PointGraph, initialQueue: string[]): void {
       if (currentNode.connectedToG && !connectedNode.connectedToG) {
         connectedNode.connectedToG = true;
         needsQueueing = true;
+        // Check if this is a challenge node that just became connected
+        if (connectedNode.isChallenge) {
+          graph.connectedChallengeNodes.add(connectedNode.id);
+        }
       }
 
       try {

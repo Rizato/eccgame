@@ -45,9 +45,6 @@ describe('State Bleeding Integration Tests', () => {
       },
     });
 
-    // Check win condition
-    store.dispatch({ type: 'dailyCalculator/checkWinCondition' });
-
     const state = store.getState();
 
     // Daily mode should not win

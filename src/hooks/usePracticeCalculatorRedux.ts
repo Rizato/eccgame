@@ -13,7 +13,6 @@ import {
   resetToGenerator,
   savePoint,
   loadSavedPoint,
-  checkWinCondition,
   calculatePracticeCurrentAddress,
   setChallengeWithPrivateKey,
   clearPracticeState,
@@ -65,11 +64,6 @@ export function usePracticeCalculatorRedux(challengePublicKey: string, practiceP
   // Calculate current address when point changes
   useEffect(() => {
     dispatch(calculatePracticeCurrentAddress(practiceState.selectedPoint));
-  }, [practiceState.selectedPoint, dispatch]);
-
-  // Check win condition when relevant state changes
-  useEffect(() => {
-    dispatch(checkWinCondition());
   }, [practiceState.selectedPoint, dispatch]);
 
   return {

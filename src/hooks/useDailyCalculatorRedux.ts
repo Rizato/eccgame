@@ -13,7 +13,6 @@ import {
   resetToGenerator,
   savePoint,
   loadSavedPoint,
-  checkWinCondition,
   calculateDailyCurrentAddress,
   setChallengePublicKey,
 } from '../store/slices/eccCalculatorSlice';
@@ -39,11 +38,6 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
   useEffect(() => {
     dispatch(calculateDailyCurrentAddress(dailyState.selectedPoint));
   }, [dailyState.selectedPoint, dispatch]);
-
-  // Check win condition when relevant state changes
-  useEffect(() => {
-    dispatch(checkWinCondition());
-  }, [dailyState.selectedPoint, challengePublicKey, dispatch]);
 
   return {
     // State

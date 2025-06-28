@@ -296,18 +296,6 @@ const practiceCalculatorSlice = createSlice({
       // Remove from saved points
       state.savedPoints = state.savedPoints.filter(point => point.id !== pointId);
     },
-    checkWinCondition: state => {
-      // Win condition: challenge node is connected to generator (has connectedToG property)
-      if (state.challengeNodeId && state.generatorNodeId) {
-        const graph = getCachedGraph('practice');
-        const challengeNode = graph.nodes.get(state.challengeNodeId);
-
-        if (challengeNode?.connectedToG && !state.hasWon) {
-          state.hasWon = true;
-          state.showVictoryModal = true;
-        }
-      }
-    },
     addOperationToGraph: (state, action: PayloadAction<SingleOperationPayload>) => {
       const { fromPoint, toPoint, operation } = action.payload;
       addCachedOperation('practice', fromPoint, toPoint, operation);
@@ -316,6 +304,12 @@ const practiceCalculatorSlice = createSlice({
       // Increment operation count if this is a user-created operation
       if (operation.userCreated) {
         state.userOperationCount += 1;
+      }
+      // Check if any challenge nodes got connected
+      const graph = getCachedGraph('practice');
+      if (graph.connectedChallengeNodes.size > 0 && !state.hasWon) {
+        state.hasWon = true;
+        state.showVictoryModal = true;
       }
     },
     addBatchOperationsToGraph: (state, action: PayloadAction<SingleOperationPayload[]>) => {
@@ -326,6 +320,11 @@ const practiceCalculatorSlice = createSlice({
       const userOperationCount = operations.filter(op => op.operation.userCreated).length;
       if (userOperationCount > 0) {
         state.userOperationCount += userOperationCount;
+      }
+      // Check if any challenge nodes got connected
+      if (graph.connectedChallengeNodes.size > 0 && !state.hasWon) {
+        state.hasWon = true;
+        state.showVictoryModal = true;
       }
     },
     saveState: state => {
@@ -367,7 +366,6 @@ export const {
   savePoint,
   loadSavedPoint,
   unsaveSavedPoint,
-  checkWinCondition,
   addOperationToGraph,
   addBatchOperationsToGraph,
   saveState,
