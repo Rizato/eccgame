@@ -56,11 +56,15 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
     savePoint,
     loadSavedPoint,
     userOperationCount,
+    solvedChallenge,
   } = calculator;
   const [showPointModal, setShowPointModal] = useState(false);
   const [modalPoint, setModalPoint] = useState<ECPoint | null>(null);
   const [modalPointAddress, setModalPointAddress] = useState<string>('');
   const [signature, setSignature] = useState<string>('');
+  const [solvedChallengeWithAddress, setSolvedChallengeWithAddress] = useState<Challenge | null>(
+    null
+  );
 
   const calculatorDisplayRef = useRef<((value: string) => void) | null>(null);
   const generatorPoint = getGeneratorPoint();
@@ -96,6 +100,28 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
       calculateSignature(victoryPrivateKey);
     }
   }, [hasWon, victoryPrivateKey]);
+
+  // Calculate P2PKH address for solved challenge
+  useEffect(() => {
+    const calculateSolvedChallengeAddress = async () => {
+      if (solvedChallenge && solvedChallenge.public_key) {
+        try {
+          const p2pkh_address = await getP2PKHAddress(solvedChallenge.public_key);
+          setSolvedChallengeWithAddress({
+            ...solvedChallenge,
+            p2pkh_address,
+          });
+        } catch (error) {
+          console.error('Failed to calculate P2PKH address for solved challenge:', error);
+          setSolvedChallengeWithAddress(null);
+        }
+      } else {
+        setSolvedChallengeWithAddress(null);
+      }
+    };
+
+    calculateSolvedChallengeAddress();
+  }, [solvedChallenge]);
 
   // Note: Removed automatic reset to generator when challenge changes
   // to preserve current point state when switching between modes
@@ -298,7 +324,7 @@ const ECCPlayground: React.FC<ECCPlaygroundProps> = ({
         signature={signature}
         isPracticeMode={isPracticeMode}
         gaveUp={gameState.gaveUp}
-        challenge={challenge}
+        challenge={solvedChallengeWithAddress || challenge}
       />
     </div>
   );

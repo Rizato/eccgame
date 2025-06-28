@@ -15,6 +15,7 @@ import {
   loadSavedPoint,
   calculateDailyCurrentAddress,
   setChallengePublicKey,
+  getSolvedChallengeData,
 } from '../store/slices/eccCalculatorSlice';
 import { getCachedGraph } from '../utils/graphCache';
 import type { ECPoint, SavedPoint } from '../types/ecc';
@@ -54,6 +55,7 @@ export function useDailyCalculatorRedux(challengePublicKey: string) {
     savedPoints: dailyState.savedPoints,
     shouldSubmitSolution: dailyState.shouldSubmitSolution,
     userOperationCount: dailyState.userOperationCount,
+    solvedChallenge: getSolvedChallengeData(dailyState),
     // Actions
     setCurrentPoint: (point: ECPoint) => dispatch(setSelectedPoint(point)),
     setError: (error: string | null) => dispatch(setError(error)),

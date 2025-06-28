@@ -80,6 +80,7 @@ export function usePracticeCalculatorRedux(challengePublicKey: string, practiceP
     showVictoryModal: practiceState.showVictoryModal,
     savedPoints: practiceState.savedPoints,
     userOperationCount: practiceState.userOperationCount,
+    solvedChallenge: null, // Practice mode uses original challenge, not multiple challenges
     // Actions
     setCurrentPoint: (point: ECPoint) => dispatch(setSelectedPoint(point)),
     setError: (error: string | null) => dispatch(setError(error)),

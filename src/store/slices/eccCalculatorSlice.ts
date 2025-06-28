@@ -30,6 +30,8 @@ export interface DailyCalculatorState {
   shouldSubmitSolution: boolean;
   userOperationCount: number;
   challengeNodeIds: string[];
+  solvedChallengeNodeId: string | null;
+  challengeMapping: Record<string, { publicKey: string; tags: string[] }>;
 }
 
 const generatorPoint = getGeneratorPoint();
@@ -67,6 +69,8 @@ const initialState: DailyCalculatorState = {
   shouldSubmitSolution: false,
   userOperationCount: 0,
   challengeNodeIds: [],
+  solvedChallengeNodeId: null,
+  challengeMapping: {},
 };
 
 export const calculateDailyCurrentAddress = createAsyncThunk(
@@ -127,15 +131,24 @@ const dailyCalculatorSlice = createSlice({
     ) => {
       const challenges = action.payload;
       state.challengeNodeIds = [];
+      state.challengeMapping = {};
 
       challenges.forEach((challenge, index) => {
-        const challengePoint = publicKeyToPoint(challenge.publicKey);
-        const challengeNode = addCachedNode('daily', challengePoint, {
-          id: `daily_challenge_${index}`,
-          label: `Challenge ${index + 1}`,
-          isChallenge: true,
-        });
-        state.challengeNodeIds.push(challengeNode.id);
+        if (challenge && challenge.publicKey) {
+          const challengePoint = publicKeyToPoint(challenge.publicKey);
+          const nodeId = `daily_challenge_${index}`;
+          const challengeNode = addCachedNode('daily', challengePoint, {
+            id: nodeId,
+            label: `Challenge ${index + 1}`,
+            isChallenge: true,
+          });
+          state.challengeNodeIds.push(challengeNode.id);
+          // Store mapping for later use
+          state.challengeMapping[nodeId] = {
+            publicKey: challenge.publicKey,
+            tags: challenge.tags,
+          };
+        }
       });
     },
     setChallengeWithPrivateKey: (
@@ -246,6 +259,7 @@ const dailyCalculatorSlice = createSlice({
       state.lastOperationValue = null;
       state.hasWon = false;
       state.showVictoryModal = false;
+      state.solvedChallengeNodeId = null;
     },
     savePoint: (state, action: PayloadAction<{ label?: string }>) => {
       const { label } = action.payload;
@@ -290,6 +304,7 @@ const dailyCalculatorSlice = createSlice({
       state.lastOperationValue = null;
       state.hasWon = false;
       state.showVictoryModal = false;
+      state.solvedChallengeNodeId = null;
     },
     unsaveSavedPoint: (state, action: PayloadAction<string>) => {
       const pointId = action.payload;
@@ -309,6 +324,9 @@ const dailyCalculatorSlice = createSlice({
       // Win condition: any challenge node is connected to generator (has connectedToG property)
       const graph = getCachedGraph('daily');
       if (graph.connectedChallengeNodes.size > 0 && !state.hasWon) {
+        // Find the first connected challenge node
+        const connectedNodeId = Array.from(graph.connectedChallengeNodes)[0];
+        state.solvedChallengeNodeId = connectedNodeId;
         state.hasWon = true;
         state.showVictoryModal = true;
       }
@@ -324,6 +342,9 @@ const dailyCalculatorSlice = createSlice({
       }
       // Check if any challenge nodes got connected
       if (graph.connectedChallengeNodes.size > 0 && !state.hasWon) {
+        // Find the first connected challenge node
+        const connectedNodeId = Array.from(graph.connectedChallengeNodes)[0];
+        state.solvedChallengeNodeId = connectedNodeId;
         state.hasWon = true;
         state.showVictoryModal = true;
       }
@@ -373,3 +394,17 @@ export const {
 } = dailyCalculatorSlice.actions;
 
 export default dailyCalculatorSlice.reducer;
+
+// Helper function to get the solved challenge data
+export const getSolvedChallengeData = (state: DailyCalculatorState) => {
+  if (!state.solvedChallengeNodeId || !state.challengeMapping[state.solvedChallengeNodeId]) {
+    return null;
+  }
+
+  const challengeData = state.challengeMapping[state.solvedChallengeNodeId];
+  return {
+    public_key: challengeData.publicKey,
+    tags: challengeData.tags,
+    p2pkh_address: '', // This will need to be calculated when needed
+  };
+};

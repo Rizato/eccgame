@@ -1,7 +1,11 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { challenges } from '../../data/challenges.json';
 import { getP2PKHAddress } from '../../utils/crypto';
-import { loadState as loadDailyState, saveState as saveDailyState } from './eccCalculatorSlice';
+import {
+  loadState as loadDailyState,
+  saveState as saveDailyState,
+  addMultipleChallenges,
+} from './eccCalculatorSlice';
 import {
   loadState as loadPracticeState,
   saveState as savePracticeState,
@@ -49,6 +53,11 @@ export const switchGameMode = (mode: GameMode): AppThunk => {
     // Load the new mode's state
     if (mode === 'daily') {
       dispatch(loadDailyState());
+      // Load all challenges into the graph when switching to daily mode
+      const state = getState() as { game: GameState };
+      if (state.game.challenges && state.game.challenges.length > 0) {
+        dispatch(addMultipleChallenges(state.game.challenges));
+      }
     } else if (mode === 'practice') {
       dispatch(loadPracticeState());
     }
@@ -87,6 +96,11 @@ export const loadDailyChallenge = (): AppThunk => {
       };
 
       dispatch(setChallenge(challenge));
+
+      // Load all challenges into the graph for multiple win conditions
+      if (challenges && challenges.length > 0) {
+        dispatch(addMultipleChallenges(challenges));
+      }
     } catch (error) {
       console.error('Error loading daily challenge:', error);
       dispatch(setError(error instanceof Error ? error.message : 'Failed to load challenge'));
